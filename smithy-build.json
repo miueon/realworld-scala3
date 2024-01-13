@@ -1,0 +1,6 @@
+{
+    "version": "1.0",
+    "mavenDependencies": [
+        "com.disneystreaming.smithy4s:allot-2.13:latest.stable"
+    ]
+}
