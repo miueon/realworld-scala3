@@ -7,7 +7,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 val Versions = new {
   val http4sBlaze       = "0.23.14"
   val http4s            = "0.23.18"
-  val Scala             = "3.2.2"
+  val Scala             = "3.3.1"
   val skunk             = "0.5.1"
   val upickle           = "2.0.0"
   val scribe            = "3.11.1"
@@ -154,6 +154,7 @@ lazy val frontend = projectMatrix
   .defaultAxes((defaults :+ VirtualAxis.js)*)
   .dependsOn(shared)
   .enablePlugins(ScalaJSPlugin, BundleMonPlugin)
+  .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
   .settings(
     scalaJSUseMainModuleInitializer := true,
     scalaJSLinkerConfig := {
@@ -168,7 +169,9 @@ lazy val frontend = projectMatrix
           )
           .withModuleKind(ModuleKind.ESModule)
           .withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
+          .withSourceMap(true)
     },
+    externalNpm := (ThisBuild / baseDirectory).value / "frontend-build",
     libraryDependencies ++= Seq(
       "dev.optics"                   %%% "monocle-core" % Versions.monocle,
       "com.raquo"                    %%% "waypoint"     % Versions.waypoint,

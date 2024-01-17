@@ -1,12 +1,21 @@
 {
   "name": "jobby",
   "version": "0.1.0",
+  "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview"
   },
   "devDependencies": {
-    "vite": "^3.0.0"
+    "@scala-js/vite-plugin-scalajs": "^1.0.0",
+    "typescript": "^5.3.3",
+    "vite": "^4.1.0",
+    "@types/chart.js": "^2.9.29",
+    "@stripe/stripe-js": "^2.3.0"
+  },
+  "dependencies": {
+    "@stripe/stripe-js": "^2.3.0",
+    "chart.js": "^2.9.4"
   }
 }
