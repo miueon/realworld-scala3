@@ -9,29 +9,29 @@ import org.flywaydb.core.api.exception.FlywayValidateException
 import java.io.File
 import java.io.FileInputStream
 
-def migrate(postgres: PgCredentials) =
-  import postgres.*
-  val url =
-    s"jdbc:postgresql://$host:$port/$database"
+// def migrate(postgres: PgCredentials) =
+//   import postgres.*
+//   val url =
+//     s"jdbc:postgresql://$host:$port/$database"
 
-  val flyway =
-    IO(Flyway.configure().dataSource(url, user, password.getOrElse("")).load())
-      .flatMap { f =>
-        val migrate = IO(f.migrate()).void
-        val repair  = IO(f.repair()).void
+//   val flyway =
+//     IO(Flyway.configure().dataSource(url, user, password.getOrElse("")).load())
+//       .flatMap { f =>
+//         val migrate = IO(f.migrate()).void
+//         val repair  = IO(f.repair()).void
 
-        migrate.handleErrorWith {
-          case _: FlywayValidateException =>
-            repair.redeemWith[Unit](
-              ex => IO.raiseError(ex),
-              _ => migrate
-            )
-          case other => IO.raiseError(other)
-        }
-      }
+//         migrate.handleErrorWith {
+//           case _: FlywayValidateException =>
+//             repair.redeemWith[Unit](
+//               ex => IO.raiseError(ex),
+//               _ => migrate
+//             )
+//           case other => IO.raiseError(other)
+//         }
+//       }
 
-  Resource.eval(flyway)
-end migrate
+//   Resource.eval(flyway)
+// end migrate
 
 object Main extends IOApp:
   import scala.jdk.CollectionConverters.*
@@ -63,14 +63,15 @@ object Main extends IOApp:
 
     scribe.info(s"Args: $args")
 
-    Resource
-      .eval(props.flatMap { p => AppConfig.load(sys.env, args, p) })
-      .evalTap(ac => scribe.cats.io.info(ac.toString))
-      .flatMap(JobbyApp.bootstrap(_, logger))
-      .flatTap(app => migrate(app.config.postgres))
-      .flatMap(jobbyApp =>
-        jobbyApp.routes.flatMap(Server(jobbyApp.config.http, _))
-      )
-      .use(_ => IO.never)
+    // Resource
+    //   .eval(props.flatMap { p => AppConfig.load(sys.env, args, p) })
+    //   .evalTap(ac => scribe.cats.io.info(ac.toString))
+    //   .flatMap(JobbyApp.bootstrap(_, logger))
+    //   .flatTap(app => migrate(app.config.postgres))
+    //   .flatMap(jobbyApp =>
+    //     jobbyApp.routes.flatMap(Server(jobbyApp.config.http, _))
+    //   )
+    //   .use(_ => IO.never)
+    ???
   end run
 end Main
