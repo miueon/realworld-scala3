@@ -9,13 +9,14 @@
   },
   "devDependencies": {
     "@scala-js/vite-plugin-scalajs": "^1.0.0",
-    "typescript": "^5.3.3",
-    "vite": "^4.1.0",
     "@types/chart.js": "^2.9.29",
-    "@stripe/stripe-js": "^2.3.0"
+    "postcss": "^8.4.33",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.3.3",
+    "vite": "^4.1.0"
   },
   "dependencies": {
-    "@stripe/stripe-js": "^2.3.0",
+    "autoprefixer": "^10.4.17",
     "chart.js": "^2.9.4"
   }
 }

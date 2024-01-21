@@ -241,14 +241,27 @@ buildFrontend := {
   val (_, folder) = frontendModules.value
   val buildDir    = (ThisBuild / baseDirectory).value / "frontend-build"
 
-  val indexHtml = buildDir / "index.html"
-  val out       = folder.getParentFile() / "index.html"
+  def copyFile(fileNames: List[String], baseDir: File, outDir: File) =
+    fileNames.foreach(name => {
+      val indexHtml = buildDir / name
+      val out       = folder.getParentFile() / name
 
-  import java.nio.file.Files
+      import java.nio.file.Files
 
-  if (!Files.exists(out.toPath) || IO.read(indexHtml) != IO.read(out)) {
-    IO.copyFile(indexHtml, out)
-  }
+      if (!Files.exists(out.toPath) || IO.read(indexHtml) != IO.read(out)) {
+        IO.copyFile(indexHtml, out)
+      }
+    })
+  copyFile(List("index.html", "output.css"), buildDir, folder.getParentFile())
+
+  // val indexHtml = buildDir / "index.html"
+  // val out       = folder.getParentFile() / "index.html"
+
+  // import java.nio.file.Files
+
+  // if (!Files.exists(out.toPath) || IO.read(indexHtml) != IO.read(out)) {
+  //   IO.copyFile(indexHtml, out)
+  // }
 }
 
 ThisBuild / concurrentRestrictions ++= {
