@@ -1,14 +1,16 @@
 import com.raquo.laminar.api.L.*
 import org.scalajs.dom
+import jobby.Api
 
-def hello = 
+def hello(using api: Api) =
   div(
-    className := "text-10xl font-thicker font-fancy-sans backdrop:fi",
-    span(
-      "Hello, World"
-    )
+    className := "font-medium",
+    child.text <-- api.stream { a =>
+      a.hello.get().map(_.message)
+    }
   )
 
 @main
-def helloWorld = 
+def helloWorld =
+  given Api = Api.create()
   render(dom.document.querySelector("#app"), hello)

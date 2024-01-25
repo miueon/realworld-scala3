@@ -6,7 +6,7 @@ export default {
   ],
   theme: {
     fontFamily: {
-      'fancy-sans': ['Poppins', 'sans-serif']
+      'fancy-sans': ['Poppins', 'sans-serif'],
     },
     fontWeight: {
       thinner: '400', // only italic

@@ -173,6 +173,7 @@ lazy val frontend = projectMatrix
     },
     externalNpm := (ThisBuild / baseDirectory).value / "frontend-build",
     libraryDependencies ++= Seq(
+      ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13),
       "dev.optics"                   %%% "monocle-core" % Versions.monocle,
       "com.raquo"                    %%% "waypoint"     % Versions.waypoint,
       "com.github.japgolly.scalacss" %%% "core"         % Versions.scalacss,
