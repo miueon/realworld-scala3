@@ -1,4 +1,4 @@
-package jobby 
+package realworld
 import realworld.spec.HelloWorldService
 import realworld.spec.HelloWorldResponse
 import realworld.spec.HelloWorldServiceGen
@@ -20,5 +20,3 @@ object Routes:
   private val docs = smithy4s.http4s.swagger.docs[IO](HelloWorldService)
 
   val all: Resource[IO, HttpApp[IO]] = example.map(_ <+> docs).map(_.orNotFound)
-
-

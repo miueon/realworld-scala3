@@ -5,14 +5,21 @@ import smithy4s.codegen.Smithy4sCodegenPlugin
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 val Versions = new {
+  val ciris             = "3.5.0"
+  val kitten            = "3.0.0"
+  val iron              = "2.4.0"
+  val logback           = "1.2.11"
+  val redis4cats        = "1.5.1"
+  val scalaCheck        = "1.17.0"
+  val doobie            = "1.0.0-RC4"
+  val doobieTypeSafe    = "0.1.0"
+  val flyway            = "10.4.1"
+  val log4cats          = "2.6.0"
   val http4sBlaze       = "0.23.14"
   val http4s            = "0.23.18"
   val Scala             = "3.3.1"
-  val skunk             = "0.5.1"
-  val upickle           = "2.0.0"
-  val scribe            = "3.11.1"
   val http4sDom         = "0.2.7"
-  val jwt               = "9.2.0"
+  val jwt               = "9.1.2"
   val Flyway            = "9.16.3"
   val Postgres          = "42.6.0"
   val TestContainers    = "0.40.15"
@@ -22,7 +29,7 @@ val Versions = new {
   val waypoint          = "6.0.0"
   val scalacss          = "1.0.0"
   val monocle           = "3.2.0"
-  val circe             = "0.14.5"
+  val circe             = "0.14.3"
   val macroTaskExecutor = "1.1.1"
 }
 
@@ -81,6 +88,21 @@ def copyAll(location: File, outDir: File) = {
   }
 }
 
+val iron = Seq(
+  "io.github.iltotore" %% "iron"       % Versions.iron,
+  "io.github.iltotore" %% "iron-cats"  % Versions.iron,
+  "io.github.iltotore" %% "iron-circe" % Versions.iron,
+  "io.github.iltotore" %% "iron-ciris" % Versions.iron
+)
+
+val db = Seq(
+  "org.flywaydb"        % "flyway-core"     % Versions.flyway,
+  "org.tpolecat"       %% "doobie-postgres" % Versions.doobie,
+  "org.tpolecat"       %% "doobie-hikari"   % Versions.doobie,
+  "io.github.arturaz"  %% "doobie-typesafe" % Versions.doobieTypeSafe,
+  "io.github.iltotore" %% "iron-doobie"     % Versions.iron
+)
+
 lazy val backend = projectMatrix
   .in(file("modules/backend"))
   .dependsOn(shared)
@@ -92,13 +114,15 @@ lazy val backend = projectMatrix
     libraryDependencies ++= Seq(
       ("com.disneystreaming.smithy4s" %% "smithy4s-http4s" % smithy4sVersion.value),
       "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % smithy4sVersion.value,
-      "com.github.jwt-scala" %% "jwt-upickle"  % Versions.jwt,
-      "com.lihaoyi"          %% "upickle"      % Versions.upickle,
-      "com.outr"             %% "scribe"       % Versions.scribe,
-      "com.outr"             %% "scribe-cats"  % Versions.scribe,
-      "com.outr"             %% "scribe-slf4j" % Versions.scribe,
-      "org.tpolecat"         %% "skunk-core"   % Versions.skunk
+      "com.github.jwt-scala" %% "jwt-circe"           % Versions.jwt,
+      "dev.optics"           %% "monocle-core"        % Versions.monocle,
+      "dev.profunktor"       %% "redis4cats-effects"  % Versions.redis4cats,
+      "dev.profunktor"       %% "redis4cats-log4cats" % Versions.redis4cats,
+      "org.typelevel"        %% "log4cats-slf4j"      % Versions.log4cats,
+      "is.cir"               %% "ciris"               % Versions.ciris,
+      "is.cir"               %% "ciris-refined"       % Versions.ciris
     ),
+    libraryDependencies ++= db,
     libraryDependencies ++=
       Seq(
         "com.dimafeng" %% "testcontainers-scala-postgresql" % Versions.TestContainers,
@@ -108,9 +132,9 @@ lazy val backend = projectMatrix
         "org.http4s"          %% "http4s-blaze-server" % Versions.http4sBlaze,
         "org.http4s"          %% "http4s-blaze-client" % Versions.http4sBlaze,
         "org.http4s"          %% "http4s-ember-server" % Versions.http4s,
-        "org.http4s"          %% "http4s-ember-client" % Versions.http4s,
-        "org.postgresql"       % "postgresql"          % Versions.Postgres,
-        "org.flywaydb"         % "flyway-core"         % Versions.Flyway
+        "org.http4s"          %% "http4s-ember-client" % Versions.http4s
+        // "org.postgresql"       % "postgresql"          % Versions.Postgres,
+        // "org.flywaydb"         % "flyway-core"         % Versions.Flyway
       ).map(_ % Test),
     testFrameworks += new TestFramework("weaver.framework.CatsEffect"),
     Test / fork          := true,
@@ -124,7 +148,6 @@ lazy val backend = projectMatrix
       }
     }
   )
-
 lazy val shared = projectMatrix
   .in(file("modules/shared"))
   .defaultAxes(defaults*)
@@ -133,9 +156,8 @@ lazy val shared = projectMatrix
   .enablePlugins(Smithy4sCodegenPlugin)
   .settings(
     libraryDependencies ++= Seq(
-      "com.disneystreaming.smithy4s" %%% "smithy4s-http4s" % smithy4sVersion.value,
-      "io.lemonlabs" %%% "scala-uri" % "4.0.3"
-    ),
+      "com.disneystreaming.smithy4s" %%% "smithy4s-http4s" % smithy4sVersion.value
+    ) ++ iron,
     Compile / doc / sources := Seq.empty
   )
 
@@ -173,12 +195,12 @@ lazy val frontend = projectMatrix
     },
     externalNpm := (ThisBuild / baseDirectory).value / "frontend-build",
     libraryDependencies ++= Seq(
-      ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0").cross(CrossVersion.for3Use2_13),
+      ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
+        .cross(CrossVersion.for3Use2_13),
       "dev.optics"                   %%% "monocle-core" % Versions.monocle,
       "com.raquo"                    %%% "waypoint"     % Versions.waypoint,
       "com.github.japgolly.scalacss" %%% "core"         % Versions.scalacss,
       "com.raquo"                    %%% "laminar"      % Versions.Laminar,
-      "com.lihaoyi"                  %%% "upickle"      % Versions.upickle,
       "io.circe"                     %%% "circe-core"   % Versions.circe,
       "io.circe"                     %%% "circe-parser" % Versions.circe,
       "org.http4s"                   %%% "http4s-dom"   % Versions.http4sDom,

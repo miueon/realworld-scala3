@@ -1,93 +1,233 @@
 $version: "2.0"
 
-namespace jobby.spec
+metadata suppressions = [{
+    id: "HttpHeaderTrait"
+    namespace: "realworld.spec"
+    reason: ""
+}]
+namespace realworld.spec
 
 use alloy#simpleRestJson
 use alloy#uuidFormat
+use alloy.common#emailFormat
+use realworld.spec#UnauthorizedError
+use realworld.spec#nonEmptyString
+// SERVICES
 
 @simpleRestJson
 service UserService {
-  version: "1.0.0",
-  operations: [Login, Register, Refresh]
+    version: "1.0.0"
+    operations: [
+        LoginUser
+        RegisterUser
+        GetUser
+        UpdateUser
+        GetProfile
+        FollowUser
+        UnfollowUser
+    ]
 }
 
 @http(method: "POST", uri: "/api/users/login", code: 200)
-operation Login {
-  input: LoginInput,
-  output: Tokens,
-  errors: [CredentialsError]
+operation LoginUser {
+    input: LoginUserInput
+    output: LoginUserOutput
+    errors: [CredentialsError]
 }
 
 @idempotent
-@http(method: "PUT", uri: "/api/users/register", code: 204)
-operation Register {
-  input: RegisterInput,
-  errors: [ValidationError]
+@http(method: "PUT", uri: "/api/users", code: 200)
+operation RegisterUser {
+    input: RegisterUserInput
+    output: RegisterUserOutput
+    errors: [ValidationError]
 }
 
-@http(method: "POST", uri: "/api/users/refresh", code: 200)
-operation Refresh {
-  input: RefreshInput,
-  output: RefreshOutput,
-  errors: [CredentialsError, UnauthorizedError]
+@idempotent
+@http(method: "GET", uri: "/api/user", code: 200)
+operation GetUser {
+    input: GetUserInput
+    output: GetUserOutput
+    errors: [UnauthorizedError]
 }
 
-structure RefreshInput {
-  @httpHeader("Cookie")
-  refreshToken: RefreshToken,
-
-  @httpQuery("logout")
-  logout: Boolean
+@idempotent
+@http(method: "PUT", uri: "/api/user", code: 200)
+operation UpdateUser {
+    input: UpdateUserInput
+    output: UpdateUserOutput
+    errors: [CredentialsError]
 }
 
-structure RefreshOutput {
-  access_token: AccessToken,
-
-  @httpHeader("Set-Cookie")
-  logout: Cookie,
-  
-  @required
-  expires_in: TokenExpiration
+@readonly
+@http(method: "GET", uri: "/api/profiles/{username}", code: 200)
+operation GetProfile {
+    input: GetProfileInput
+    output: GetProfileOutput
+    errors: [NotFoundError]
 }
 
-structure RegisterInput {
-  @required 
-  login: UserLogin,
-
-  @required 
-  password: UserPassword
+@http(method: "POST", uri: "/api/profiles/{username}/follow", code: 200)
+operation FollowUser {
+    input: FollowUserInput
+    output: FollowUserOutput
+    errors: [UnauthorizedError]
 }
 
-structure LoginInput {
-  @required 
-  login: UserLogin,
-
-  @required 
-  password: UserPassword
+@idempotent
+@http(method: "DELETE", uri: "/api/profiles/{username}/follow", code: 200)
+operation UnfollowUser {
+    input: UnfollowUserInput
+    output: UnfollowUserOutput
+    errors: [UnauthorizedError]
 }
 
-structure Tokens {
-  @required
-  access_token: AccessToken,
-
-  @httpHeader("Set-Cookie")
-  cookie: Cookie,
-  expires_in: TokenExpiration
+// STRUCTURES
+structure UnfollowUserInput {
+    @required
+    @httpLabel
+    username: Username
+    @required
+    @httpHeader("Authorization")
+    auth: AuthHeader
 }
 
-@uuidFormat
-string UserId
-string UserLogin
-string UserPassword
+structure UnfollowUserOutput {
+    @required
+    profile: Profile
+}
 
-string AccessToken
-string RefreshToken
-string Cookie
-integer TokenExpiration
+structure FollowUserInput {
+    @required
+    @httpLabel
+    username: Username
+    @required
+    @httpHeader("Authorization")
+    auth: AuthHeader
+}
+
+structure FollowUserOutput {
+    @required
+    profile: Profile
+}
+
+structure GetProfileInput {
+    @required
+    @httpLabel
+    username: Username
+    @httpHeader("Authorization")
+    auth: AuthHeader
+}
+
+structure GetProfileOutput {
+    @required
+    profile: Profile
+}
+
+structure GetUserInput {
+    @httpHeader("Authorization")
+    @required
+    auth: AuthHeader
+}
+
+structure GetUserOutput {
+    @required
+    user: User
+}
+
+structure RegisterUserInput {
+    @required
+    user: RegisterUserData
+}
+
+structure RegisterUserData {
+    @required
+    username: Username
+    @required
+    email: Email
+    @required
+    password: Password
+}
+
+structure RegisterUserOutput {
+    @required
+    user: User
+}
+
+structure LoginUserInput {
+    @required
+    user: LoginUserInputData
+}
+
+structure LoginUserInputData {
+    @required
+    email: Email
+    @required
+    password: Password
+}
+
+structure LoginUserOutput {
+    @required
+    user: User
+}
+
+structure UpdateUserInput {
+    @httpHeader("Authorization")
+    @required
+    auth: AuthHeader
+    @required
+    user: UpdateUserData
+}
+
+structure UpdateUserData {
+    email: Email
+    username: Username
+    password: Password
+    bio: Bio
+    image: ImageUrl
+}
+
+structure UpdateUserOutput {
+    @required
+    user: User
+}
+
+structure User {
+    @required
+    email: Email
+    token: Token
+    @required
+    username: Username
+    bio: Bio
+    image: ImageUrl
+}
+
+structure Profile {
+    @required
+    username: Username
+    bio: Bio
+    image: ImageUrl
+    following: Boolean
+}
+
+// @uuidFormat
+// string UserId
+@nonEmptyString
+string Password
+
+@emailFormat
+string Email
+
+string Token
+
+@nonEmptyString
+string Username
+
+string Bio
 
 @error("client")
 @httpError(400)
 structure CredentialsError {
-  @required
-  message: String
+    @required
+    message: String
 }
