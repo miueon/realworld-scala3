@@ -1,5 +1,4 @@
 $version: "2.0"
-
 namespace realworld.spec
 
 @error("client")
@@ -22,6 +21,10 @@ structure ForbiddenError {}
 @error("client")
 @httpError(404)
 structure NotFoundError {}
+
+@error("client")
+@httpError(422)
+structure UnprocessableEntity {}
 
 string AuthHeader
 

@@ -1,74 +1,124 @@
 package realworld.service
 
+import cats.data.NonEmptyVector
+import cats.data.*
 import cats.effect.*
 import cats.syntax.all.*
+import cats.~>
 
 import doobie.*
+import doobie.hikari.HikariTransactor
 import doobie.implicits.*
+import io.github.iltotore.iron.refine
+import realworld.db.DoobieTx
+import realworld.db.transaction
+import realworld.domain.ID
+import realworld.domain.WithId
+import realworld.domain.users.DBUser
+import realworld.domain.users.EncryptedPassword
+import realworld.domain.users.UserError
 import realworld.domain.users.UserId
+import realworld.domain.users.Users.password
+import realworld.effects.GenUUID
 import realworld.spec.Email
 import realworld.spec.NotFoundError
-import realworld.spec.User
-import realworld.domain.users.UserWithPassword
-import doobie.hikari.HikariTransactor
-import realworld.db.Database
+import realworld.spec.Password
 import realworld.spec.RegisterUserData
+import realworld.spec.UpdateUserData
+import realworld.spec.User
 import realworld.spec.Username
-import realworld.domain.users.EncryptedPassword
-import cats.data.NonEmptyVector
-import realworld.effects.GenUUID
-import realworld.domain.ID
+import realworld.types.NonEmptyStringR
 
 trait Users[F[_]]:
-  def get(userId: UserId): F[User]
-  def findByEmail(email: Email): F[Option[UserWithPassword]]
+  def findByEmail(email: Email): F[Option[WithId[UserId, DBUser]]]
+  def findByUsername(username: Username): F[Option[WithId[UserId, DBUser]]]
+  def tx: Resource[F, TxUsers[F]]
+
+trait TxUsers[F[_]]:
   def create(
+      uid: UserId,
       user: RegisterUserData,
       encryptedPassword: EncryptedPassword
   ): F[Int]
 
-object Users:
-  def make[F[_]: MonadCancelThrow: GenUUID](db: Database[F]) =
-    new Users[F]:
-      import UserSQL as u
-      def get(userId: UserId): F[User] =
-        db.transact(u.get(userId))
-          .flatMap:
-            case Some(user) => user.pure[F]
-            case None       => NotFoundError().raiseError[F, User]
+  def update(
+      uid: UserId,
+      updateData: UpdateUserData,
+      hasedPsw: Option[EncryptedPassword]
+  ): F[Option[WithId[UserId, DBUser]]]
 
-      def findByEmail(email: Email): F[Option[UserWithPassword]] =
-        db.transact(u.findByEmail(email))
+object Users:
+  extension (u: UpdateUserData)
+    def update(user: DBUser, password: Option[EncryptedPassword]): DBUser =
+      DBUser(
+        u.email.orElse(user.email.some).get,
+        u.username.orElse(user.username.some).get,
+        password.orElse(user.password.some).get,
+        u.bio.orElse(user.bio),
+        u.image.orElse(user.image)
+      )
+
+  import UserSQL as u
+  def make[F[_]: MonadCancelThrow: DoobieTx](xa: Transactor[F]) =
+    new Users[F]():
+      def findByEmail(email: Email): F[Option[WithId[UserId, DBUser]]] =
+        u.findByEmail(email).transact(xa)
+
+      // def update(uid: UserId, updateData: UpdateUserData): F[DBUser] =
+
+      def findByUsername(
+          username: Username
+      ): F[Option[WithId[UserId, DBUser]]] =
+        u.findByUsername(username).transact(xa)
+
+      def tx: Resource[F, TxUsers[F]] =
+        xa.transaction.map(transactional[F])
+
+  private def transactional[F[_]: MonadCancelThrow](
+      fk: ConnectionIO ~> F
+  ): TxUsers[F] =
+    new:
       def create(
+          uid: UserId,
           user: RegisterUserData,
           encryptedPassword: EncryptedPassword
-      ): F[Int] =
-        ID.make[F, UserId]
-          .flatMap(userId =>
-            db.transact(
-              u.create(userId, user.username, user.email, encryptedPassword)
-            )
-          )
+      ): F[Int] = fk {
+        u.create(uid, user.username, user.email, encryptedPassword)
+      }
+
+      def update(
+          uid: UserId,
+          updateData: UpdateUserData,
+          hashedPsw: Option[EncryptedPassword]
+      ): F[Option[WithId[UserId, DBUser]]] = fk {
+        u.update(uid, updateData, hashedPsw)
+      }
+  end transactional
 end Users
 
 private object UserSQL:
   import realworld.domain.users.Users as u
-  import realworld.domain.users.UserWithPassword as upass
   import realworld.domain.users.given
 
   private def queryUser(
       conditionFragment: Fragment
-  ): ConnectionIO[Option[User]] =
-    (fr"SELECT ${u.columns} FROM $u" ++ conditionFragment)
-      .queryOf(u.columns)
+  ) =
+    (fr"SELECT ${u.rowCol} FROM $u" ++ conditionFragment)
+      .queryOf(u.rowCol)
+
+  def get(userId: UserId): ConnectionIO[Option[WithId[UserId, DBUser]]] =
+    queryUser(fr"WHERE ${u.id === userId}").option
+
+  def findByEmail(email: Email): ConnectionIO[Option[WithId[UserId, DBUser]]] =
+    sql"SELECT ${u.columns} FROM $u WHERE ${u.email === email}"
+      .queryOf(u.rowCol)
       .option
 
-  def get(userId: UserId): ConnectionIO[Option[User]] =
-    queryUser(fr"WHERE ${u.id === userId}")
-
-  def findByEmail(email: Email): ConnectionIO[Option[UserWithPassword]] =
-    sql"SELECT ${upass.columns} FROM $u WHERE ${u.email === email}"
-      .queryOf(upass.columns)
+  def findByUsername(
+      username: Username
+  ): ConnectionIO[Option[WithId[UserId, DBUser]]] =
+    sql"SELECT ${u.columns} FROM $u WHERE ${u.username === username}"
+      .queryOf(u.rowCol)
       .option
 
   def create(
@@ -87,4 +137,31 @@ private object UserSQL:
       )
     ).update.run
 
+  def update(
+      uid: UserId,
+      updateData: UpdateUserData,
+      hashedPsw: Option[EncryptedPassword]
+  ): ConnectionIO[Option[WithId[UserId, DBUser]]] =
+    val emailopt    = updateData.email.map(u.email --> _)
+    val usernameopt = updateData.username.map(u.username --> _)
+    val pswopt      = hashedPsw.map(u.password --> _)
+
+    val optionalFields = List(emailopt, usernameopt, pswopt).flatten
+    val mandatoryFields =
+      List(u.bio --> updateData.bio, u.image --> updateData.image)
+
+    NonEmptyList
+      .fromList(optionalFields ++ mandatoryFields)
+      .fold(get(uid)) { (nf: NonEmptyList[(Fragment, Fragment)]) =>
+        sql"""
+          ${updateTable[NonEmptyList](u, nf)} WHERE ${u.id === uid}
+        """.update
+          .withUniqueGeneratedKeys[WithId[UserId, DBUser]](
+            u.rowCol.columns.map(_.rawName).toList*
+          )
+          .some
+          .sequence
+      }
+
+  end update
 end UserSQL

@@ -10,8 +10,13 @@ import io.circe.Json
 import io.circe.syntax.*
 import realworld.spec.User
 import smithy4s.Document
+import realworld.spec.Email
+import realworld.spec.Username
+import realworld.spec.Token
+import realworld.spec.Bio
+import realworld.spec.ImageUrl
 
-package object service:
+package object domain:
   def documentToJson(doc: Document): Json = doc match
     case Document.DNumber(value)  => value.asJson
     case Document.DString(value)  => value.asJson
@@ -52,4 +57,9 @@ package object service:
   end documentCodec
 
   given Codec[User] = documentCodec
-end service
+  given Codec[Email] = documentCodec
+  given Codec[Username] = documentCodec
+  given Codec[Token] = documentCodec
+  given Codec[Bio] = documentCodec
+  given Codec[ImageUrl] = documentCodec
+end domain

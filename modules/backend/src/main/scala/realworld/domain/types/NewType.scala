@@ -8,6 +8,8 @@ import cats.Show
 import doobie.util.Write
 import doobie.util.Read
 import java.util.UUID
+import io.circe.Encoder
+import io.circe.Decoder
 
 abstract class DeriveType[A]:
   opaque type Type = A
@@ -24,7 +26,9 @@ abstract class Newtype[A](using
     ord: Order[A],
     shw: Show[A],
     wr: Write[A],
-    rd: Read[A]
+    rd: Read[A],
+    enc: Encoder[A],
+    dec: Decoder[A]
 ) extends DeriveType[A]:
 
   given Eq[Type]       = derive[Eq]
@@ -33,6 +37,8 @@ abstract class Newtype[A](using
   given Write[Type]    = derive
   given Read[Type]     = derive
   given Ordering[Type] = derive(using ord.toOrdering)
+  given Encoder[Type]  = derive
+  given Decoder[Type]  = derive
 end Newtype
 
 import realworld.domain.Instances.given_Meta_UUID

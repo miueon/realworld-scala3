@@ -11,10 +11,12 @@ use alloy#simpleRestJson
 use alloy#uuidFormat
 use alloy.common#emailFormat
 use realworld.spec#UnauthorizedError
+use realworld.spec#UnprocessableEntity
 use realworld.spec#nonEmptyString
 // SERVICES
 
 @simpleRestJson
+@httpBearerAuth
 service UserService {
     version: "1.0.0"
     operations: [
@@ -26,9 +28,11 @@ service UserService {
         FollowUser
         UnfollowUser
     ]
+    errors: [UnauthorizedError]
 }
 
 @http(method: "POST", uri: "/api/users/login", code: 200)
+@auth([])
 operation LoginUser {
     input: LoginUserInput
     output: LoginUserOutput
@@ -37,18 +41,18 @@ operation LoginUser {
 
 @idempotent
 @http(method: "PUT", uri: "/api/users", code: 200)
+@auth([])
 operation RegisterUser {
     input: RegisterUserInput
     output: RegisterUserOutput
     errors: [ValidationError]
 }
 
-@idempotent
+@readonly
 @http(method: "GET", uri: "/api/user", code: 200)
 operation GetUser {
     input: GetUserInput
     output: GetUserOutput
-    errors: [UnauthorizedError]
 }
 
 @idempotent
@@ -56,7 +60,7 @@ operation GetUser {
 operation UpdateUser {
     input: UpdateUserInput
     output: UpdateUserOutput
-    errors: [CredentialsError]
+    errors: [CredentialsError, UnprocessableEntity]
 }
 
 @readonly
@@ -71,7 +75,6 @@ operation GetProfile {
 operation FollowUser {
     input: FollowUserInput
     output: FollowUserOutput
-    errors: [UnauthorizedError]
 }
 
 @idempotent
@@ -79,7 +82,6 @@ operation FollowUser {
 operation UnfollowUser {
     input: UnfollowUserInput
     output: UnfollowUserOutput
-    errors: [UnauthorizedError]
 }
 
 // STRUCTURES

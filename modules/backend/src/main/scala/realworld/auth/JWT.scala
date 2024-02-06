@@ -15,6 +15,7 @@ import realworld.spec.Token
 
 trait JWT[F[_]]:
   def create: F[Token]
+  def validate(token: Token): F[Boolean]
 
 object JWT:
   def make[F[_]: GenUUID: Monad](
@@ -23,11 +24,17 @@ object JWT:
       exp: TokenExpiration
   ): JWT[F] =
     new:
+      private val alg = JwtAlgorithm.HS256
       def create: F[Token] =
         for
           uuid  <- GenUUID[F].make
           claim <- jwtExpire.expiresIn(JwtClaim(uuid.asJson.noSpaces), exp)
         yield Token(
-          JwtCirce.encode(claim, config.value.value, JwtAlgorithm.HS256)
+          JwtCirce.encode(claim, config.value.value, alg)
         )
+
+      def validate(token: Token): F[Boolean] =
+        JwtCirce
+          .isValid(token.value, config.value.value, Seq(alg))
+          .pure[F]
 end JWT
