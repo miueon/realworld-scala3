@@ -1,4 +1,4 @@
-package realworld.service
+package realworld.repo
 
 import cats.data.NonEmptyVector
 import cats.data.*
@@ -27,9 +27,11 @@ import realworld.spec.RegisterUserData
 import realworld.spec.UpdateUserData
 import realworld.spec.User
 import realworld.spec.Username
-import realworld.types.NonEmptyStringR
+import doobie.free.connection.ConnectionIO
+import realworld.spec.Profile
 
-trait Users[F[_]]:
+trait UserRepo[F[_]]:
+  def findById(id: UserId): F[Option[WithId[UserId, DBUser]]]
   def findByEmail(email: Email): F[Option[WithId[UserId, DBUser]]]
   def findByUsername(username: Username): F[Option[WithId[UserId, DBUser]]]
   def tx: Resource[F, TxUsers[F]]
@@ -47,7 +49,7 @@ trait TxUsers[F[_]]:
       hasedPsw: Option[EncryptedPassword]
   ): F[Option[WithId[UserId, DBUser]]]
 
-object Users:
+object UserRepo:
   extension (u: UpdateUserData)
     def update(user: DBUser, password: Option[EncryptedPassword]): DBUser =
       DBUser(
@@ -60,11 +62,12 @@ object Users:
 
   import UserSQL as u
   def make[F[_]: MonadCancelThrow: DoobieTx](xa: Transactor[F]) =
-    new Users[F]():
+    new UserRepo[F]():
+      def findById(id: UserId): F[Option[WithId[UserId, DBUser]]] =
+        u.get(id).transact(xa)
+
       def findByEmail(email: Email): F[Option[WithId[UserId, DBUser]]] =
         u.findByEmail(email).transact(xa)
-
-      // def update(uid: UserId, updateData: UpdateUserData): F[DBUser] =
 
       def findByUsername(
           username: Username
@@ -94,7 +97,7 @@ object Users:
         u.update(uid, updateData, hashedPsw)
       }
   end transactional
-end Users
+end UserRepo
 
 private object UserSQL:
   import realworld.domain.users.Users as u
@@ -162,6 +165,5 @@ private object UserSQL:
           .some
           .sequence
       }
-
   end update
 end UserSQL

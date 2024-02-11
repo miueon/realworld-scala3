@@ -15,7 +15,6 @@ import realworld.domain.types.IsUUID
 import realworld.spec.Email
 import realworld.spec.Username
 import realworld.domain.users.EncryptedPassword
-import realworld.types.NonEmptyStringR
 
 case class WithId[Id, T](id: Id, entity: T) 
 

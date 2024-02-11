@@ -18,7 +18,6 @@ import realworld.domain.users.DecryptCipher
 import realworld.domain.users.EncryptCipher
 import realworld.domain.users.EncryptedPassword
 import realworld.spec.Password
-import realworld.types.NonEmptyStringR
 
 trait Crypto:
   def encrypt(value: Password): EncryptedPassword
@@ -49,7 +48,7 @@ object Crypto:
           new Crypto:
             def encrypt(password: Password): EncryptedPassword =
               val base64 = Base64.getEncoder()
-              val bytes  = password.value.value.getBytes("UTF-8")
+              val bytes  = password.value.getBytes("UTF-8")
               val result =
                 new String(base64.encode(ec.value.doFinal(bytes)), "UTF-8")
               EncryptedPassword(result)
@@ -58,5 +57,5 @@ object Crypto:
               val base64 = Base64.getDecoder()
               val bytes  = base64.decode(password.value.getBytes("UTF-8"))
               val result = new String(dc.value.doFinal(bytes), "UTF-8")
-              Password(NonEmptyStringR(result.refine))
+              Password(result)
 end Crypto

@@ -24,7 +24,18 @@ structure NotFoundError {}
 
 @error("client")
 @httpError(422)
-structure UnprocessableEntity {}
+structure UnprocessableEntity {
+    errors: ValidationErrors
+}
+
+map ValidationErrors {
+    key: String
+    value: StringList
+}
+
+list StringList {
+    member: String
+}
 
 string AuthHeader
 

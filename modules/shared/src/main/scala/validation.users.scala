@@ -10,13 +10,13 @@ private[validation] def ok =
   Right[ValidationError, Unit](())
 
 def validateUserName(login: Username) =
-  val str = login.value.value.trim
+  val str = login.value.trim
   if str.length < 5 || str.length > 50 then
     err("Username cannot be shorter than 5, or longer than 50 characters")
   else ok
 
 def validateUserPassword(password: Password) =
-  val str = password.value.value
+  val str = password.value
   if str.exists(_.isWhitespace) then
     err("Password cannot contain whitespace characters")
   else if str.length < 12 || str.length > 128 then

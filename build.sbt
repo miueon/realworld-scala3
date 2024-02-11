@@ -31,6 +31,7 @@ val Versions = new {
   val monocle           = "3.2.0"
   val circe             = "0.14.3"
   val macroTaskExecutor = "1.1.1"
+  val cats              = "2.10.0"
 }
 
 val Config = new {
@@ -123,6 +124,7 @@ lazy val backend = projectMatrix
       "is.cir"               %% "ciris-refined"       % Versions.ciris
     ),
     libraryDependencies ++= db,
+    libraryDependencies ++= iron,
     libraryDependencies ++=
       Seq(
         "com.dimafeng" %% "testcontainers-scala-postgresql" % Versions.TestContainers,
@@ -156,8 +158,9 @@ lazy val shared = projectMatrix
   .enablePlugins(Smithy4sCodegenPlugin)
   .settings(
     libraryDependencies ++= Seq(
-      "com.disneystreaming.smithy4s" %%% "smithy4s-http4s" % smithy4sVersion.value
-    ) ++ iron,
+      "com.disneystreaming.smithy4s" %%% "smithy4s-http4s" % smithy4sVersion.value,
+      "org.typelevel" %%% "cats-core" % Versions.cats
+    ),
     Compile / doc / sources := Seq.empty
   )
 

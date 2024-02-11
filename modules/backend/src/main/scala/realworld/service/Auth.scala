@@ -40,6 +40,11 @@ import realworld.spec.UpdateUserData
 import realworld.spec.Email
 import realworld.spec.Username
 import realworld.domain.users.EncryptedPassword
+import doobie.util.transactor.Transactor
+import realworld.db.transaction
+import realworld.db.transactK
+import realworld.db.DoobieTx
+import realworld.repo.UserRepo
 
 trait Auth[F[_]]:
   def login(user: LoginUserInputData): F[User]
@@ -47,23 +52,20 @@ trait Auth[F[_]]:
   def access(header: AuthHeader): F[UserSession]
   def update(uid: UserId, updateData: UpdateUserData): F[DBUser]
 
-trait UserAuth[F[_]]:
-  def findUser(token: Token)(claim: JwtClaim): F[Option[User]]
-
 case class UserSession(uid: UserId, user: User) derives Codec.AsObject
 
 object Auth:
-  def make[F[_]: MonadCancelThrow: GenUUID](
+  def make[F[_]: MonadCancelThrow: GenUUID: DoobieTx](
       tokenExpiration: TokenExpiration,
       jwt: JWT[F],
-      users: Users[F],
+      userRepo: UserRepo[F],
       redis: RedisCommands[F, String, String],
       crypto: Crypto
   ): Auth[F] =
     new:
       private val TokenExpiration = tokenExpiration.value
       def login(user: LoginUserInputData): F[User] =
-        users
+        userRepo
           .findByEmail(user.email)
           .flatMap:
             case None => NotFoundError().raiseError[F, User]
@@ -94,7 +96,7 @@ object Auth:
       end login
 
       def register(user: RegisterUserData): F[User] =
-        users
+        userRepo
           .findByEmail(user.email)
           .flatMap:
             case Some(_) => UserError.EmailAlreadyExists().raiseError[F, User]
@@ -102,7 +104,7 @@ object Auth:
               val encryptedPassword = crypto.encrypt(user.password)
               for
                 uid <- ID.make[F, UserId]
-                _   <- users.tx.use { _.create(uid, user, encryptedPassword) }
+                _   <- userRepo.tx.use { _.create(uid, user, encryptedPassword) }
                 jwt <- jwt.create
                 _ <- redis.setEx(
                   jwt.value,
@@ -139,13 +141,13 @@ object Auth:
         val emailCleanOpt =
           updateData.email.map(e => e.value.toLowerCase.trim())
         val usernameCleanOpt =
-          updateData.username.map(un => un.value.value.trim())
+          updateData.username.map(un => un.value.trim())
 
         val hasedPsw = updateData.password.map(crypto.encrypt(_))
         val userOpt = for
           _   <- updateData.email.traverse(emailNotUsed(_, uid))
           _   <- updateData.username.traverse(usernameNotUsed(_, uid))
-          row <- users.tx.use { _.update(uid, updateData, hasedPsw) }
+          row <- userRepo.tx.use { _.update(uid, updateData, hasedPsw) }
         yield row
         userOpt.flatMap:
           case Some(WithId(_, user)) => user.pure[F]
@@ -153,7 +155,7 @@ object Auth:
       end update
 
       def emailNotUsed(email: Email, userId: UserId): F[Unit] =
-        users
+        userRepo
           .findByEmail(email)
           .map(notTakenByOthers(_, userId, UserError.EmailAlreadyExists()))
 
@@ -167,20 +169,20 @@ object Auth:
           case _                                    => ().pure[F]
 
       def usernameNotUsed(username: Username, userId: UserId): F[Unit] =
-        users
+        userRepo
           .findByUsername(username)
           .map(notTakenByOthers(_, userId, UserError.UsernameAlreadyExists()))
 end Auth
 
-object UserAuth:
-  def make[F[_]: Functor](
-      redis: RedisCommands[F, String, String]
-  ): UserAuth[F] =
-    new:
-      def findUser(token: Token)(claim: JwtClaim): F[Option[User]] =
-        redis
-          .get(token.value)
-          .map:
-            _.flatMap { uJson =>
-              decode[User](uJson).toOption
-            }
+// object UserAuth:
+//   def make[F[_]: Functor](
+//       redis: RedisCommands[F, String, String]
+//   ): UserAuth[F] =
+//     new:
+//       def findUser(token: Token)(claim: JwtClaim): F[Option[User]] =
+//         redis
+//           .get(token.value)
+//           .map:
+//             _.flatMap { uJson =>
+//               decode[User](uJson).toOption
+//             }

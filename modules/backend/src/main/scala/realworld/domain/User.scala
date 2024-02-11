@@ -20,10 +20,10 @@ import realworld.spec.ImageUrl
 import realworld.spec.Token
 import realworld.spec.User
 import realworld.spec.Username
-import realworld.types.NonEmptyStringR
 import scala.CanEqual.derived
 import realworld.domain.WithId
 import scala.util.control.NoStackTrace
+import realworld.spec.Profile
 
 type UserId = UserId.Type
 object UserId extends IdNewtype
@@ -35,7 +35,7 @@ case class EncryptCipher(value: Cipher)
 case class DecryptCipher(value: Cipher)
 
 given Meta[Email]    = Meta[String].imap(Email(_))(_.value)
-given Meta[Username] = Meta[NonEmptyStringR].imap(Username(_))(_.value)
+given Meta[Username] = Meta[String].imap(Username(_))(_.value)
 given Meta[EncryptedPassword] =
   Meta[String].imap(EncryptedPassword(_))(_.value)
 given Meta[Bio]      = Meta[String].imap(Bio(_))(_.value)
@@ -56,6 +56,9 @@ case class DBUser(
       bio,
       image
     )
+
+  def toProfiile(following: Boolean): Profile =
+    Profile(username, bio, image, following.some)
 end DBUser
 object Users extends TableDefinition("users"):
   val id: Column[UserId]                  = Column("id")
@@ -87,3 +90,4 @@ enum UserError extends NoStackTrace:
   case ProfileNotFound()
   case EmailAlreadyExists()
   case UsernameAlreadyExists()
+  case UserFollowingHimself(profile: Profile)

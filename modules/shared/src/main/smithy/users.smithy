@@ -214,15 +214,16 @@ structure Profile {
 
 // @uuidFormat
 // string UserId
-@nonEmptyString
+@length(min: 8, max: 100)
 string Password
 
 @emailFormat
+@length(min: 1)
 string Email
 
 string Token
 
-@nonEmptyString
+@length(min: 1, max: 25)
 string Username
 
 string Bio

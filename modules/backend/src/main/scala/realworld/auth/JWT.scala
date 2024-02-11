@@ -30,11 +30,11 @@ object JWT:
           uuid  <- GenUUID[F].make
           claim <- jwtExpire.expiresIn(JwtClaim(uuid.asJson.noSpaces), exp)
         yield Token(
-          JwtCirce.encode(claim, config.value.value, alg)
+          JwtCirce.encode(claim, config.value, alg)
         )
 
       def validate(token: Token): F[Boolean] =
         JwtCirce
-          .isValid(token.value, config.value.value, Seq(alg))
+          .isValid(token.value, config.value, Seq(alg))
           .pure[F]
 end JWT
