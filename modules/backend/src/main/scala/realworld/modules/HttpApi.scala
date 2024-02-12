@@ -33,7 +33,7 @@ def HttpApi[F[_]: Async: Logger](
   def handleErrors(routes: HttpRoutes[F]) =
     routes.orNotFound.onError { exc =>
       Kleisli(request =>
-        Logger[F].error(s"Request failed, ${request.toString()}")
+        Logger[F].error(exc)(s"Request failed, ${request.toString()}")
       )
     }
 

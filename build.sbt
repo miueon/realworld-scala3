@@ -2,13 +2,14 @@ import org.scalajs.linker.interface.Report
 import org.scalajs.linker.interface.ModuleSplitStyle
 import smithy4s.codegen.Smithy4sCodegenPlugin
 
+Compile / run / fork          := true
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 val Versions = new {
   val ciris             = "3.5.0"
   val kitten            = "3.0.0"
   val iron              = "2.4.0"
-  val logback           = "1.2.11"
+  val logback           = "1.4.14"
   val redis4cats        = "1.5.1"
   val scalaCheck        = "1.17.0"
   val doobie            = "1.0.0-RC4"
@@ -20,7 +21,7 @@ val Versions = new {
   val Scala             = "3.3.1"
   val http4sDom         = "0.2.7"
   val jwt               = "9.1.2"
-  val Flyway            = "9.16.3"
+  val Flyway            = "10.7.2"
   val Postgres          = "42.6.0"
   val TestContainers    = "0.40.15"
   val Weaver            = "0.8.3"
@@ -32,12 +33,13 @@ val Versions = new {
   val circe             = "0.14.3"
   val macroTaskExecutor = "1.1.1"
   val cats              = "2.10.0"
+  val password4j        = "1.7.3"
 }
 
 val Config = new {
   val DockerImageName = "jobby-smithy4s"
   val DockerBaseImage = "eclipse-temurin:17"
-  val BasePackage     = "jobby"
+  val BasePackage     = "realworld"
 }
 
 lazy val root = project
@@ -61,10 +63,11 @@ lazy val app = projectMatrix
     dockerBaseImage         := Config.DockerBaseImage,
     Docker / packageName    := Config.DockerImageName,
     libraryDependencies ++= Seq(
-      "org.http4s"    %% "http4s-blaze-server" % Versions.http4sBlaze,
-      "org.http4s"    %% "http4s-ember-server" % Versions.http4s,
-      "org.postgresql" % "postgresql"          % Versions.Postgres,
-      "org.flywaydb"   % "flyway-core"         % Versions.Flyway
+      "org.http4s"    %% "http4s-blaze-server"        % Versions.http4sBlaze,
+      "org.http4s"    %% "http4s-ember-server"        % Versions.http4s,
+      "org.postgresql" % "postgresql"                 % Versions.Postgres,
+      "org.flywaydb"   % "flyway-database-postgresql" % Versions.Flyway,
+      "ch.qos.logback" % "logback-classic"            % Versions.logback
     ),
     Compile / resourceGenerators += {
       Def.task[Seq[File]] {
@@ -116,6 +119,7 @@ lazy val backend = projectMatrix
       ("com.disneystreaming.smithy4s" %% "smithy4s-http4s" % smithy4sVersion.value),
       "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % smithy4sVersion.value,
       "com.github.jwt-scala" %% "jwt-circe"           % Versions.jwt,
+      "com.password4j"        % "password4j"          % Versions.password4j,
       "dev.optics"           %% "monocle-core"        % Versions.monocle,
       "dev.profunktor"       %% "redis4cats-effects"  % Versions.redis4cats,
       "dev.profunktor"       %% "redis4cats-log4cats" % Versions.redis4cats,
@@ -230,7 +234,7 @@ ThisBuild / frontendModules := (Def.taskIf {
 
 lazy val frontendBundle = taskKey[File]("")
 ThisBuild / frontendBundle := (Def.taskIf {
-  def proj = frontend.finder(BuildStyle.SingleFile)(
+  def proj = frontend.finder(BuildStyle.Modules)(
     Versions.Scala
   )
 

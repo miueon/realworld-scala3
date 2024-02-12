@@ -33,27 +33,24 @@ object Config:
 
   private def default[F[_]](redisUri: RedisURI): ConfigValue[F, AppConfig] =
     (
-      env("SC_JWT_SECRET_KEY").as[JwtSecretKeyConfig].secret,
-      env("SC_JWT_CLAIM").as[JwtClaimConfig].secret,
       env("SC_ACCESS_TOKEN_KEY").as[JwtAccessTokenKeyConfig].secret,
       env("SC_PASSWORD_SALT").as[PasswordSalt].secret,
-      env("SC_POSTGRESS_PASSWORD").as[NonEmptyStringR].secret
-    ).parMapN {
-      (jwtSecretKey, jwtClaim, accessToken, passwordSalt, postgressPassword) =>
-        AppConfig(
-          accessToken,
-          passwordSalt,
-          TokenExpiration(30.minutes),
-          PostgresSQLConfig(
-            jdbcUrl = "jdbc:postgresql://localhost:5432/realworld",
-            user = "postgres",
-            password = postgressPassword
-          ),
-          RedisConfig(redisUri),
-          HttpServerConfig(
-            host = host"0.0.0.0",
-            port = port"8080"
-          )
+      env("SC_POSTGRES_PASSWORD").as[NonEmptyStringR].secret
+    ).parMapN { (accessToken, passwordSalt, postgressPassword) =>
+      AppConfig(
+        accessToken,
+        passwordSalt,
+        TokenExpiration(30.minutes),
+        PostgresSQLConfig(
+          jdbcUrl = "jdbc:postgresql://localhost:5432/realworld",
+          user = "postgres",
+          password = postgressPassword
+        ),
+        RedisConfig(redisUri),
+        HttpServerConfig(
+          host = host"0.0.0.0",
+          port = port"8080"
         )
+      )
     }
 end Config

@@ -28,6 +28,7 @@ import realworld.validation.validateUpdateUserBody
 import realworld.validation.validateUserName
 import realworld.validation.validateUserPassword
 import smithy4s.Smithy4sThrowable
+import realworld.spec.ForbiddenError
 
 object UserServiceImpl:
   def make[F[_]: Sync: MonadThrow: Logger](
@@ -40,7 +41,13 @@ object UserServiceImpl:
       ): F[GetProfileOutput] = ???
 
       def loginUser(user: LoginUserInputData): F[LoginUserOutput] =
-        auth.login(user).map(LoginUserOutput(_))
+        auth
+          .login(user)
+          .map(LoginUserOutput(_))
+          .onError(e => Logger[F].warn(e)(s"Failed to login user: $user"))
+          .recoverWith:
+            case UserError.UserNotFound()           => NotFoundError().raise
+            case UserError.UserPasswordNotMatched() => ForbiddenError().raise
 
       def getUser(authHeader: AuthHeader): F[GetUserOutput] =
         auth.access(authHeader).map(u => GetUserOutput(u.user))
@@ -68,7 +75,13 @@ object UserServiceImpl:
         auth
           .register(user)
           .map(RegisterUserOutput(_))
-          .onError(_ => Logger[F].warn(s"Failed to register user: $user"))
+          .onError(e =>
+            Logger[F]
+              .warn(s"Failed to register user: $user, error: ${e.getMessage()}")
+          )
+          .recoverWith:
+            case UserError.EmailAlreadyExists() =>
+              UnprocessableEntity().raise
 
       def unfollowUser(
           username: Username,
@@ -79,10 +92,10 @@ object UserServiceImpl:
           username: Username,
           authHeader: AuthHeader
       ): F[FollowUserOutput] = ???
-        // auth
-        //   .access(authHeader)
-        //   .flatMap: userSessions =>
-        //     users
-        //       .followUser(username, userSessions)
-        //       .map(FollowUserOutput(_))
+      // auth
+      //   .access(authHeader)
+      //   .flatMap: userSessions =>
+      //     users
+      //       .followUser(username, userSessions)
+      //       .map(FollowUserOutput(_))
 end UserServiceImpl

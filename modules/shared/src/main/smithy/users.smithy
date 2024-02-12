@@ -36,7 +36,7 @@ service UserService {
 operation LoginUser {
     input: LoginUserInput
     output: LoginUserOutput
-    errors: [CredentialsError]
+    errors: [CredentialsError, NotFoundError, ForbiddenError]
 }
 
 @idempotent

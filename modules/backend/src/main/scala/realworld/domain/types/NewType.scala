@@ -41,6 +41,6 @@ abstract class Newtype[A](using
   given Decoder[Type]  = derive
 end Newtype
 
-import realworld.domain.Instances.given_Meta_UUID
+import doobie.postgres.implicits.*
 abstract class IdNewtype extends Newtype[UUID]:
   given IsUUID[Type] = derive[IsUUID]

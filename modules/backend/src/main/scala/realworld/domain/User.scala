@@ -7,7 +7,6 @@ import cats.syntax.all.*
 
 import doobie.*
 import io.circe.Codec
-import realworld.domain.Instances.given
 import realworld.domain.given
 import realworld.domain.types.DeriveType
 import realworld.domain.types.IdNewtype

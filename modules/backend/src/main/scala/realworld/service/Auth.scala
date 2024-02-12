@@ -68,12 +68,10 @@ object Auth:
         userRepo
           .findByEmail(user.email)
           .flatMap:
-            case None => NotFoundError().raiseError[F, User]
-            case Some(WithId(_, userWithPassword))
-                if userWithPassword.password =!= crypto.encrypt(
-                  user.password
-                ) =>
-              ForbiddenError().raiseError[F, User]
+            case None => UserError.UserNotFound().raiseError[F, User]
+            case Some(WithId(_, dbUser))
+                if !crypto.verifyPassword(user.password, dbUser.password) =>
+              UserError.UserPasswordNotMatched().raiseError[F, User]
             case Some(WithId(_, dbUser)) =>
               redis
                 .get(user.email.value)

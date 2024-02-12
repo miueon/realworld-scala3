@@ -113,14 +113,14 @@ private object UserSQL:
     queryUser(fr"WHERE ${u.id === userId}").option
 
   def findByEmail(email: Email): ConnectionIO[Option[WithId[UserId, DBUser]]] =
-    sql"SELECT ${u.columns} FROM $u WHERE ${u.email === email}"
+    sql"SELECT ${u.rowCol} FROM $u WHERE ${u.email === email}"
       .queryOf(u.rowCol)
       .option
 
   def findByUsername(
       username: Username
   ): ConnectionIO[Option[WithId[UserId, DBUser]]] =
-    sql"SELECT ${u.columns} FROM $u WHERE ${u.username === username}"
+    sql"SELECT ${u.rowCol} FROM $u WHERE ${u.username === username}"
       .queryOf(u.rowCol)
       .option
 

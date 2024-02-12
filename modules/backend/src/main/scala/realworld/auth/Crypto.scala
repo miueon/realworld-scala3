@@ -18,44 +18,45 @@ import realworld.domain.users.DecryptCipher
 import realworld.domain.users.EncryptCipher
 import realworld.domain.users.EncryptedPassword
 import realworld.spec.Password
+import cats.effect.IOApp
+import cats.effect.ExitCode
+import cats.effect.IO
+import com.password4j.Argon2Function
+import com.password4j.Password as pswd
+import realworld.domain.users.Users.password
+import realworld.spec
 
 trait Crypto:
   def encrypt(value: Password): EncryptedPassword
-  def decrypt(value: EncryptedPassword): Password
+  def verifyPassword(
+      password: Password,
+      encryptedPassword: EncryptedPassword
+  ): Boolean
 
 object Crypto:
+  private final val MemoryInKib          = 12
+  private final val NumberOfIterations   = 20
+  private final val LevelOfParallelism   = 2
+  private final val LengthOfTheFinalHash = 32
+  private final val Type                 = com.password4j.types.Argon2.ID
+  private final val Version              = 19
+  private final val Argon2: Argon2Function =
+    Argon2Function.getInstance(
+      MemoryInKib,
+      NumberOfIterations,
+      LevelOfParallelism,
+      LengthOfTheFinalHash,
+      Type,
+      Version
+    )
   def make[F[_]: Sync](passwordSalt: PasswordSalt): F[Crypto] =
-    Sync[F]
-      .delay {
-        val random  = new SecureRandom()
-        val ivBytes = new Array[Byte](16)
-        random.nextBytes(ivBytes)
-        val iv   = new IvParameterSpec(ivBytes)
-        val salt = passwordSalt.value.getBytes("UTF-8")
-        val keySpec =
-          new PBEKeySpec("password".toCharArray(), salt, 655365, 256)
-        val factory  = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
-        val bytes    = factory.generateSecret(keySpec).getEncoded
-        val sKeySpec = new SecretKeySpec(bytes, "AES")
-        val eCipher  = EncryptCipher(Cipher.getInstance("AES/CBC/PKCS5Padding"))
-        eCipher.value.init(Cipher.ENCRYPT_MODE, sKeySpec, iv)
-        val dCipher = DecryptCipher(Cipher.getInstance("AES/CBC/PKCS5Padding"))
-        dCipher.value.init(Cipher.DECRYPT_MODE, sKeySpec, iv)
-        (eCipher, dCipher)
-      }
-      .map:
-        case (ec, dc) =>
-          new Crypto:
-            def encrypt(password: Password): EncryptedPassword =
-              val base64 = Base64.getEncoder()
-              val bytes  = password.value.getBytes("UTF-8")
-              val result =
-                new String(base64.encode(ec.value.doFinal(bytes)), "UTF-8")
-              EncryptedPassword(result)
+    Sync[F].delay {
+      new Crypto:
+        def encrypt(value: Password): EncryptedPassword =
+          EncryptedPassword(pswd.hash(value.value).`with`(Argon2).getResult())
 
-            def decrypt(password: EncryptedPassword): Password =
-              val base64 = Base64.getDecoder()
-              val bytes  = base64.decode(password.value.getBytes("UTF-8"))
-              val result = new String(dc.value.doFinal(bytes), "UTF-8")
-              Password(result)
+        def verifyPassword(password: realworld.spec.Password, encryptedPassword: EncryptedPassword): Boolean = 
+          pswd.check(password.value, encryptedPassword.value) `with` Argon2
+    }
+
 end Crypto
