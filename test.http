@@ -22,3 +22,7 @@ POST {{baseURL}}/api/users/login
     "password": "12345678"
   }
 }
+
+###
+# GET PROFILE
+GET {{baseURL}}/api/profiles/testa

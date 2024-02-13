@@ -209,6 +209,7 @@ structure Profile {
     username: Username
     bio: Bio
     image: ImageUrl
+    @required
     following: Boolean
 }
 

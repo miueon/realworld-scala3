@@ -57,7 +57,7 @@ case class DBUser(
     )
 
   def toProfiile(following: Boolean): Profile =
-    Profile(username, bio, image, following.some)
+    Profile(username, following, bio, image)
 end DBUser
 object Users extends TableDefinition("users"):
   val id: Column[UserId]                  = Column("id")
@@ -90,3 +90,4 @@ enum UserError extends NoStackTrace:
   case EmailAlreadyExists()
   case UsernameAlreadyExists()
   case UserFollowingHimself(profile: Profile)
+  case UserUnfollowingHimself(profile: Profile)

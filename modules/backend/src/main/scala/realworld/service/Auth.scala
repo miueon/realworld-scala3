@@ -52,7 +52,7 @@ trait Auth[F[_]]:
   def access(header: AuthHeader): F[UserSession]
   def update(uid: UserId, updateData: UpdateUserData): F[DBUser]
 
-case class UserSession(uid: UserId, user: User) derives Codec.AsObject
+case class UserSession(id: UserId, user: User) derives Codec.AsObject
 
 object Auth:
   def make[F[_]: MonadCancelThrow: GenUUID: DoobieTx](
@@ -149,7 +149,7 @@ object Auth:
         yield row
         userOpt.flatMap:
           case Some(WithId(_, user)) => user.pure[F]
-          case None => UserError.UserNotFound().raiseError[F, DBUser]
+          case None                  => UserError.UserNotFound().raiseError[F, DBUser]
       end update
 
       def emailNotUsed(email: Email, userId: UserId): F[Unit] =

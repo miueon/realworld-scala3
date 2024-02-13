@@ -20,7 +20,8 @@ import org.http4s.dsl.request
 def HttpApi[F[_]: Async: Logger](
     config: AppConfig,
     repos: Repos[F],
-    redis: RedisCommands[F, String, String]
+    redis: RedisCommands[F, String, String],
+    services: Services[F]
 ): Resource[F, HttpApp[F]] =
   def makeAuth: F[Auth[F]] =
     for
@@ -39,6 +40,7 @@ def HttpApi[F[_]: Async: Logger](
 
   for
     auth  <- Resource.eval(makeAuth)
-    users <- SimpleRestJsonBuilder.routes(UserServiceImpl.make(auth)).resource
+    services <- Resource.pure(services)
+    users <- SimpleRestJsonBuilder.routes(UserServiceImpl.make(auth, services.profiles)).resource
   yield handleErrors(users)
 end HttpApi

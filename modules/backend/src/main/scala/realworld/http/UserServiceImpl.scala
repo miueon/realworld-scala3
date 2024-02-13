@@ -3,14 +3,17 @@ package realworld.http
 import cats.Monad
 import cats.MonadError
 import cats.MonadThrow
+import cats.data.OptionT
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
 
 import org.typelevel.log4cats.Logger
 import realworld.domain.users.UserError
 import realworld.service.Auth
+import realworld.service.Profiles
 import realworld.spec.AuthHeader
 import realworld.spec.FollowUserOutput
+import realworld.spec.ForbiddenError
 import realworld.spec.GetProfileOutput
 import realworld.spec.GetUserOutput
 import realworld.spec.LoginUserInputData
@@ -28,18 +31,47 @@ import realworld.validation.validateUpdateUserBody
 import realworld.validation.validateUserName
 import realworld.validation.validateUserPassword
 import smithy4s.Smithy4sThrowable
-import realworld.spec.ForbiddenError
 
 object UserServiceImpl:
   def make[F[_]: Sync: MonadThrow: Logger](
-      auth: Auth[F]
+      auth: Auth[F],
+      profiles: Profiles[F]
   ): UserService[F] =
     new:
       def getProfile(
           username: Username,
-          auth: Option[AuthHeader]
-      ): F[GetProfileOutput] = ???
+          authHeaderOpt: Option[AuthHeader]
+      ): F[GetProfileOutput] =
+        val result = for
+          userSessionsOpt <- authHeaderOpt.map(auth.access).sequence
+          profile         <- profiles.get(username, userSessionsOpt.map(_.id))
+        yield GetProfileOutput(profile)
+        result
+          .onError(e => Logger[F].warn(e)(s"Failed to get profile for user: $username"))
+          .recoverWith:
+            case UserError.ProfileNotFound() => NotFoundError().raise
 
+      def unfollowUser(
+          username: Username,
+          authHeader: AuthHeader
+      ): F[UnfollowUserOutput] =
+        val result = for
+          userSession <- auth.access(authHeader)
+          profile     <- profiles.unfollow(username, userSession.id)
+        yield UnfollowUserOutput(profile)
+        result.recoverWith:
+          case UserError.ProfileNotFound() => NotFoundError().raise
+
+      def followUser(
+          username: Username,
+          authHeader: AuthHeader
+      ): F[FollowUserOutput] =
+        val result = for
+          userSession <- auth.access(authHeader)
+          profile     <- profiles.follow(username, userSession.id)
+        yield FollowUserOutput(profile)
+        result.recoverWith:
+          case UserError.ProfileNotFound() => NotFoundError().raise
       def loginUser(user: LoginUserInputData): F[LoginUserOutput] =
         auth
           .login(user)
@@ -60,13 +92,12 @@ object UserServiceImpl:
           u <- auth.access(authHeader)
           rs <- withValidation(validateUpdateUserBody(user)) { valid =>
             auth
-              .update(u.uid, valid)
+              .update(u.id, valid)
               .map(_.toUser(u.user.token))
               .map(UpdateUserOutput(_))
               .recoverWith:
                 case UserError.UserNotFound() => NotFoundError().raise
-                case UserError.EmailAlreadyExists() |
-                    UserError.UsernameAlreadyExists() =>
+                case UserError.EmailAlreadyExists() | UserError.UsernameAlreadyExists() =>
                   UnprocessableEntity().raise
           }
         yield rs
@@ -83,19 +114,4 @@ object UserServiceImpl:
             case UserError.EmailAlreadyExists() =>
               UnprocessableEntity().raise
 
-      def unfollowUser(
-          username: Username,
-          auth: AuthHeader
-      ): F[UnfollowUserOutput] = ???
-
-      def followUser(
-          username: Username,
-          authHeader: AuthHeader
-      ): F[FollowUserOutput] = ???
-      // auth
-      //   .access(authHeader)
-      //   .flatMap: userSessions =>
-      //     users
-      //       .followUser(username, userSessions)
-      //       .map(FollowUserOutput(_))
 end UserServiceImpl

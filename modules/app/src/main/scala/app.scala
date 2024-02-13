@@ -17,6 +17,7 @@ import realworld.config.Config
 import realworld.http.MkHttpServer
 import realworld.modules.HttpApi
 import realworld.modules.Repos
+import realworld.modules.Services
 import realworld.resources.AppResources
 
 object Main extends IOApp:
@@ -32,8 +33,9 @@ object Main extends IOApp:
           AppResources
             .make(cfg)
             .flatMap { res =>
-              val repos = Repos.make(res.redis, res.xa)
-              for httpApp <- HttpApi(cfg, repos, res.redis)
+              val repos    = Repos.make(res.redis, res.xa)
+              val services = Services.make(repos)
+              for httpApp <- HttpApi(cfg, repos, res.redis, services)
               yield cfg.httpServerConfig -> httpApp
             }
             .flatMap { case (cfg, httpApp) =>
