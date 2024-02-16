@@ -14,11 +14,11 @@ import realworld.db.DoobieTx
 import realworld.db.transaction
 import realworld.domain.ID
 import realworld.domain.WithId
-import realworld.domain.users.DBUser
-import realworld.domain.users.EncryptedPassword
-import realworld.domain.users.UserError
-import realworld.domain.users.UserId
-import realworld.domain.users.Users.password
+import realworld.domain.user.DBUser
+import realworld.domain.user.EncryptedPassword
+import realworld.domain.user.UserError
+import realworld.domain.user.UserId
+import realworld.domain.user.Users.password
 import realworld.effects.GenUUID
 import realworld.spec.Email
 import realworld.spec.NotFoundError
@@ -100,8 +100,8 @@ object UserRepo:
 end UserRepo
 
 private object UserSQL:
-  import realworld.domain.users.Users as u
-  import realworld.domain.users.given
+  import realworld.domain.user.Users as u
+  import realworld.domain.user.given
 
   private def queryUser(
       conditionFragment: Fragment

@@ -1,4 +1,5 @@
 $version: "2.0"
+
 namespace realworld.spec
 
 @error("client")
@@ -40,3 +41,16 @@ list StringList {
 string AuthHeader
 
 string ImageUrl
+
+@range(min: 0)
+integer Skip
+
+@range(min: 1)
+integer Limit
+
+@range(min: 0)
+integer Total
+
+
+timestamp CreatedAt
+timestamp UpdatedAt

@@ -4,8 +4,8 @@ import cats.data.OptionT
 import cats.effect.*
 import cats.syntax.all.*
 
-import realworld.domain.users.UserError
-import realworld.domain.users.UserId
+import realworld.domain.user.UserError
+import realworld.domain.user.UserId
 import realworld.repo.FollowerRepo
 import realworld.repo.UserRepo
 import realworld.spec.Profile

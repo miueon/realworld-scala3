@@ -4,14 +4,14 @@ import doobie.Column
 import doobie.Composite
 import doobie.TableDefinition
 import doobie.WithSQLDefinition
-import realworld.domain.users.UserId
+import realworld.domain.user.UserId
 
 case class Follower(
     userId: UserId,
     followerId: UserId
 )
 
-object Follower extends TableDefinition("followers"):
+object Followers extends TableDefinition("followers"):
   val userId: Column[UserId]     = Column("user_id")
   val followerId: Column[UserId] = Column("follower_id")
 

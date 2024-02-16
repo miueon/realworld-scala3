@@ -100,11 +100,11 @@ val iron = Seq(
 )
 
 val db = Seq(
-  "org.flywaydb"        % "flyway-core"     % Versions.flyway,
-  "org.tpolecat"       %% "doobie-postgres" % Versions.doobie,
-  "org.tpolecat"       %% "doobie-hikari"   % Versions.doobie,
-  "io.github.arturaz"  %% "doobie-typesafe" % Versions.doobieTypeSafe,
-  "io.github.iltotore" %% "iron-doobie"     % Versions.iron
+  "org.flywaydb"         % "flyway-core"     % Versions.flyway,
+  "org.tpolecat"        %% "doobie-postgres" % Versions.doobie,
+  "org.tpolecat"        %% "doobie-hikari"   % Versions.doobie,
+  "io.github.arturaz"   %% "doobie-typesafe" % Versions.doobieTypeSafe,
+  "io.github.iltotore"  %% "iron-doobie"     % Versions.iron
 )
 
 lazy val backend = projectMatrix
@@ -116,29 +116,29 @@ lazy val backend = projectMatrix
     scalaVersion            := Versions.Scala,
     Compile / doc / sources := Seq.empty,
     libraryDependencies ++= Seq(
-      ("com.disneystreaming.smithy4s" %% "smithy4s-http4s" % smithy4sVersion.value),
-      "com.disneystreaming.smithy4s" %% "smithy4s-http4s-swagger" % smithy4sVersion.value,
-      "com.github.jwt-scala" %% "jwt-circe"           % Versions.jwt,
-      "com.password4j"        % "password4j"          % Versions.password4j,
-      "dev.optics"           %% "monocle-core"        % Versions.monocle,
-      "dev.profunktor"       %% "redis4cats-effects"  % Versions.redis4cats,
-      "dev.profunktor"       %% "redis4cats-log4cats" % Versions.redis4cats,
-      "org.typelevel"        %% "log4cats-slf4j"      % Versions.log4cats,
-      "is.cir"               %% "ciris"               % Versions.ciris,
-      "is.cir"               %% "ciris-refined"       % Versions.ciris
+      ("com.disneystreaming.smithy4s" %% "smithy4s-http4s"         % smithy4sVersion.value),
+      "com.disneystreaming.smithy4s"  %% "smithy4s-http4s-swagger" % smithy4sVersion.value,
+      "com.github.jwt-scala"          %% "jwt-circe"               % Versions.jwt,
+      "com.password4j"                 % "password4j"              % Versions.password4j,
+      "dev.optics"                    %% "monocle-core"            % Versions.monocle,
+      "dev.profunktor"                %% "redis4cats-effects"      % Versions.redis4cats,
+      "dev.profunktor"                %% "redis4cats-log4cats"     % Versions.redis4cats,
+      "org.typelevel"                 %% "log4cats-slf4j"          % Versions.log4cats,
+      "is.cir"                        %% "ciris"                   % Versions.ciris,
+      "is.cir"                        %% "ciris-refined"           % Versions.ciris
     ),
     libraryDependencies ++= db,
     libraryDependencies ++= iron,
     libraryDependencies ++=
       Seq(
         "com.dimafeng" %% "testcontainers-scala-postgresql" % Versions.TestContainers,
-        "com.indoorvivants.playwright" %% "weaver" % Versions.WeaverPlaywright,
-        "com.disneystreaming" %% "weaver-cats"         % Versions.Weaver,
-        "com.disneystreaming" %% "weaver-scalacheck"   % Versions.Weaver,
-        "org.http4s"          %% "http4s-blaze-server" % Versions.http4sBlaze,
-        "org.http4s"          %% "http4s-blaze-client" % Versions.http4sBlaze,
-        "org.http4s"          %% "http4s-ember-server" % Versions.http4s,
-        "org.http4s"          %% "http4s-ember-client" % Versions.http4s
+        "com.indoorvivants.playwright" %% "weaver"              % Versions.WeaverPlaywright,
+        "com.disneystreaming"          %% "weaver-cats"         % Versions.Weaver,
+        "com.disneystreaming"          %% "weaver-scalacheck"   % Versions.Weaver,
+        "org.http4s"                   %% "http4s-blaze-server" % Versions.http4sBlaze,
+        "org.http4s"                   %% "http4s-blaze-client" % Versions.http4sBlaze,
+        "org.http4s"                   %% "http4s-ember-server" % Versions.http4s,
+        "org.http4s"                   %% "http4s-ember-client" % Versions.http4s
         // "org.postgresql"       % "postgresql"          % Versions.Postgres,
         // "org.flywaydb"         % "flyway-core"         % Versions.Flyway
       ).map(_ % Test),
@@ -163,7 +163,7 @@ lazy val shared = projectMatrix
   .settings(
     libraryDependencies ++= Seq(
       "com.disneystreaming.smithy4s" %%% "smithy4s-http4s" % smithy4sVersion.value,
-      "org.typelevel" %%% "cats-core" % Versions.cats
+      "org.typelevel"                %%% "cats-core"       % Versions.cats
     ),
     Compile / doc / sources := Seq.empty
   )
@@ -204,14 +204,14 @@ lazy val frontend = projectMatrix
     libraryDependencies ++= Seq(
       ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
         .cross(CrossVersion.for3Use2_13),
-      "dev.optics"                   %%% "monocle-core" % Versions.monocle,
-      "com.raquo"                    %%% "waypoint"     % Versions.waypoint,
-      "com.github.japgolly.scalacss" %%% "core"         % Versions.scalacss,
-      "com.raquo"                    %%% "laminar"      % Versions.Laminar,
-      "io.circe"                     %%% "circe-core"   % Versions.circe,
-      "io.circe"                     %%% "circe-parser" % Versions.circe,
-      "org.http4s"                   %%% "http4s-dom"   % Versions.http4sDom,
-      "org.scala-js" %%% "scala-js-macrotask-executor" % Versions.macroTaskExecutor
+      "dev.optics"                   %%% "monocle-core"                % Versions.monocle,
+      "com.raquo"                    %%% "waypoint"                    % Versions.waypoint,
+      "com.github.japgolly.scalacss" %%% "core"                        % Versions.scalacss,
+      "com.raquo"                    %%% "laminar"                     % Versions.Laminar,
+      "io.circe"                     %%% "circe-core"                  % Versions.circe,
+      "io.circe"                     %%% "circe-parser"                % Versions.circe,
+      "org.http4s"                   %%% "http4s-dom"                  % Versions.http4sDom,
+      "org.scala-js"                 %%% "scala-js-macrotask-executor" % Versions.macroTaskExecutor
     )
   )
 

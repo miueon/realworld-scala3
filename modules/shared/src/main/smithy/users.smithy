@@ -65,6 +65,7 @@ operation UpdateUser {
 
 @readonly
 @http(method: "GET", uri: "/api/profiles/{username}", code: 200)
+@auth([])
 operation GetProfile {
     input: GetProfileInput
     output: GetProfileOutput

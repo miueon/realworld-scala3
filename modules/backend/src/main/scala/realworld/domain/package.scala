@@ -15,6 +15,14 @@ import realworld.spec.Username
 import realworld.spec.Token
 import realworld.spec.Bio
 import realworld.spec.ImageUrl
+import doobie.util.meta.Meta
+import realworld.spec.CreatedAt
+import realworld.spec.UpdatedAt
+import java.time.Instant
+import doobie.implicits.javatime.JavaTimeInstantMeta
+import smithy4s.Timestamp
+import realworld.spec.Limit
+import realworld.spec.Skip
 
 package object domain:
   def documentToJson(doc: Document): Json = doc match
@@ -62,4 +70,10 @@ package object domain:
   given Codec[Token] = documentCodec
   given Codec[Bio] = documentCodec
   given Codec[ImageUrl] = documentCodec
+
+  given Meta[CreatedAt] = Meta[Instant].imap(i => CreatedAt(Timestamp.fromInstant(i)))(_.value.toInstant)
+  given Meta[UpdatedAt] = Meta[Instant].imap(i => UpdatedAt(Timestamp.fromInstant(i)))(_.value.toInstant)
+
+  given Meta[Limit] = Meta[Int].imap(Limit(_))(_.value)
+  given Meta[Skip] = Meta[Int].imap(Skip(_))(_.value)
 end domain

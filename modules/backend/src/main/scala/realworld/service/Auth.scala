@@ -20,9 +20,9 @@ import realworld.auth.JWT
 import realworld.config.types.TokenExpiration
 import realworld.domain.ID
 import realworld.domain.given
-import realworld.domain.users.DBUser
-import realworld.domain.users.UserId
-import realworld.domain.users.Users.username
+import realworld.domain.user.DBUser
+import realworld.domain.user.UserId
+import realworld.domain.user.Users.username
 import realworld.effects.GenUUID
 import realworld.spec.AuthHeader
 import realworld.spec.ForbiddenError
@@ -34,12 +34,12 @@ import realworld.spec.UnauthorizedError
 import realworld.spec.User
 import smithy4s.Document
 import smithy4s.schema.Schema
-import realworld.domain.users.UserError
+import realworld.domain.user.UserError
 import realworld.domain.WithId
 import realworld.spec.UpdateUserData
 import realworld.spec.Email
 import realworld.spec.Username
-import realworld.domain.users.EncryptedPassword
+import realworld.domain.user.EncryptedPassword
 import doobie.util.transactor.Transactor
 import realworld.db.transaction
 import realworld.db.transactK
@@ -171,16 +171,3 @@ object Auth:
           .findByUsername(username)
           .map(notTakenByOthers(_, userId, UserError.UsernameAlreadyExists()))
 end Auth
-
-// object UserAuth:
-//   def make[F[_]: Functor](
-//       redis: RedisCommands[F, String, String]
-//   ): UserAuth[F] =
-//     new:
-//       def findUser(token: Token)(claim: JwtClaim): F[Option[User]] =
-//         redis
-//           .get(token.value)
-//           .map:
-//             _.flatMap { uJson =>
-//               decode[User](uJson).toOption
-//             }

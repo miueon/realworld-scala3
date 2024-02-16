@@ -14,16 +14,16 @@ import cats.syntax.all.*
 import io.github.iltotore.iron.autoRefine
 import io.github.iltotore.iron.refine
 import realworld.config.types.PasswordSalt
-import realworld.domain.users.DecryptCipher
-import realworld.domain.users.EncryptCipher
-import realworld.domain.users.EncryptedPassword
+import realworld.domain.user.DecryptCipher
+import realworld.domain.user.EncryptCipher
+import realworld.domain.user.EncryptedPassword
 import realworld.spec.Password
 import cats.effect.IOApp
 import cats.effect.ExitCode
 import cats.effect.IO
 import com.password4j.Argon2Function
 import com.password4j.Password as pswd
-import realworld.domain.users.Users.password
+import realworld.domain.user.Users.password
 import realworld.spec
 
 trait Crypto:
@@ -55,7 +55,10 @@ object Crypto:
         def encrypt(value: Password): EncryptedPassword =
           EncryptedPassword(pswd.hash(value.value).`with`(Argon2).getResult())
 
-        def verifyPassword(password: realworld.spec.Password, encryptedPassword: EncryptedPassword): Boolean = 
+        def verifyPassword(
+            password: realworld.spec.Password,
+            encryptedPassword: EncryptedPassword
+        ): Boolean =
           pswd.check(password.value, encryptedPassword.value) `with` Argon2
     }
 

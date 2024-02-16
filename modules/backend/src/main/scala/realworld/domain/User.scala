@@ -1,4 +1,4 @@
-package realworld.domain.users
+package realworld.domain.user
 
 import java.util.UUID
 import javax.crypto.Cipher
@@ -23,6 +23,7 @@ import scala.CanEqual.derived
 import realworld.domain.WithId
 import scala.util.control.NoStackTrace
 import realworld.spec.Profile
+import realworld.spec.Author
 
 type UserId = UserId.Type
 object UserId extends IdNewtype
@@ -58,6 +59,9 @@ case class DBUser(
 
   def toProfiile(following: Boolean): Profile =
     Profile(username, following, bio, image)
+
+  def toAuthor(following: Boolean): Author =
+    Author(username, following, bio, image)
 end DBUser
 object Users extends TableDefinition("users"):
   val id: Column[UserId]                  = Column("id")

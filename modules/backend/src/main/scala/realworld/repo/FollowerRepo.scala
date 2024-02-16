@@ -6,7 +6,7 @@ import doobie.*
 import doobie.implicits.*
 import doobie.util.transactor.Transactor
 import realworld.domain.follower.Follower
-import realworld.domain.users.UserId
+import realworld.domain.user.UserId
 import cats.data.NonEmptyVector
 
 trait FollowerRepo[F[_]]:
@@ -34,7 +34,7 @@ object FollowerRepo:
 end FollowerRepo
 
 private object ProfileSQL:
-  import realworld.domain.follower.Follower as f
+  import realworld.domain.follower.Followers as f
 
   def findFollower(
       followeeId: UserId,

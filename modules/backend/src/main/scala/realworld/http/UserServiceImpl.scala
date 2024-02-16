@@ -8,7 +8,7 @@ import cats.effect.kernel.Sync
 import cats.syntax.all.*
 
 import org.typelevel.log4cats.Logger
-import realworld.domain.users.UserError
+import realworld.domain.user.UserError
 import realworld.service.Auth
 import realworld.service.Profiles
 import realworld.spec.AuthHeader

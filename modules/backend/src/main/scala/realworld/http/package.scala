@@ -11,6 +11,8 @@ import realworld.validation.InvalidField
 import realworld.validation.ValidationResult
 import smithy4s.Smithy4sThrowable
 import cats.MonadThrow
+import realworld.spec.Limit
+import realworld.spec.Skip
 
 package object http:
   def withValidation[F[_]: Sync, A, B](validated: ValidationResult[A])(
@@ -31,4 +33,6 @@ package object http:
   extension (t: Smithy4sThrowable)
     def raise[F[_]: MonadThrow: Sync, T <: Smithy4sThrowable, A]: F[A] =
       MonadError[F, Throwable].raiseError(t)
+
+  case class Pagination(limit: Limit, skip: Skip)
 end http

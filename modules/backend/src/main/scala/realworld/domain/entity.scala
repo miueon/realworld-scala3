@@ -7,16 +7,17 @@ import realworld.domain.types.IdNewtype
 import doobie.WithSQLDefinition
 import doobie.SQLDefinition
 import doobie.Composite
-import realworld.domain.users.UserId
-import realworld.domain.users.DBUser
+import realworld.domain.user.UserId
+import realworld.domain.user.DBUser
 import java.util.UUID
 import monocle.Iso
 import realworld.domain.types.IsUUID
 import realworld.spec.Email
 import realworld.spec.Username
-import realworld.domain.users.EncryptedPassword
+import realworld.domain.user.EncryptedPassword
+import realworld.spec.Total
 
-case class WithId[Id, T](id: Id, entity: T) 
+case class WithId[Id, T](id: Id, entity: T)
 
 object WithId:
   given withIdread[Id, T](using
@@ -44,3 +45,5 @@ object WithId:
         )
     sdef
 end WithId
+
+case class WithTotal[T](total: Total, entity: T)
