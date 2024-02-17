@@ -29,6 +29,8 @@ trait ArticleRepo[F[_]]:
 
   def listByFollowerId(followerId: UserId, pagination: Pagination): F[WithTotal[List[ArticleView]]]
 
+  def getBySlug(slug: Slug): F[Option[ArticleView]]
+
 object ArticleRepo:
   import ArticleSQL as A
   def make[F[_]: MonadCancelThrow](xa: Transactor[F]): ArticleRepo[F] =
@@ -52,6 +54,8 @@ object ArticleRepo:
           total    <- A.listFeedTotal(followerId)
         yield WithTotal(total, articles)
         result.transact(xa)
+
+      def getBySlug(slug: Slug): F[Option[ArticleView]] = ???
 end ArticleRepo
 
 private object ArticleSQL:

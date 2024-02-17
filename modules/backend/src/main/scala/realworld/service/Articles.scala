@@ -55,9 +55,15 @@ object Articles:
         result
       end list
 
-      def listFeed(uid: UserId, pagination: Pagination): F[WithTotal[ArticleList]] = 
-        
-        ???
+      def listFeed(uid: UserId, pagination: Pagination): F[WithTotal[ArticleList]] =
+        val result = for
+          articles <- articleRepo.listByFollowerId(uid, pagination)
+          authorIds  = articles.entity.map(_.authorId)
+          articleIds = articles.entity.map(_.id)
+          followers     <- authorIds.map(Follower(_, uid)).pure
+          articleExtras <- articlesExtras(Some(uid), articleIds)
+        yield articles.map(_.toArticleList(followers, articleExtras))
+        result
 
       private def articlesExtras(
           uidOpt: Option[UserId],

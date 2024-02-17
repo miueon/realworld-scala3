@@ -45,6 +45,7 @@ import realworld.db.transaction
 import realworld.db.transactK
 import realworld.db.DoobieTx
 import realworld.repo.UserRepo
+import realworld.spec.CredentialsError
 
 trait Auth[F[_]]:
   def login(user: LoginUserInputData): F[User]
@@ -133,7 +134,7 @@ object Auth:
                 _.pure[F]
               )
             }
-        else UnauthorizedError().raiseError[F, UserSession]
+        else CredentialsError("Auth header incorrect").raiseError[F, UserSession]
 
       def update(uid: UserId, updateData: UpdateUserData): F[DBUser] =
         val emailCleanOpt =

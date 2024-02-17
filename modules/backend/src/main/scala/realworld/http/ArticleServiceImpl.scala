@@ -1,26 +1,27 @@
 package realworld.http
 
-import realworld.spec.ArticleService
-import realworld.spec.AuthHeader
-import realworld.spec.Limit
-import realworld.spec.ListArticleOutput
-import realworld.spec.Skip
-import realworld.spec.Username
+import cats.effect.*
+import cats.syntax.all.*
+
 import realworld.domain.article.ListArticleQuery
-import realworld.spec.TagName
 import realworld.service.Articles
 import realworld.service.Auth
-import cats.syntax.all.*
-import cats.effect.*
+import realworld.spec.ArticleService
+import realworld.spec.AuthHeader
+import realworld.spec.Body
 import realworld.spec.CreateArticleData
 import realworld.spec.CreateArticleOutput
-import realworld.spec.ListFeedArticleOutput
-import realworld.spec.Body
 import realworld.spec.Description
+import realworld.spec.GetArticleOutput
+import realworld.spec.Limit
+import realworld.spec.ListArticleOutput
+import realworld.spec.ListFeedArticleOutput
+import realworld.spec.Skip
 import realworld.spec.Slug
+import realworld.spec.TagName
 import realworld.spec.Title
 import realworld.spec.UpdateArticleOutput
-import realworld.spec.GetArticleOutput
+import realworld.spec.Username
 
 object ArticleServiceImpl:
   def make[F[_]: MonadCancelThrow](articles: Articles[F], auth: Auth[F]): ArticleService[F] =
@@ -47,7 +48,13 @@ object ArticleServiceImpl:
           authHeader: AuthHeader,
           limit: Limit,
           skip: Skip
-      ): F[ListFeedArticleOutput] = ???
+      ): F[ListFeedArticleOutput] =
+        val result =
+          for
+            uid               <- auth.access(authHeader).map(_.id)
+            withTotalArticles <- articles.listFeed(uid, Pagination(limit, skip))
+          yield withTotalArticles
+        result.map(it => ListFeedArticleOutput(it.total, it.entity.value))
 
       def getArticle(slug: Slug, authHeaderOpt: Option[AuthHeader]): F[GetArticleOutput] = ???
 

@@ -27,9 +27,6 @@ import realworld.spec.UpdateUserData
 import realworld.spec.UpdateUserOutput
 import realworld.spec.UserService
 import realworld.spec.Username
-import realworld.validation.validateUpdateUserBody
-import realworld.validation.validateUserName
-import realworld.validation.validateUserPassword
 import smithy4s.Smithy4sThrowable
 
 object UserServiceImpl:
@@ -90,16 +87,15 @@ object UserServiceImpl:
       ): F[UpdateUserOutput] =
         for
           u <- auth.access(authHeader)
-          rs <- withValidation(validateUpdateUserBody(user)) { valid =>
+          rs <-
             auth
-              .update(u.id, valid)
+              .update(u.id, user)
               .map(_.toUser(u.user.token))
               .map(UpdateUserOutput(_))
               .recoverWith:
                 case UserError.UserNotFound() => NotFoundError().raise
                 case UserError.EmailAlreadyExists() | UserError.UsernameAlreadyExists() =>
                   UnprocessableEntity().raise
-          }
         yield rs
 
       def registerUser(user: RegisterUserData): F[RegisterUserOutput] =
