@@ -16,6 +16,8 @@ import realworld.spec.Email
 import realworld.spec.Username
 import realworld.domain.user.EncryptedPassword
 import realworld.spec.Total
+import cats.Functor
+import scala.annotation.targetName
 
 case class WithId[Id, T](id: Id, entity: T)
 
@@ -47,3 +49,9 @@ object WithId:
 end WithId
 
 case class WithTotal[T](total: Total, entity: T)
+object WithTotal:
+  @targetName("helper")
+  def apply[T](total: Int, entity: T): WithTotal[T] = WithTotal(Total(total), entity)
+  given Functor[WithTotal] = new Functor[WithTotal]:
+    def map[A, B](fa: WithTotal[A])(f: A => B): WithTotal[B] =
+      WithTotal(fa.total, f(fa.entity))

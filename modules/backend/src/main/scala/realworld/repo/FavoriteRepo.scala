@@ -10,22 +10,25 @@ import doobie.util.transactor.Transactor
 import realworld.domain.Favorite
 import realworld.domain.article.ArticleId
 import realworld.domain.user.UserId
+import realworld.spec.FavoritesCount
 
 trait FavoriteRepo[F[_]]:
   def findFavorites(articleIds: List[ArticleId], userId: UserId): F[List[Favorite]]
-  def favoriteCountArticleIdMap(articleIds: List[ArticleId]): F[Map[ArticleId, Int]]
+  def favoriteCountIdMap(articleIds: List[ArticleId]): F[Map[ArticleId, FavoritesCount]]
 
 object FavoriteRepo:
   def make[F[_]: MonadCancelThrow](xa: Transactor[F]): FavoriteRepo[F] =
     new:
-      def favoriteCountArticleIdMap(articleIds: List[ArticleId]): F[Map[ArticleId, Int]] =
+      def favoriteCountIdMap(
+          articleIds: List[ArticleId]
+      ): F[Map[ArticleId, FavoritesCount]] =
         NonEmptyList.fromList(articleIds.distinct) match
           case Some(ids) =>
             FavoriteSQL
               .favoriteArticleIdCountList(ids)
               .transact(xa)
-              .map(_.toMap)
-          case None => Map.empty[ArticleId, Int].pure[F]
+              .map(_.map(t => t._1 -> FavoritesCount(t._2)).toMap)
+          case None => Map.empty[ArticleId, FavoritesCount].pure[F]
 
       def findFavorites(articleIds: List[ArticleId], userId: UserId): F[List[Favorite]] =
         NonEmptyList.fromList(articleIds.distinct) match

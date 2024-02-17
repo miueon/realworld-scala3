@@ -27,6 +27,8 @@ trait ArticleRepo[F[_]]:
       pagination: Pagination
   ): F[WithTotal[List[ArticleView]]]
 
+  def listByFollowerId(followerId: UserId, pagination: Pagination): F[WithTotal[List[ArticleView]]]
+
 object ArticleRepo:
   import ArticleSQL as A
   def make[F[_]: MonadCancelThrow](xa: Transactor[F]): ArticleRepo[F] =
@@ -38,7 +40,17 @@ object ArticleRepo:
         val result = for
           articles <- A.list(query, pagination)
           total    <- A.listTotal(query)
-        yield WithTotal(Total(total), articles)
+        yield WithTotal(total, articles)
+        result.transact(xa)
+
+      def listByFollowerId(
+          followerId: UserId,
+          pagination: Pagination
+      ): F[WithTotal[List[ArticleView]]] =
+        val result = for
+          articles <- A.listByFollowerId(followerId, pagination)
+          total    <- A.listFeedTotal(followerId)
+        yield WithTotal(total, articles)
         result.transact(xa)
 end ArticleRepo
 
@@ -47,6 +59,7 @@ private object ArticleSQL:
   import realworld.domain.Tags
   import realworld.domain.user.Users
   import realworld.domain.Favorites
+  import realworld.domain.follower.Followers as fo
   import realworld.domain.given
 
   private val a  = Articles as "a"
@@ -75,13 +88,27 @@ private object ArticleSQL:
       )
   end ArticleViews
 
+  private val articleViewFr =
+    sql"SELECT ${ArticleViews} FROM $a INNER JOIN $au ON ${a.c(_.authorId)} = ${au.c(_.id)}"
+
   def list(
       query: ListArticleQuery,
       pagination: Pagination
   ): ConnectionIO[List[ArticleView]] =
     val q =
-      sql"SELECT ${ArticleViews} FROM $a INNER JOIN $au ON ${a.c(_.authorId)} = ${au.c(_.id)}"
+      articleViewFr
         ++ whereWithQuery(query)
+        ++ recentWithPagination(pagination)
+    q.queryOf(ArticleViews)
+      .to[List]
+
+  def listByFollowerId(
+      followerId: UserId,
+      pagination: Pagination
+  ): ConnectionIO[List[ArticleView]] =
+    val q =
+      articleViewFr
+        ++ whereWithFollower(followerId)
         ++ recentWithPagination(pagination)
     q.queryOf(ArticleViews)
       .to[List]
@@ -90,6 +117,13 @@ private object ArticleSQL:
     val q =
       fr"SELECT COUNT(*) FROM $a INNER JOIN $au ON ${a.c(_.authorId)} = ${au.c(_.id)}" ++ whereWithQuery(
         query
+      )
+    q.query[Int].unique
+
+  def listFeedTotal(followerId: UserId): ConnectionIO[Int] =
+    val q =
+      fr"SELECT COUNT(*) FROM $a INNER JOIN $au ON ${a.c(_.authorId)} = ${au.c(_.id)}" ++ whereWithFollower(
+        followerId
       )
     q.query[Int].unique
 
@@ -103,6 +137,9 @@ private object ArticleSQL:
           .c(_.userId)} = ${cu.c(_.id)} WHERE ${cu.c(_.username) === username})"
     )
     whereAndOpt(tag, author, favorited)
+
+  private def whereWithFollower(followerId: UserId) =
+    fr"${a.c(_.authorId)} IN (SELECT DISTINCT ${fo.userId} FROM $fo WHERE ${fo.userId === followerId} "
 
   private def recentWithPagination(pagination: Pagination) =
     fr"""

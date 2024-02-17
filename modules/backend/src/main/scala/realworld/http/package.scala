@@ -35,4 +35,7 @@ package object http:
       MonadError[F, Throwable].raiseError(t)
 
   case class Pagination(limit: Limit, skip: Skip)
+  object Pagination:
+    def apply(limit: Option[Limit], skip: Option[Skip]): Pagination =
+      Pagination(limit.getOrElse(Limit(10)), skip.getOrElse(Skip(0)))
 end http
