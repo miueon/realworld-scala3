@@ -13,6 +13,8 @@ import realworld.domain.article.ArticleId
 
 trait TagRepo[F[_]]:
   def findTags(articleIds: List[ArticleId]): F[List[Tag]]
+  def findTagsById(articleId: ArticleId): F[List[Tag]] =
+    findTags(List(articleId))
 
 object TagRepo:
   def make[F[_]: MonadCancelThrow](

@@ -11,10 +11,18 @@ import realworld.domain.Favorite
 import realworld.domain.article.ArticleId
 import realworld.domain.user.UserId
 import realworld.spec.FavoritesCount
+import cats.Functor
 
-trait FavoriteRepo[F[_]]:
+trait FavoriteRepo[F[_]: Functor]:
   def findFavorites(articleIds: List[ArticleId], userId: UserId): F[List[Favorite]]
+
+  def findFavorite(articleId: ArticleId, userId: UserId): F[Option[Favorite]] =
+    findFavorites(List(articleId), userId).map(_.headOption)
+
   def favoriteCountIdMap(articleIds: List[ArticleId]): F[Map[ArticleId, FavoritesCount]]
+
+  def favoriteCount(articleId: ArticleId): F[FavoritesCount] =
+    favoriteCountIdMap(List(articleId)).map(_.getOrElse(articleId, FavoritesCount(0)))
 
 object FavoriteRepo:
   def make[F[_]: MonadCancelThrow](xa: Transactor[F]): FavoriteRepo[F] =

@@ -22,9 +22,15 @@ import realworld.spec.TagName
 import realworld.spec.Title
 import realworld.spec.UpdateArticleOutput
 import realworld.spec.Username
+import org.typelevel.log4cats.Logger
+import realworld.domain.article.ArticleError
+import realworld.spec.NotFoundError
 
 object ArticleServiceImpl:
-  def make[F[_]: MonadCancelThrow](articles: Articles[F], auth: Auth[F]): ArticleService[F] =
+  def make[F[_]: MonadCancelThrow: Logger](
+      articles: Articles[F],
+      auth: Auth[F]
+  ): ArticleService[F] =
     new:
       def listArticle(
           limit: Limit,
@@ -56,7 +62,18 @@ object ArticleServiceImpl:
           yield withTotalArticles
         result.map(it => ListFeedArticleOutput(it.total, it.entity.value))
 
-      def getArticle(slug: Slug, authHeaderOpt: Option[AuthHeader]): F[GetArticleOutput] = ???
+      def getArticle(slug: Slug, authHeaderOpt: Option[AuthHeader]): F[GetArticleOutput] =
+        val result =
+          for
+            uidOpt  <- authHeaderOpt.traverse(auth.access(_).map(_.id))
+            article <- articles.getBySlug(uidOpt, slug)
+          yield article
+
+        result
+          .map(GetArticleOutput(_))
+          .onError(e => Logger[F].warn(e)(s"Failed to get article: $slug"))
+          .recoverWith:
+            case ArticleError.NotFound(slug) => NotFoundError().raise
 
       def createArticle(
           article: CreateArticleData,

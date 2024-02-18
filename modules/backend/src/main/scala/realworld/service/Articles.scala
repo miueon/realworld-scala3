@@ -1,25 +1,30 @@
 package realworld.service
 
-import realworld.domain.user.UserId
-import realworld.domain.article.ListArticleQuery
-import realworld.http.Pagination
-import realworld.domain.WithTotal
-import realworld.spec.ArticleList
-import realworld.repo.ArticleRepo
-import realworld.repo.UserRepo
-import realworld.repo.FavoriteRepo
-import realworld.repo.TagRepo
-import cats.Monad
+import cats.data.OptionT
+import cats.effect.*
 import cats.syntax.all.*
-import realworld.repo.FollowerRepo
-import realworld.domain.article.ArticleView
-import realworld.domain.article.ArticleId
-import realworld.spec.TagName
-import realworld.spec.FavoritesCount
+
 import realworld.domain.Favorite
 import realworld.domain.Tag
+import realworld.domain.WithTotal
+import realworld.domain.article.ArticleError
+import realworld.domain.article.ArticleId
+import realworld.domain.article.ArticleView
+import realworld.domain.article.ListArticleQuery
 import realworld.domain.follower.Follower
+import realworld.domain.user.UserId
+import realworld.http.Pagination
+import realworld.repo.ArticleRepo
+import realworld.repo.FavoriteRepo
+import realworld.repo.FollowerRepo
+import realworld.repo.TagRepo
+import realworld.repo.UserRepo
+import realworld.spec.Article
+import realworld.spec.ArticleList
+import realworld.spec.FavoritesCount
 import realworld.spec.Profile
+import realworld.spec.Slug
+import realworld.spec.TagName
 
 trait Articles[F[_]]:
   def list(
@@ -30,8 +35,10 @@ trait Articles[F[_]]:
 
   def listFeed(uid: UserId, pagination: Pagination): F[WithTotal[ArticleList]]
 
+  def getBySlug(uidOpt: Option[UserId], slug: Slug): F[Article]
+
 object Articles:
-  def make[F[_]: Monad](
+  def make[F[_]: MonadCancelThrow](
       articleRepo: ArticleRepo[F],
       favRepo: FavoriteRepo[F],
       tagRepo: TagRepo[F],
@@ -65,6 +72,19 @@ object Articles:
         yield articles.map(_.toArticleList(followers, articleExtras))
         result
 
+      def getBySlug(uidOpt: Option[UserId], slug: Slug): F[Article] =
+        val article = for
+          article <- OptionT(articleRepo.getBySlug(slug))
+          following <- OptionT.liftF(
+            uidOpt.flatTraverse(followerRepo.findFollower(article.authorId, _)).map(_.nonEmpty)
+          )
+          extras <- OptionT.liftF(articleExtra(uidOpt, article.id))
+        yield article.toArticleOutput(following, extras)
+        article.value.flatMap {
+          case None        => ArticleError.NotFound(slug).raiseError
+          case Some(value) => value.pure
+        }
+
       private def articlesExtras(
           uidOpt: Option[UserId],
           articleIds: List[ArticleId]
@@ -92,6 +112,16 @@ object Articles:
             articleIds.map(withExtra(_, tagMap, favByMap, favCountMap)).toMap
       end articlesExtras
 
+      def articleExtra(
+          uidOpt: Option[UserId],
+          articleId: ArticleId
+      ): F[(List[TagName], Boolean, FavoritesCount)] =
+        for
+          tags        <- tagRepo.findTagsById(articleId)
+          isFavorited <- uidOpt.flatTraverse(favRepo.findFavorite(articleId, _)).map(_.nonEmpty)
+          favCount    <- favRepo.favoriteCount(articleId)
+        yield (tags.map(_.tag), isFavorited, favCount)
+
       extension (a: List[ArticleView])
         def toArticleList(
             followers: List[Follower],
@@ -99,25 +129,35 @@ object Articles:
         ): ArticleList =
           val followingMap = followers.groupBy(_.userId)
           val aricles = a.map { article =>
-            val (tags, isFavorited, favoritesCount) = articleExtras(article.id)
-            realworld.spec.Article(
-              article.slug,
-              article.title,
-              article.description,
-              article.body,
-              article.createdAt,
-              article.updatedAt,
-              Profile(
-                article.authorName,
-                followingMap.get(article.authorId).nonEmpty,
-                article.authorBio,
-                article.authorImage
-              ),
-              tags,
-              isFavorited,
-              favoritesCount
+            article.toArticleOutput(
+              followingMap.get(article.authorId).nonEmpty,
+              articleExtras(article.id)
             )
           }
           ArticleList(aricles)
+
+      extension (a: ArticleView)
+        def toArticleOutput(
+            following: Boolean,
+            articleExtra: (List[TagName], Boolean, FavoritesCount)
+        ): Article =
+          val (tags, isFavorited, favoritesCount) = articleExtra
+          Article(
+            a.slug,
+            a.title,
+            a.description,
+            a.body,
+            a.createdAt,
+            a.updatedAt,
+            Profile(
+              a.authorName,
+              following,
+              a.authorBio,
+              a.authorImage
+            ),
+            tags,
+            isFavorited,
+            favoritesCount
+          )
 
 end Articles

@@ -30,7 +30,7 @@ import realworld.spec.Username
 import smithy4s.Smithy4sThrowable
 
 object UserServiceImpl:
-  def make[F[_]: Sync: MonadThrow: Logger](
+  def make[F[_]:  MonadThrow: Logger](
       auth: Auth[F],
       profiles: Profiles[F]
   ): UserService[F] =

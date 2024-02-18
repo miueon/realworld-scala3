@@ -14,7 +14,7 @@ import smithy4s.Smithy4sThrowable
 
 package object http:
   extension (t: Smithy4sThrowable)
-    def raise[F[_]: MonadThrow: Sync, T <: Smithy4sThrowable, A]: F[A] =
+    def raise[F[_]: MonadThrow, T <: Smithy4sThrowable, A]: F[A] =
       MonadError[F, Throwable].raiseError(t)
 
   case class Pagination(limit: Limit, skip: Skip)

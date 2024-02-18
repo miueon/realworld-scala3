@@ -24,6 +24,7 @@ import realworld.domain.*
 import realworld.spec.TagName
 import realworld.spec.Bio
 import realworld.spec.ImageUrl
+import scala.util.control.NoStackTrace
 
 type ArticleId = ArticleId.Type
 object ArticleId extends IdNewtype
@@ -81,6 +82,11 @@ object Articles extends TableDefinition("articles"):
   val columns = ArticleSqlDef
   val rowCol  = WithId.sqlDef(using id, columns)
 end Articles
+
+// Error
+
+enum ArticleError extends NoStackTrace:
+  case NotFound(slug: Slug)
 
 // API
 case class ListArticleQuery(

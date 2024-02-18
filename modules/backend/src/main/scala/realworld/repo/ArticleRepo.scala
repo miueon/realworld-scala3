@@ -55,7 +55,7 @@ object ArticleRepo:
         yield WithTotal(total, articles)
         result.transact(xa)
 
-      def getBySlug(slug: Slug): F[Option[ArticleView]] = ???
+      def getBySlug(slug: Slug): F[Option[ArticleView]] = A.getBySlug(slug).transact(xa)
 end ArticleRepo
 
 private object ArticleSQL:
@@ -116,6 +116,11 @@ private object ArticleSQL:
         ++ recentWithPagination(pagination)
     q.queryOf(ArticleViews)
       .to[List]
+
+  def getBySlug(slug: Slug): ConnectionIO[Option[ArticleView]] =
+    val q =
+      articleViewFr ++ fr"WHERE ${a.c(_.slug) === slug}"
+    q.queryOf(ArticleViews).option
 
   def listTotal(query: ListArticleQuery): ConnectionIO[Int] =
     val q =

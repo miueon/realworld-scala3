@@ -13,11 +13,9 @@ import realworld.domain.follower.Follower
 import realworld.domain.follower.Followers.followerId
 import realworld.domain.user.UserId
 
-trait FollowerRepo[F[_]]:
-  def findFollower(followeeId: UserId, followerId: UserId)(using
-      Fun: Functor[F]
-  ): F[Option[Follower]] =
-    Fun.map(findFollowers(List(followeeId), followerId))(_.headOption)
+trait FollowerRepo[F[_]: Functor]:
+  def findFollower(followeeId: UserId, followerId: UserId): F[Option[Follower]] =
+    findFollowers(List(followeeId), followerId).map(_.headOption)
   def findFollowers(followeeIds: List[UserId], followerId: UserId): F[List[Follower]]
   def deleteFollower(followeeId: UserId, followerId: UserId): F[Unit]
   def createFollower(followeeId: UserId, followerId: UserId): F[Follower]
