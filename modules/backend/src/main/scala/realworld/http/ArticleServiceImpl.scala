@@ -26,6 +26,8 @@ import realworld.spec.Title
 import realworld.spec.UpdateArticleData
 import realworld.spec.UpdateArticleOutput
 import realworld.spec.Username
+import realworld.spec.FavoriteArticleOutput
+import realworld.spec.UnfavoriteArticleOutput
 
 object ArticleServiceImpl:
   def make[F[_]: MonadCancelThrow: Logger](
@@ -108,4 +110,8 @@ object ArticleServiceImpl:
         yield ()
         result.recoverWith:
           case ArticleError.NotFound(slug) => NotFoundError().raise
+
+      def favoriteArticle(slug: Slug, authHeader: AuthHeader): F[FavoriteArticleOutput] = ???
+
+      def unfavoriteArticle(slug: Slug, authHeader: AuthHeader): F[UnfavoriteArticleOutput] = ???
 end ArticleServiceImpl

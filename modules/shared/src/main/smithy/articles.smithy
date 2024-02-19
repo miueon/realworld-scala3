@@ -23,6 +23,8 @@ service ArticleService {
         CreateArticle
         UpdateArticle
         DeleteArticle
+        FavoriteArticle
+        UnfavoriteArticle
     ]
     errors: [CredentialsError]
 }
@@ -69,9 +71,41 @@ operation UpdateArticle {
     ]
 }
 
+@idempotent
 @http(method: "DELETE", uri: "/api/articles/{slug}", code: 204)
 operation DeleteArticle {
     input: DeleteArticleInput
+}
+
+@http(method: "POST", uri: "/api/articles/{slug}/favorite", code: 200)
+operation FavoriteArticle {
+    input := {
+        @required
+        @httpLabel
+        slug: Slug
+        @required
+        @httpHeader("Authorization")
+        authHeader: AuthHeader
+    }
+    output := {
+        article: Article
+    }
+    errors: [UnauthorizedError, NotFoundError]
+}
+
+@http(method: "DELETE", uri: "/api/articles/{slug}/favorite", code: 200)
+operation UnfavoriteArticle {
+    input := {
+        @required
+        @httpLabel
+        slug: Slug
+        @required
+        @httpHeader("Authorization")
+        authHeader: AuthHeader
+    }
+    output := {
+        article: Article
+    }
 }
 
 // STRUCTURES
