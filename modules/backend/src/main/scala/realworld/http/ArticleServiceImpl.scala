@@ -3,6 +3,8 @@ package realworld.http
 import cats.effect.*
 import cats.syntax.all.*
 
+import org.typelevel.log4cats.Logger
+import realworld.domain.article.ArticleError
 import realworld.domain.article.ListArticleQuery
 import realworld.service.Articles
 import realworld.service.Auth
@@ -16,16 +18,14 @@ import realworld.spec.GetArticleOutput
 import realworld.spec.Limit
 import realworld.spec.ListArticleOutput
 import realworld.spec.ListFeedArticleOutput
+import realworld.spec.NotFoundError
 import realworld.spec.Skip
 import realworld.spec.Slug
 import realworld.spec.TagName
 import realworld.spec.Title
+import realworld.spec.UpdateArticleData
 import realworld.spec.UpdateArticleOutput
 import realworld.spec.Username
-import org.typelevel.log4cats.Logger
-import realworld.domain.article.ArticleError
-import realworld.spec.NotFoundError
-import realworld.spec.UpdateArticleData
 
 object ArticleServiceImpl:
   def make[F[_]: MonadCancelThrow: Logger](
@@ -101,6 +101,11 @@ object ArticleServiceImpl:
             case ArticleError.NotFound(slug) => NotFoundError().raise
       end updateArticle
 
-      def deleteArticle(slug: Slug, authHeader: AuthHeader): F[Unit] = ???
-
+      def deleteArticle(slug: Slug, authHeader: AuthHeader): F[Unit] =
+        val result = for
+          uid <- auth.access(authHeader).map(_.id)
+          _   <- articles.delete(slug, uid)
+        yield ()
+        result.recoverWith:
+          case ArticleError.NotFound(slug) => NotFoundError().raise
 end ArticleServiceImpl

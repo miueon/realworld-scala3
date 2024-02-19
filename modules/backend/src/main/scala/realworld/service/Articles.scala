@@ -46,6 +46,7 @@ trait Articles[F[_]]:
   def getBySlug(uidOpt: Option[UserId], slug: Slug): F[Article]
   def create(uid: UserId, data: CreateArticleData): F[Article]
   def update(slug: Slug, uid: UserId, data: UpdateArticleData): F[Article]
+  def delete(slug: Slug, uid: UserId): F[Unit]
 
 object Articles:
   def make[F[_]: MonadCancelThrow: GenUUID](
@@ -132,6 +133,13 @@ object Articles:
         result.value.flatMap:
           case None        => ArticleError.NotFound(slug).raiseError
           case Some(value) => value.pure
+
+      def delete(slug: Slug, uid: UserId): F[Unit] =
+        articleRepo
+          .delete(slug, uid)
+          .flatMap:
+            case None     => ArticleError.NotFound(slug).raiseError
+            case Some(()) => ().pure
 
       private def mkSlug(title: Title, authorId: UserId, nowTime: Instant): Slug =
         Slug(s"${title.value}-${authorId.value}-${nowTime}")

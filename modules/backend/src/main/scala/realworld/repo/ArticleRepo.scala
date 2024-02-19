@@ -42,6 +42,7 @@ trait ArticleRepo[F[_]]:
       updatedAt: UpdatedAt,
       authorId: UserId
   ): F[Option[ArticleView]]
+  def delete(slug: Slug, authorId: UserId): F[Option[Unit]]
 end ArticleRepo
 
 object ArticleRepo:
@@ -90,6 +91,9 @@ object ArticleRepo:
             article <- OptionT(A.selectBySlug(slug))
           yield article
         trx.value.transact(xa)
+
+      def delete(slug: Slug, authorId: UserId): F[Option[Unit]] = 
+        A.deleteBySlug(slug, authorId).transact(xa)
 end ArticleRepo
 
 private object ArticleSQL:
@@ -181,13 +185,13 @@ private object ArticleSQL:
   def insertTag() =
     Tags.rowCol.insert
 
+  import Articles as ar
   def update(
       data: UpdateArticleData,
       slug: Slug,
       updatedAt: UpdatedAt,
       authorId: UserId
   ): ConnectionIO[Option[Unit]] =
-    import Articles as ar
     val titleOpt       = data.title.map(t => ar.title --> t)
     val descriptionOpt = data.description.map(d => ar.description --> d)
     val bodyOpt        = data.body.map(b => ar.body --> b)
@@ -204,8 +208,11 @@ private object ArticleSQL:
           """.update.run
         q.map(_ => none)
       )
-
   end update
+
+  def deleteBySlug(slug: Slug, authorId: UserId): ConnectionIO[Option[Unit]] =
+    val q = sql"DELETE FROM $ar WHERE ${ar.slug === slug} AND ${ar.authorId === authorId}"
+    q.update.run.map(_ => none)
 
   private def whereWithQuery(query: ListArticleQuery) =
     val tag = query.tag.map(tagName =>
