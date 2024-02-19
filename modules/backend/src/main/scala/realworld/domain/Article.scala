@@ -43,18 +43,7 @@ case class Article(
     createdAt: CreatedAt,
     updatedAt: UpdatedAt,
     authorId: UserId
-):
-  def toSpecArticle(): realworld.spec.Article =
-    realworld.spec.Article(
-      slug,
-      title,
-      description,
-      body,
-      createdAt,
-      updatedAt,
-      ???
-    )
-end Article
+)
 
 object Articles extends TableDefinition("articles"):
   val id: Column[ArticleId]            = Column("id")
