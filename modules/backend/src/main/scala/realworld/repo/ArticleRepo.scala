@@ -1,6 +1,7 @@
 package realworld.repo
 
 import cats.effect.*
+import cats.syntax.all.*
 
 import doobie.Fragments.*
 import doobie.*
@@ -20,16 +21,28 @@ import realworld.spec.Title
 import realworld.spec.Total
 import realworld.spec.UpdatedAt
 import realworld.spec.Username
+import realworld.spec.CreateArticleData
+import realworld.spec.TagName
+import realworld.domain.Tag
+import realworld.spec.UpdateArticleData
+import cats.data.NonEmptyList
+import cats.data.OptionT
 
 trait ArticleRepo[F[_]]:
   def list(
       query: ListArticleQuery,
       pagination: Pagination
   ): F[WithTotal[List[ArticleView]]]
-
   def listByFollowerId(followerId: UserId, pagination: Pagination): F[WithTotal[List[ArticleView]]]
-
   def getBySlug(slug: Slug): F[Option[ArticleView]]
+  def create(article: WithId[ArticleId, Article], tags: List[TagName]): F[ArticleView]
+  def update(
+      data: UpdateArticleData,
+      slug: Slug,
+      updatedAt: UpdatedAt,
+      authorId: UserId
+  ): F[Option[ArticleView]]
+end ArticleRepo
 
 object ArticleRepo:
   import ArticleSQL as A
@@ -55,7 +68,28 @@ object ArticleRepo:
         yield WithTotal(total, articles)
         result.transact(xa)
 
-      def getBySlug(slug: Slug): F[Option[ArticleView]] = A.getBySlug(slug).transact(xa)
+      def getBySlug(slug: Slug): F[Option[ArticleView]] = A.selectBySlug(slug).transact(xa)
+
+      def create(article: WithId[ArticleId, Article], tags: List[TagName]): F[ArticleView] =
+        val trx = for
+          _       <- A.insertRow().run(article)
+          _       <- A.insertTag().updateMany(tags.map(tag => Tag(article.id, tag)))
+          article <- A.selectById(article.id)
+        yield article
+        trx.transact(xa)
+
+      def update(
+          data: UpdateArticleData,
+          slug: Slug,
+          updatedAt: UpdatedAt,
+          authorId: UserId
+      ): F[Option[ArticleView]] =
+        val trx =
+          for
+            _       <- OptionT(A.update(data, slug, updatedAt, authorId))
+            article <- OptionT(A.selectBySlug(slug))
+          yield article
+        trx.value.transact(xa)
 end ArticleRepo
 
 private object ArticleSQL:
@@ -117,10 +151,15 @@ private object ArticleSQL:
     q.queryOf(ArticleViews)
       .to[List]
 
-  def getBySlug(slug: Slug): ConnectionIO[Option[ArticleView]] =
+  def selectBySlug(slug: Slug): ConnectionIO[Option[ArticleView]] =
     val q =
       articleViewFr ++ fr"WHERE ${a.c(_.slug) === slug}"
     q.queryOf(ArticleViews).option
+
+  def selectById(id: ArticleId): ConnectionIO[ArticleView] =
+    val q =
+      articleViewFr ++ fr"WHERE ${a.c(_.id) === id}"
+    q.queryOf(ArticleViews).unique
 
   def listTotal(query: ListArticleQuery): ConnectionIO[Int] =
     val q =
@@ -135,6 +174,38 @@ private object ArticleSQL:
         followerId
       )
     q.query[Int].unique
+
+  def insertRow() =
+    Articles.rowCol.insert
+
+  def insertTag() =
+    Tags.rowCol.insert
+
+  def update(
+      data: UpdateArticleData,
+      slug: Slug,
+      updatedAt: UpdatedAt,
+      authorId: UserId
+  ): ConnectionIO[Option[Unit]] =
+    import Articles as ar
+    val titleOpt       = data.title.map(t => ar.title --> t)
+    val descriptionOpt = data.description.map(d => ar.description --> d)
+    val bodyOpt        = data.body.map(b => ar.body --> b)
+
+    val fields      = List(titleOpt, descriptionOpt, bodyOpt).flatten
+    val otherFields = List(ar.updatedAt --> updatedAt, ar.slug --> slug)
+    NonEmptyList
+      .fromList(fields)
+      .fold(none.pure[ConnectionIO])(fields =>
+        val q =
+          sql"""
+          ${updateTable[NonEmptyList](ar, fields ++ otherFields)} 
+          WHERE ${ar.authorId === authorId} AND ${ar.slug === slug}
+          """.update.run
+        q.map(_ => none)
+      )
+
+  end update
 
   private def whereWithQuery(query: ListArticleQuery) =
     val tag = query.tag.map(tagName =>

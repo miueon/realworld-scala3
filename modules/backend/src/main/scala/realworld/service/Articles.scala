@@ -21,10 +21,20 @@ import realworld.repo.TagRepo
 import realworld.repo.UserRepo
 import realworld.spec.Article
 import realworld.spec.ArticleList
+import realworld.spec.CreatedAt
 import realworld.spec.FavoritesCount
 import realworld.spec.Profile
 import realworld.spec.Slug
 import realworld.spec.TagName
+import realworld.spec.CreateArticleData
+import realworld.effects.GenUUID
+import realworld.domain.ID
+import realworld.domain.WithId
+import realworld.spec.Title
+import java.time.Instant
+import smithy4s.Timestamp
+import realworld.spec.UpdatedAt
+import realworld.spec.UpdateArticleData
 
 trait Articles[F[_]]:
   def list(
@@ -32,13 +42,13 @@ trait Articles[F[_]]:
       query: ListArticleQuery,
       pagination: Pagination
   ): F[WithTotal[ArticleList]]
-
   def listFeed(uid: UserId, pagination: Pagination): F[WithTotal[ArticleList]]
-
   def getBySlug(uidOpt: Option[UserId], slug: Slug): F[Article]
+  def create(uid: UserId, data: CreateArticleData): F[Article]
+  def update(slug: Slug, uid: UserId, data: UpdateArticleData): F[Article]
 
 object Articles:
-  def make[F[_]: MonadCancelThrow](
+  def make[F[_]: MonadCancelThrow: GenUUID](
       articleRepo: ArticleRepo[F],
       favRepo: FavoriteRepo[F],
       tagRepo: TagRepo[F],
@@ -84,6 +94,47 @@ object Articles:
           case None        => ArticleError.NotFound(slug).raiseError
           case Some(value) => value.pure
         }
+
+      def create(uid: UserId, data: CreateArticleData): F[Article] =
+        def articleWithId(
+            id: ArticleId,
+            nowTime: Instant
+        ): WithId[ArticleId, realworld.domain.article.Article] =
+          WithId(
+            id,
+            realworld.domain.article.Article(
+              mkSlug(data.title, uid, nowTime),
+              data.title,
+              data.description,
+              data.body,
+              CreatedAt(nowTime.toTimestamp),
+              UpdatedAt(nowTime.toTimestamp),
+              uid
+            )
+          )
+        val now = Instant.now()
+        for
+          articleId <- ID.make[F, ArticleId]
+          row = articleWithId(articleId, now)
+          article <- articleRepo.create(row, data.tagList)
+        yield article.toArticleOutput(false, (data.tagList, false, FavoritesCount(0)))
+      end create
+
+      def update(slug: Slug, uid: UserId, data: UpdateArticleData): F[Article] =
+        val now     = Instant.now()
+        val newSlug = data.title.map(mkSlug(_, uid, now)).getOrElse(slug)
+
+        val result = for
+          article <- OptionT(articleRepo.update(data, newSlug, UpdatedAt(now.toTimestamp), uid))
+          extra   <- OptionT.liftF(articleExtra(uid.some, article.id))
+        yield article.toArticleOutput(false, extra)
+
+        result.value.flatMap:
+          case None        => ArticleError.NotFound(slug).raiseError
+          case Some(value) => value.pure
+
+      private def mkSlug(title: Title, authorId: UserId, nowTime: Instant): Slug =
+        Slug(s"${title.value}-${authorId.value}-${nowTime}")
 
       private def articlesExtras(
           uidOpt: Option[UserId],

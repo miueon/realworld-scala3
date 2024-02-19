@@ -88,12 +88,17 @@ structure UpdateArticleInput {
     @required
     @httpLabel
     slug: Slug
-    title: Title
-    description: Description
-    body: Body
+    @required
+    article: UpdateArticleData
     @required
     @httpHeader("Authorization")
     authHeader: AuthHeader
+}
+
+structure UpdateArticleData {
+    title: Title
+    description: Description
+    body: Body
 }
 
 structure UpdateArticleOutput {

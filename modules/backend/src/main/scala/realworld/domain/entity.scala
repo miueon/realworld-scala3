@@ -18,6 +18,8 @@ import realworld.domain.user.EncryptedPassword
 import realworld.spec.Total
 import cats.Functor
 import scala.annotation.targetName
+import doobie.TableDefinition.RowHelpers
+import doobie.TableDefinition
 
 case class WithId[Id, T](id: Id, entity: T)
 
@@ -36,16 +38,16 @@ object WithId:
 
   given sqlDef[Id, T](using
       idSqldef: SQLDefinition[Id],
-      entitySqlDef: SQLDefinition[T]
-  ): WithSQLDefinition[WithId[Id, T]] =
-    object sdef
-        extends WithSQLDefinition[WithId[Id, T]](
-          Composite(
-            idSqldef,
-            entitySqlDef
-          )(WithId.apply)(Tuple.fromProductTyped)
-        )
-    sdef
+      entitySqlDef: SQLDefinition[T],
+      tableDef: TableDefinition
+  ): (WithSQLDefinition[WithId[Id, T]] & TableDefinition.RowHelpers[WithId[Id, T]]) =
+    new WithSQLDefinition[WithId[Id, T]](
+      Composite(
+        idSqldef,
+        entitySqlDef
+      )(WithId.apply)(Tuple.fromProductTyped)
+    ) with TableDefinition.RowHelpers[WithId[Id, T]](tableDef) {}
+
 end WithId
 
 case class WithTotal[T](total: Total, entity: T)

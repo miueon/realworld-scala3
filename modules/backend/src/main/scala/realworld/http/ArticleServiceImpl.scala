@@ -25,6 +25,7 @@ import realworld.spec.Username
 import org.typelevel.log4cats.Logger
 import realworld.domain.article.ArticleError
 import realworld.spec.NotFoundError
+import realworld.spec.UpdateArticleData
 
 object ArticleServiceImpl:
   def make[F[_]: MonadCancelThrow: Logger](
@@ -76,17 +77,29 @@ object ArticleServiceImpl:
             case ArticleError.NotFound(slug) => NotFoundError().raise
 
       def createArticle(
-          article: CreateArticleData,
+          createArticleData: CreateArticleData,
           authHeader: AuthHeader
-      ): F[CreateArticleOutput] = ???
+      ): F[CreateArticleOutput] =
+        for
+          uid     <- auth.access(authHeader).map(_.id)
+          article <- articles.create(uid, createArticleData)
+        yield CreateArticleOutput(article)
 
       def updateArticle(
           slug: Slug,
-          authHeader: AuthHeader,
-          title: Option[Title],
-          description: Option[Description],
-          body: Option[Body]
-      ): F[UpdateArticleOutput] = ???
+          updateArticleData: UpdateArticleData,
+          authHeader: AuthHeader
+      ): F[UpdateArticleOutput] =
+        val result = for
+          uid     <- auth.access(authHeader).map(_.id)
+          article <- articles.update(slug, uid, updateArticleData)
+        yield UpdateArticleOutput(article)
+
+        result
+          .onError(e => Logger[F].warn(e)(s"Failed to update article: $slug"))
+          .recoverWith:
+            case ArticleError.NotFound(slug) => NotFoundError().raise
+      end updateArticle
 
       def deleteArticle(slug: Slug, authHeader: AuthHeader): F[Unit] = ???
 

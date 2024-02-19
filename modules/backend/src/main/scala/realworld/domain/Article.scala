@@ -25,6 +25,7 @@ import realworld.spec.TagName
 import realworld.spec.Bio
 import realworld.spec.ImageUrl
 import scala.util.control.NoStackTrace
+import doobie.TableDefinition.RowHelpers
 
 type ArticleId = ArticleId.Type
 object ArticleId extends IdNewtype
@@ -80,7 +81,7 @@ object Articles extends TableDefinition("articles"):
         )(Article.apply)(Tuple.fromProductTyped)
       )
   val columns = ArticleSqlDef
-  val rowCol  = WithId.sqlDef(using id, columns)
+  val rowCol  = WithId.sqlDef(using id, columns, this)
 end Articles
 
 // Error

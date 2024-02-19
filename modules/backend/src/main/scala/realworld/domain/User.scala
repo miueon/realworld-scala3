@@ -84,7 +84,7 @@ object Users extends TableDefinition("users"):
         )(DBUser.apply)(Tuple.fromProductTyped)
       )
   val columns = UserSqlDef
-  val rowCol  = WithId.sqlDef(using id, columns)
+  val rowCol  = WithId.sqlDef(using id, columns, this)
 end Users
 
 enum UserError extends NoStackTrace:
