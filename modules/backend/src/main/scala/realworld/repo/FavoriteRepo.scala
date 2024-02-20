@@ -21,7 +21,7 @@ trait FavoriteRepo[F[_]: Functor]:
   def favoriteCount(articleId: ArticleId): F[FavoritesCount] =
     favoriteCountIdMap(List(articleId)).map(_.getOrElse(articleId, FavoritesCount(0)))
   def create(fav: Favorite): F[Favorite]
-  def delete(articleId: ArticleId, uid: UserId): F[Unit]
+  def delete(fav: Favorite): F[Unit]
 
 object FavoriteRepo:
   def make[F[_]: MonadCancelThrow](xa: Transactor[F]): FavoriteRepo[F] =
@@ -45,8 +45,8 @@ object FavoriteRepo:
       def create(fav: Favorite): F[Favorite] =
         FavoriteSQL.insert().run(fav).transact(xa).map(_ => fav)
 
-      def delete(articleId: ArticleId, uid: UserId): F[Unit] =
-        FavoriteSQL.delete(articleId, uid).transact(xa).map(_ => ())
+      def delete(fav: Favorite): F[Unit] =
+        FavoriteSQL.delete(fav.articleId, fav.userId).transact(xa).map(_ => ())
 
 end FavoriteRepo
 

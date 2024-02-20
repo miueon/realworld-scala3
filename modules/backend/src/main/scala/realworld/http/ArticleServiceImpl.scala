@@ -111,12 +111,19 @@ object ArticleServiceImpl:
         result.recoverWith:
           case ArticleError.NotFound(slug) => NotFoundError().raise
 
-      def favoriteArticle(slug: Slug, authHeader: AuthHeader): F[FavoriteArticleOutput] = 
+      def favoriteArticle(slug: Slug, authHeader: AuthHeader): F[FavoriteArticleOutput] =
         val result = for
-          uid <- auth.authUserId(authHeader)
+          uid     <- auth.authUserId(authHeader)
           article <- articles.favoriteArticle(slug, uid)
-        yield ???
-        ???
+        yield FavoriteArticleOutput(article)
+        result.recoverWith:
+          case ArticleError.NotFound(slug) => NotFoundError().raise
 
-      def unfavoriteArticle(slug: Slug, authHeader: AuthHeader): F[UnfavoriteArticleOutput] = ???
+      def unfavoriteArticle(slug: Slug, authHeader: AuthHeader): F[UnfavoriteArticleOutput] =
+        val result = for
+          uid     <- auth.authUserId(authHeader)
+          article <- articles.unfavoriteArticle(slug, uid)
+        yield UnfavoriteArticleOutput(article)
+        result.recoverWith:
+          case ArticleError.NotFound(slug) => NotFoundError().raise
 end ArticleServiceImpl

@@ -48,6 +48,7 @@ trait Articles[F[_]]:
   def update(slug: Slug, uid: UserId, data: UpdateArticleData): F[Article]
   def delete(slug: Slug, uid: UserId): F[Unit]
   def favoriteArticle(slug: Slug, uid: UserId): F[Article]
+  def unfavoriteArticle(slug: Slug, uid: UserId): F[Article]
 
 object Articles:
   def make[F[_]: MonadCancelThrow: GenUUID](
@@ -143,16 +144,26 @@ object Articles:
             case Some(()) => ().pure
 
       def favoriteArticle(slug: Slug, uid: UserId): F[Article] =
+        favOrUnfav(slug, uid)(favRepo.create)
+
+      def unfavoriteArticle(slug: Slug, uid: UserId): F[Article] =
+        favOrUnfav(slug, uid)(favRepo.delete)
+
+      private def favOrUnfav[A](slug: Slug, uid: UserId)(f: Favorite => F[A]): F[Article] =
         val article =
           for
             article <- OptionT(articleRepo.findBySlug(slug))
-            _       <- OptionT.liftF(favRepo.create(Favorite(article.id, uid)))
+            _       <- OptionT.liftF(f(Favorite(article.id, uid)))
             following <- OptionT.liftF(
               followerRepo.findFollower(article.authorId, uid).map(_.nonEmpty)
             )
-          yield ???
+            extras <- OptionT.liftF(articleExtra(uid.some, article.id))
+          yield article.toArticleOutput(following, extras)
 
-        ???
+        article.value.flatMap:
+          case None        => ArticleError.NotFound(slug).raiseError
+          case Some(value) => value.pure
+      end favOrUnfav
 
       private def mkSlug(title: Title, authorId: UserId, nowTime: Instant): Slug =
         Slug(s"${title.value}-${authorId.value}-${nowTime}")
