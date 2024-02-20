@@ -33,21 +33,21 @@ object FavoriteRepo:
         NonEmptyList.fromList(articleIds.distinct) match
           case Some(ids) =>
             FavoriteSQL
-              .favoriteArticleIdCountList(ids)
+              .selectFavArticleIdCount(ids)
               .transact(xa)
               .map(_.map(t => t._1 -> FavoritesCount(t._2)).toMap)
           case None => Map.empty[ArticleId, FavoritesCount].pure[F]
 
       def findFavorites(articleIds: List[ArticleId], userId: UserId): F[List[Favorite]] =
         NonEmptyList.fromList(articleIds.distinct) match
-          case Some(ids) => FavoriteSQL.findFavorites(ids, userId).transact(xa)
+          case Some(ids) => FavoriteSQL.selectFavorites(ids, userId).transact(xa)
           case None      => List.empty[Favorite].pure[F]
 end FavoriteRepo
 
 private object FavoriteSQL:
   import realworld.domain.Favorites as f
 
-  def favoriteArticleIdCountList(
+  def selectFavArticleIdCount(
       articleIds: NonEmptyList[ArticleId]
   ): ConnectionIO[List[(ArticleId, Int)]] =
     sql"""
@@ -58,7 +58,7 @@ private object FavoriteSQL:
       .query[(ArticleId, Int)]
       .to[List]
 
-  def findFavorites(
+  def selectFavorites(
       articleIds: NonEmptyList[ArticleId],
       userId: UserId
   ): ConnectionIO[List[Favorite]] =

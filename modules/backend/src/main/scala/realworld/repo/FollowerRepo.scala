@@ -26,14 +26,14 @@ object FollowerRepo:
     new:
       def findFollowers(followeeIds: List[UserId], followerId: UserId): F[List[Follower]] =
         NonEmptyList.fromList(followeeIds) match
-          case Some(ids) => p.findFollowers(ids, followerId).transact(xa)
+          case Some(ids) => p.selectFollowers(ids, followerId).transact(xa)
           case None      => List.empty[Follower].pure[F]
 
       def deleteFollower(followeeId: UserId, followerId: UserId): F[Unit] =
-        p.deleteFollower(followeeId, followerId).map(_ => ()).transact(xa)
+        p.delete(followeeId, followerId).map(_ => ()).transact(xa)
 
       def createFollower(followeeId: UserId, followerId: UserId): F[Follower] =
-        p.createFollower(followeeId, followerId)
+        p.insert(followeeId, followerId)
           .map(_ => Follower(followeeId, followerId))
           .transact(xa)
 end FollowerRepo
@@ -41,7 +41,7 @@ end FollowerRepo
 private object ProfileSQL:
   import realworld.domain.follower.Followers as f
 
-  def findFollowers(
+  def selectFollowers(
       followeeIds: NonEmptyList[UserId],
       followerId: UserId
   ): ConnectionIO[List[Follower]] =
@@ -50,13 +50,13 @@ private object ProfileSQL:
       WHERE ${f.userId in followeeIds} AND ${f.followerId === followerId}
     """.queryOf(f.rowCol).to[List]
 
-  def deleteFollower(followeeId: UserId, followerId: UserId): ConnectionIO[Int] =
+  def delete(followeeId: UserId, followerId: UserId): ConnectionIO[Int] =
     fr"""
       DELETE FROM $f
       WHERE ${f.userId === followeeId} AND ${f.followerId === followerId}
     """.update.run
 
-  def createFollower(followeeId: UserId, followerId: UserId): ConnectionIO[Int] =
+  def insert(followeeId: UserId, followerId: UserId): ConnectionIO[Int] =
     insertInto(
       f,
       NonEmptyVector.of(

@@ -23,13 +23,13 @@ object TagRepo:
     new:
       def findTags(articleIds: List[ArticleId]): F[List[Tag]] =
         NonEmptyList.fromFoldable(articleIds.distinct) match
-          case Some(ids) => TagRepoSQL.findTags(ids).transact(xa)
+          case Some(ids) => TagRepoSQL.selectTags(ids).transact(xa)
           case None      => List.empty[Tag].pure[F]
 
 object TagRepoSQL:
   import realworld.domain.Tags as t
 
-  def findTags(articleIds: NonEmptyList[ArticleId]): ConnectionIO[List[Tag]] =
+  def selectTags(articleIds: NonEmptyList[ArticleId]): ConnectionIO[List[Tag]] =
     sql"""
     SELECT ${t.rowCol} FROM $t
     WHERE ${t.articleId in articleIds}

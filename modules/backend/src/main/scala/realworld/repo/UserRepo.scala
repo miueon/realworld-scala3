@@ -67,12 +67,12 @@ object UserRepo:
         u.get(id).transact(xa)
 
       def findByEmail(email: Email): F[Option[WithId[UserId, DBUser]]] =
-        u.findByEmail(email).transact(xa)
+        u.selectByEmail(email).transact(xa)
 
       def findByUsername(
           username: Username
       ): F[Option[WithId[UserId, DBUser]]] =
-        u.findByUsername(username).transact(xa)
+        u.selectByUsername(username).transact(xa)
 
       def tx: Resource[F, TxUsers[F]] =
         xa.transaction.map(transactional[F])
@@ -86,7 +86,7 @@ object UserRepo:
           user: RegisterUserData,
           encryptedPassword: EncryptedPassword
       ): F[Int] = fk {
-        u.create(uid, user.username, user.email, encryptedPassword)
+        u.insert(uid, user.username, user.email, encryptedPassword)
       }
 
       def update(
@@ -112,19 +112,19 @@ private object UserSQL:
   def get(userId: UserId): ConnectionIO[Option[WithId[UserId, DBUser]]] =
     queryUser(fr"WHERE ${u.id === userId}").option
 
-  def findByEmail(email: Email): ConnectionIO[Option[WithId[UserId, DBUser]]] =
+  def selectByEmail(email: Email): ConnectionIO[Option[WithId[UserId, DBUser]]] =
     sql"SELECT ${u.rowCol} FROM $u WHERE ${u.email === email}"
       .queryOf(u.rowCol)
       .option
 
-  def findByUsername(
+  def selectByUsername(
       username: Username
   ): ConnectionIO[Option[WithId[UserId, DBUser]]] =
     sql"SELECT ${u.rowCol} FROM $u WHERE ${u.username === username}"
       .queryOf(u.rowCol)
       .option
 
-  def create(
+  def insert(
       id: UserId,
       username: Username,
       email: Email,
