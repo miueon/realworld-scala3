@@ -10,8 +10,10 @@ import doobie.implicits.*
 import doobie.util.transactor.Transactor
 import realworld.domain.Tag
 import realworld.domain.article.ArticleId
+import realworld.spec.TagName
 
 trait TagRepo[F[_]]:
+  def listTagNameByPopular(): F[List[TagName]]
   def listTag(articleIds: List[ArticleId]): F[List[Tag]]
   def listTagsById(articleId: ArticleId): F[List[Tag]] =
     listTag(List(articleId))
@@ -26,6 +28,9 @@ object TagRepo:
           case Some(ids) => TagRepoSQL.selectTags(ids).transact(xa)
           case None      => List.empty[Tag].pure[F]
 
+      def listTagNameByPopular(): F[List[TagName]] = 
+        TagRepoSQL.selectTagOrderByPopular().transact(xa)
+
 object TagRepoSQL:
   import realworld.domain.Tags as t
 
@@ -36,3 +41,13 @@ object TagRepoSQL:
     """
       .queryOf(t.rowCol)
       .to[List]
+
+  def selectTagOrderByPopular() =
+    sql"""
+    SELECT ${t.tag} FROM $t
+    GROUP BY ${t.tag}
+    ORDER BY COUNT(1) DESC
+    """
+      .queryOf(t.tag)
+      .to[List]
+end TagRepoSQL

@@ -22,6 +22,7 @@ service TagService {
 @http(method: "GET", uri: "/api/tags", code: 200)
 operation ListTag {
     output := {
-      tags: TagList
+        @required
+        tags: TagList
     }
 }
