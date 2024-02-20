@@ -47,7 +47,7 @@ object Comments:
 
         val result =
           for
-            articleView <- OptionT(articleRepo.getBySlug(slug))
+            articleView <- OptionT(articleRepo.findBySlug(slug))
             nowTime = Instant.now()
             commentDBView <- OptionT.liftF(
               commentRepo.create(mkComment(articleView.id, nowTime))
@@ -59,7 +59,7 @@ object Comments:
       end create
       def delete(slug: Slug, id: CommentId, uid: UserId): F[Unit] =
         val result = for
-          articleId <- OptionT(articleRepo.getBySlug(slug).map(_.map(_.id)))
+          articleId <- OptionT(articleRepo.findBySlug(slug).map(_.map(_.id)))
           _         <- OptionT.liftF(commentRepo.delete(id, articleId, uid))
         yield ()
         result.value.flatMap:
@@ -67,11 +67,11 @@ object Comments:
           case Some(()) => ().pure
       def listByArticleId(uidOpt: Option[UserId], slug: Slug): F[CommentViewList] =
         val comments = for
-          articleView <- OptionT(articleRepo.getBySlug(slug))
+          articleView <- OptionT(articleRepo.findBySlug(slug))
           comments    <- OptionT.liftF(commentRepo.listCommentsByArticleId(articleView.id))
           authorIds = comments.map(_.authorId).toList
           followers <- OptionT.liftF(
-            uidOpt.traverse(followerRepo.findFollowers(authorIds, _)).map(_.getOrElse(List.empty))
+            uidOpt.traverse(followerRepo.listFollowers(authorIds, _)).map(_.getOrElse(List.empty))
           )
         yield mkComments(comments, followers)
         comments.value.flatMap:

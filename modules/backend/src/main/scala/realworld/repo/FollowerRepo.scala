@@ -15,8 +15,8 @@ import realworld.domain.user.UserId
 
 trait FollowerRepo[F[_]: Functor]:
   def findFollower(followeeId: UserId, followerId: UserId): F[Option[Follower]] =
-    findFollowers(List(followeeId), followerId).map(_.headOption)
-  def findFollowers(followeeIds: List[UserId], followerId: UserId): F[List[Follower]]
+    listFollowers(List(followeeId), followerId).map(_.headOption)
+  def listFollowers(followeeIds: List[UserId], followerId: UserId): F[List[Follower]]
   def deleteFollower(followeeId: UserId, followerId: UserId): F[Unit]
   def createFollower(followeeId: UserId, followerId: UserId): F[Follower]
 
@@ -24,7 +24,7 @@ object FollowerRepo:
   import ProfileSQL as p
   def make[F[_]: MonadCancelThrow](xa: Transactor[F]): FollowerRepo[F] =
     new:
-      def findFollowers(followeeIds: List[UserId], followerId: UserId): F[List[Follower]] =
+      def listFollowers(followeeIds: List[UserId], followerId: UserId): F[List[Follower]] =
         NonEmptyList.fromList(followeeIds) match
           case Some(ids) => p.selectFollowers(ids, followerId).transact(xa)
           case None      => List.empty[Follower].pure[F]

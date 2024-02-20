@@ -34,7 +34,7 @@ trait ArticleRepo[F[_]]:
       pagination: Pagination
   ): F[WithTotal[List[ArticleView]]]
   def listByFollowerId(followerId: UserId, pagination: Pagination): F[WithTotal[List[ArticleView]]]
-  def getBySlug(slug: Slug): F[Option[ArticleView]]
+  def findBySlug(slug: Slug): F[Option[ArticleView]]
   def create(article: WithId[ArticleId, Article], tags: List[TagName]): F[ArticleView]
   def update(
       data: UpdateArticleData,
@@ -69,7 +69,7 @@ object ArticleRepo:
         yield WithTotal(total, articles)
         result.transact(xa)
 
-      def getBySlug(slug: Slug): F[Option[ArticleView]] = A.selectBySlug(slug).transact(xa)
+      def findBySlug(slug: Slug): F[Option[ArticleView]] = A.selectBySlug(slug).transact(xa)
 
       def create(article: WithId[ArticleId, Article], tags: List[TagName]): F[ArticleView] =
         val trx = for
@@ -92,7 +92,7 @@ object ArticleRepo:
           yield article
         trx.value.transact(xa)
 
-      def delete(slug: Slug, authorId: UserId): F[Option[Unit]] = 
+      def delete(slug: Slug, authorId: UserId): F[Option[Unit]] =
         A.deleteBySlug(slug, authorId).transact(xa)
 end ArticleRepo
 

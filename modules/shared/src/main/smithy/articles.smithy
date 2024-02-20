@@ -88,6 +88,7 @@ operation FavoriteArticle {
         authHeader: AuthHeader
     }
     output := {
+        @required
         article: Article
     }
     errors: [UnauthorizedError, NotFoundError]
@@ -104,6 +105,7 @@ operation UnfavoriteArticle {
         authHeader: AuthHeader
     }
     output := {
+        @required
         article: Article
     }
 }

@@ -6,6 +6,7 @@ import doobie.TableDefinition
 import doobie.Column
 import doobie.WithSQLDefinition
 import doobie.Composite
+import doobie.TableDefinition.RowHelpers
 
 case class Favorite(
   articleId: ArticleId,
@@ -21,6 +22,6 @@ object Favorites extends TableDefinition("favorites_articles"):
       articleId.sqlDef,
       userId.sqlDef
     )(Favorite.apply)(Tuple.fromProductTyped)
-  )
+  ) with RowHelpers[Favorite](this)
 
   val rowCol = FavoriteSqlDef

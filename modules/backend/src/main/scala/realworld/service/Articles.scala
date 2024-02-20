@@ -47,6 +47,7 @@ trait Articles[F[_]]:
   def create(uid: UserId, data: CreateArticleData): F[Article]
   def update(slug: Slug, uid: UserId, data: UpdateArticleData): F[Article]
   def delete(slug: Slug, uid: UserId): F[Unit]
+  def favoriteArticle(slug: Slug, uid: UserId): F[Article]
 
 object Articles:
   def make[F[_]: MonadCancelThrow: GenUUID](
@@ -66,7 +67,7 @@ object Articles:
           authorIds  = articles.entity.map(_.authorId)
           articleIds = articles.entity.map(_.id)
           followers <- uidOpt
-            .traverse(followerRepo.findFollowers(authorIds, _))
+            .traverse(followerRepo.listFollowers(authorIds, _))
             .map(_.getOrElse(List.empty))
           articleExtras <- articlesExtras(uidOpt, articleIds)
         yield articles.map(_.toArticleList(followers, articleExtras))
@@ -85,7 +86,7 @@ object Articles:
 
       def getBySlug(uidOpt: Option[UserId], slug: Slug): F[Article] =
         val article = for
-          article <- OptionT(articleRepo.getBySlug(slug))
+          article <- OptionT(articleRepo.findBySlug(slug))
           following <- OptionT.liftF(
             uidOpt.flatTraverse(followerRepo.findFollower(article.authorId, _)).map(_.nonEmpty)
           )
@@ -141,6 +142,18 @@ object Articles:
             case None     => ArticleError.NotFound(slug).raiseError
             case Some(()) => ().pure
 
+      def favoriteArticle(slug: Slug, uid: UserId): F[Article] =
+        val article =
+          for
+            article <- OptionT(articleRepo.findBySlug(slug))
+            _       <- OptionT.liftF(favRepo.create(Favorite(article.id, uid)))
+            following <- OptionT.liftF(
+              followerRepo.findFollower(article.authorId, uid).map(_.nonEmpty)
+            )
+          yield ???
+
+        ???
+
       private def mkSlug(title: Title, authorId: UserId, nowTime: Instant): Slug =
         Slug(s"${title.value}-${authorId.value}-${nowTime}")
 
@@ -160,9 +173,9 @@ object Articles:
           id -> (tags, isFavorited, favoriteCount)
         val extraMaps =
           for
-            tags <- tagRepo.findTags(articleIds)
+            tags <- tagRepo.listTag(articleIds)
             favorites <- uidOpt
-              .traverse(favRepo.findFavorites(articleIds, _))
+              .traverse(favRepo.listFavorite(articleIds, _))
               .map(_.getOrElse(List.empty))
             favCountMap <- favRepo.favoriteCountIdMap(articleIds)
           yield (tags.groupBy(_.articleId), favorites.groupBy(_.articleId), favCountMap)
@@ -176,7 +189,7 @@ object Articles:
           articleId: ArticleId
       ): F[(List[TagName], Boolean, FavoritesCount)] =
         for
-          tags        <- tagRepo.findTagsById(articleId)
+          tags        <- tagRepo.listTagsById(articleId)
           isFavorited <- uidOpt.flatTraverse(favRepo.findFavorite(articleId, _)).map(_.nonEmpty)
           favCount    <- favRepo.favoriteCount(articleId)
         yield (tags.map(_.tag), isFavorited, favCount)

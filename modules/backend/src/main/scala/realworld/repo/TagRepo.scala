@@ -12,16 +12,16 @@ import realworld.domain.Tag
 import realworld.domain.article.ArticleId
 
 trait TagRepo[F[_]]:
-  def findTags(articleIds: List[ArticleId]): F[List[Tag]]
-  def findTagsById(articleId: ArticleId): F[List[Tag]] =
-    findTags(List(articleId))
+  def listTag(articleIds: List[ArticleId]): F[List[Tag]]
+  def listTagsById(articleId: ArticleId): F[List[Tag]] =
+    listTag(List(articleId))
 
 object TagRepo:
   def make[F[_]: MonadCancelThrow](
       xa: Transactor[F]
   ): TagRepo[F] =
     new:
-      def findTags(articleIds: List[ArticleId]): F[List[Tag]] =
+      def listTag(articleIds: List[ArticleId]): F[List[Tag]] =
         NonEmptyList.fromFoldable(articleIds.distinct) match
           case Some(ids) => TagRepoSQL.selectTags(ids).transact(xa)
           case None      => List.empty[Tag].pure[F]

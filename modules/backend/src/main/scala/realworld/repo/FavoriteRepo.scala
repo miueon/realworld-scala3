@@ -14,15 +14,14 @@ import realworld.spec.FavoritesCount
 import cats.Functor
 
 trait FavoriteRepo[F[_]: Functor]:
-  def findFavorites(articleIds: List[ArticleId], userId: UserId): F[List[Favorite]]
-
+  def listFavorite(articleIds: List[ArticleId], userId: UserId): F[List[Favorite]]
   def findFavorite(articleId: ArticleId, userId: UserId): F[Option[Favorite]] =
-    findFavorites(List(articleId), userId).map(_.headOption)
-
+    listFavorite(List(articleId), userId).map(_.headOption)
   def favoriteCountIdMap(articleIds: List[ArticleId]): F[Map[ArticleId, FavoritesCount]]
-
   def favoriteCount(articleId: ArticleId): F[FavoritesCount] =
     favoriteCountIdMap(List(articleId)).map(_.getOrElse(articleId, FavoritesCount(0)))
+  def create(fav: Favorite): F[Favorite]
+  def delete(articleId: ArticleId, uid: UserId): F[Unit]
 
 object FavoriteRepo:
   def make[F[_]: MonadCancelThrow](xa: Transactor[F]): FavoriteRepo[F] =
@@ -38,10 +37,17 @@ object FavoriteRepo:
               .map(_.map(t => t._1 -> FavoritesCount(t._2)).toMap)
           case None => Map.empty[ArticleId, FavoritesCount].pure[F]
 
-      def findFavorites(articleIds: List[ArticleId], userId: UserId): F[List[Favorite]] =
+      def listFavorite(articleIds: List[ArticleId], userId: UserId): F[List[Favorite]] =
         NonEmptyList.fromList(articleIds.distinct) match
           case Some(ids) => FavoriteSQL.selectFavorites(ids, userId).transact(xa)
           case None      => List.empty[Favorite].pure[F]
+
+      def create(fav: Favorite): F[Favorite] =
+        FavoriteSQL.insert().run(fav).transact(xa).map(_ => fav)
+
+      def delete(articleId: ArticleId, uid: UserId): F[Unit] =
+        FavoriteSQL.delete(articleId, uid).transact(xa).map(_ => ())
+
 end FavoriteRepo
 
 private object FavoriteSQL:
@@ -68,4 +74,10 @@ private object FavoriteSQL:
     """
       .queryOf(f.rowCol)
       .to[List]
+
+  def insert() =
+    f.rowCol.insert
+
+  def delete(articleId: ArticleId, uid: UserId) =
+    sql"DELETE FROM $f WHERE ${f.articleId === articleId} AND ${f.userId === uid}".update.run
 end FavoriteSQL
