@@ -46,7 +46,7 @@ object ArticleServiceImpl:
         val query = ListArticleQuery(tag, author, favorited)
         val result =
           for
-            uidOpt            <- authHeaderOpt.traverse(auth.access(_).map(_.id))
+            uidOpt            <- authHeaderOpt.traverse(auth.authUserId(_))
             withTotalArticles <- articles.list(uidOpt, query, Pagination(limit, skip))
           yield withTotalArticles
 
@@ -60,7 +60,7 @@ object ArticleServiceImpl:
       ): F[ListFeedArticleOutput] =
         val result =
           for
-            uid               <- auth.access(authHeader).map(_.id)
+            uid               <- auth.authUserId(authHeader)
             withTotalArticles <- articles.listFeed(uid, Pagination(limit, skip))
           yield withTotalArticles
         result.map(it => ListFeedArticleOutput(it.total, it.entity.value))
@@ -68,7 +68,7 @@ object ArticleServiceImpl:
       def getArticle(slug: Slug, authHeaderOpt: Option[AuthHeader]): F[GetArticleOutput] =
         val result =
           for
-            uidOpt  <- authHeaderOpt.traverse(auth.access(_).map(_.id))
+            uidOpt  <- authHeaderOpt.traverse(auth.authUserId(_))
             article <- articles.getBySlug(uidOpt, slug)
           yield article
 
@@ -83,7 +83,7 @@ object ArticleServiceImpl:
           authHeader: AuthHeader
       ): F[CreateArticleOutput] =
         for
-          uid     <- auth.access(authHeader).map(_.id)
+          uid     <- auth.authUserId(authHeader)
           article <- articles.create(uid, createArticleData)
         yield CreateArticleOutput(article)
 
@@ -93,7 +93,7 @@ object ArticleServiceImpl:
           authHeader: AuthHeader
       ): F[UpdateArticleOutput] =
         val result = for
-          uid     <- auth.access(authHeader).map(_.id)
+          uid     <- auth.authUserId(authHeader)
           article <- articles.update(slug, uid, updateArticleData)
         yield UpdateArticleOutput(article)
 
@@ -105,7 +105,7 @@ object ArticleServiceImpl:
 
       def deleteArticle(slug: Slug, authHeader: AuthHeader): F[Unit] =
         val result = for
-          uid <- auth.access(authHeader).map(_.id)
+          uid <- auth.authUserId(authHeader)
           _   <- articles.delete(slug, uid)
         yield ()
         result.recoverWith:

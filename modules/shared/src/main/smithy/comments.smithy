@@ -39,7 +39,7 @@ operation ListComments {
     }
     output := {
         @required
-        comments: CommentViews
+        comments: CommentViewList 
     }
 }
 
@@ -96,7 +96,7 @@ structure CommentView {
     author: Profile
 }
 
-list CommentViews {
+list  CommentViewList {
     member: CommentView
 }
 

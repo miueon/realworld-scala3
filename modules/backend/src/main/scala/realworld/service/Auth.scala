@@ -47,10 +47,12 @@ import realworld.db.DoobieTx
 import realworld.repo.UserRepo
 import realworld.spec.CredentialsError
 
-trait Auth[F[_]]:
+trait Auth[F[_]: Functor]:
   def login(user: LoginUserInputData): F[User]
   def register(user: RegisterUserData): F[User]
   def access(header: AuthHeader): F[UserSession]
+  def authUserId(header: AuthHeader): F[UserId] =
+    access(header).map(_.id)
   def update(uid: UserId, updateData: UpdateUserData): F[DBUser]
 
 case class UserSession(id: UserId, user: User) derives Codec.AsObject

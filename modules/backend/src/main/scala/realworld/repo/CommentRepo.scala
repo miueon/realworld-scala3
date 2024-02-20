@@ -8,24 +8,24 @@ import doobie.*
 import doobie.implicits.*
 import doobie.util.transactor.Transactor
 import realworld.domain.Comment
-import realworld.domain.CommentId
-import realworld.domain.CommentView
+import realworld.domain.CommentDBView
 import realworld.domain.WithId
 import realworld.domain.article.ArticleId
 import realworld.domain.user.UserId
+import realworld.spec.CommentId
 
 trait CommentRepo[F[_]]:
-  def listCommentsByArticleId(articleId: ArticleId): F[List[CommentView]]
-  def create(comment: Comment): F[CommentView]
+  def listCommentsByArticleId(articleId: ArticleId): F[List[CommentDBView]]
+  def create(comment: Comment): F[CommentDBView]
   def delete(commentId: CommentId, articleId: ArticleId, authorId: UserId): F[Option[Unit]]
 
 object CommentRepo:
   import CommentSQL as C
   def make[F[_]: MonadCancelThrow](xa: Transactor[F]): CommentRepo[F] =
     new:
-      def listCommentsByArticleId(articleId: ArticleId): F[List[CommentView]] =
+      def listCommentsByArticleId(articleId: ArticleId): F[List[CommentDBView]] =
         C.selectCommentsByArticleId(articleId).transact(xa)
-      def create(comment: Comment): F[CommentView] =
+      def create(comment: Comment): F[CommentDBView] =
         val trx =
           for
             id   <- C.insert()(comment)
@@ -39,21 +39,23 @@ end CommentRepo
 
 private object CommentSQL:
   import realworld.domain.Comments
+  import realworld.domain.given
   import realworld.domain.user.Users
 
   private val c = Comments as "c"
   private val u = Users as "u"
   object CommentViews
-      extends WithSQLDefinition[CommentView](
+      extends WithSQLDefinition[CommentDBView](
         Composite(
           c.c(_.id).sqlDef,
           c.c(_.createdAt).sqlDef,
           c.c(_.updatedAt).sqlDef,
           c.c(_.body).sqlDef,
+          c.c(_.authorId).sqlDef,
           u.c(_.username).sqlDef,
           u.c(_.bio).sqlDef,
           u.c(_.image).sqlDef
-        )(CommentView.apply)(Tuple.fromProductTyped)
+        )(CommentDBView.apply)(Tuple.fromProductTyped)
       )
 
   private val commentViewFr =
@@ -65,7 +67,7 @@ private object CommentSQL:
     q.queryOf(CommentViews).to[List]
 
   def selectCommentById(id: CommentId) =
-    val q = commentViewFr ++ sql"WHERE ${c.c(_.id)} = $id"
+    val q = commentViewFr ++ sql"WHERE ${c.c(_.id) === id}  "
     q.queryOf(CommentViews).unique
 
   def insert() =

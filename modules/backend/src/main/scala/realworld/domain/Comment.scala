@@ -16,9 +16,8 @@ import realworld.spec.Username
 import realworld.spec.Bio
 import realworld.spec.ImageUrl
 import doobie.TableDefinition.RowHelpers
-
-type CommentId = CommentId.Type
-object CommentId extends Newtype[Int]
+import realworld.spec.CommentId
+import scala.util.control.NoStackTrace
 
 given Meta[CommentBody] = Meta[String].imap(CommentBody(_))(_.value)
 
@@ -47,7 +46,8 @@ object Comments extends TableDefinition("comments"):
           authorId.sqlDef,
           body.sqlDef
         )(Comment.apply)(Tuple.fromProductTyped)
-      ) with RowHelpers[Comment](this)
+      )
+      with RowHelpers[Comment](this)
 
   val columns = CommentSqlDef
   val rowCol  = WithId.sqlDef(using id, columns, this)
@@ -55,11 +55,15 @@ end Comments
 
 // API
 
-case class CommentView(
+enum CommentError extends NoStackTrace:
+  case CommentNotFound(id: CommentId)
+
+case class CommentDBView(
     id: CommentId,
     createdAt: CreatedAt,
     updatedAt: UpdatedAt,
     body: CommentBody,
+    authorId: UserId,
     username: Username,
     bio: Option[Bio],
     image: Option[ImageUrl]

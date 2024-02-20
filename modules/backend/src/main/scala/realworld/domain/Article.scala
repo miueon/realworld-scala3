@@ -18,7 +18,6 @@ import doobie.Column
 import doobie.WithSQLDefinition
 import doobie.Composite
 import realworld.spec.Username
-import realworld.spec.Author
 import realworld.domain.given
 import realworld.domain.*
 import realworld.spec.TagName

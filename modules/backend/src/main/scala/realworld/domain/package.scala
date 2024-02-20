@@ -23,6 +23,7 @@ import doobie.implicits.javatime.JavaTimeInstantMeta
 import smithy4s.Timestamp
 import realworld.spec.Limit
 import realworld.spec.Skip
+import realworld.spec.CommentId
 
 package object domain:
   def documentToJson(doc: Document): Json = doc match
@@ -76,4 +77,5 @@ package object domain:
 
   given Meta[Limit] = Meta[Int].imap(Limit(_))(_.value)
   given Meta[Skip] = Meta[Int].imap(Skip(_))(_.value)
+  given Meta[CommentId]   = Meta[Int].imap(CommentId(_))(_.value)
 end domain
