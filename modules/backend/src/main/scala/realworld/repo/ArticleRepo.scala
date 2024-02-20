@@ -212,7 +212,7 @@ private object ArticleSQL:
 
   def deleteBySlug(slug: Slug, authorId: UserId): ConnectionIO[Option[Unit]] =
     val q = sql"DELETE FROM $ar WHERE ${ar.slug === slug} AND ${ar.authorId === authorId}"
-    q.update.run.map(_ => none)
+    q.update.run.map(affectedToOption)
 
   private def whereWithQuery(query: ListArticleQuery) =
     val tag = query.tag.map(tagName =>

@@ -11,6 +11,11 @@ import doobie.TableDefinition
 import doobie.Column
 import doobie.WithSQLDefinition
 import doobie.Composite
+import realworld.domain.Comments.createdAt
+import realworld.spec.Username
+import realworld.spec.Bio
+import realworld.spec.ImageUrl
+import doobie.TableDefinition.RowHelpers
 
 type CommentId = CommentId.Type
 object CommentId extends Newtype[Int]
@@ -42,10 +47,20 @@ object Comments extends TableDefinition("comments"):
           authorId.sqlDef,
           body.sqlDef
         )(Comment.apply)(Tuple.fromProductTyped)
-      )
+      ) with RowHelpers[Comment](this)
 
   val columns = CommentSqlDef
   val rowCol  = WithId.sqlDef(using id, columns, this)
 end Comments
 
+// API
 
+case class CommentView(
+    id: CommentId,
+    createdAt: CreatedAt,
+    updatedAt: UpdatedAt,
+    body: CommentBody,
+    username: Username,
+    bio: Option[Bio],
+    image: Option[ImageUrl]
+)
