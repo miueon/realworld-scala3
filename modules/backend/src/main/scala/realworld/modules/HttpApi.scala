@@ -16,6 +16,8 @@ import realworld.http.UserServiceImpl
 import org.http4s.HttpRoutes
 import cats.data.Kleisli
 import org.http4s.dsl.request
+import realworld.http.ArticleServiceImpl
+import realworld.http.CommentServiceImpl
 
 def HttpApi[F[_]: Async: Logger](
     config: AppConfig,
@@ -33,14 +35,20 @@ def HttpApi[F[_]: Async: Logger](
 
   def handleErrors(routes: HttpRoutes[F]) =
     routes.orNotFound.onError { exc =>
-      Kleisli(request =>
-        Logger[F].error(exc)(s"Request failed, ${request.toString()}")
-      )
+      Kleisli(request => Logger[F].error(exc)(s"Request failed, ${request.toString()}"))
     }
 
   for
-    auth  <- Resource.eval(makeAuth)
+    auth     <- Resource.eval(makeAuth)
     services <- Resource.pure(services)
-    users <- SimpleRestJsonBuilder.routes(UserServiceImpl.make(auth, services.profiles)).resource
-  yield handleErrors(users)
+
+    articleR <- SimpleRestJsonBuilder
+      .routes(ArticleServiceImpl.make(services.articles, auth))
+      .resource
+    commentR <- SimpleRestJsonBuilder
+      .routes(CommentServiceImpl.make(services.comments, auth))
+      .resource
+    tagR <- SimpleRestJsonBuilder.routes(realworld.http.TagServiceImpl.make(services.tags)).resource
+    userR <- SimpleRestJsonBuilder.routes(UserServiceImpl.make(auth, services.profiles)).resource
+  yield handleErrors(articleR <+> commentR <+> tagR <+> userR)
 end HttpApi
