@@ -20,7 +20,7 @@ target
 
 modules/backend/src/main/resources/dev.js
 modules/backend/src/main/resources/prod.js
-
+.idea
 node_modules
 *.lsp.log
 .smithy.lsp.log
