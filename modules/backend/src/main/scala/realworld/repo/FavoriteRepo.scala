@@ -57,7 +57,7 @@ private object FavoriteSQL:
       articleIds: NonEmptyList[ArticleId]
   ): ConnectionIO[List[(ArticleId, Int)]] =
     sql"""
-    SELECT ${f.articleId} COUNT(1) FROM $f
+    SELECT ${f.articleId}, COUNT(1) FROM $f
     WHERE ${f.articleId in articleIds}
     GROUP BY ${f.articleId}
     """
@@ -79,5 +79,7 @@ private object FavoriteSQL:
     f.rowCol.insert
 
   def delete(articleId: ArticleId, uid: UserId) =
-    sql"DELETE FROM $f WHERE ${f.articleId === articleId} AND ${f.userId === uid}".update.run
+    sql"""
+    DELETE FROM $f WHERE ${f.articleId === articleId} AND ${f.userId === uid}
+    """.update.run
 end FavoriteSQL

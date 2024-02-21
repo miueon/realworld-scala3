@@ -47,3 +47,18 @@ Authorization: {{auth}}
     "tagList": ["reactjs", "angularjs", "dragons"]
   }
 }
+
+@slug = did-you-train-your-dragon-fuckjiajiaaaaacccc-8ab9900e-9fc5-41a2-953d-99ca782b7071-1708532529077
+
+### Update
+PUT {{baseURL}}/api/articles/{{slug}}
+Authorization: {{auth}}
+
+{
+  "article": {
+    "title": "Did you train your dragon?"
+  }
+}
+
+### Get
+GET {{baseURL}}/api/article/{{slug}}

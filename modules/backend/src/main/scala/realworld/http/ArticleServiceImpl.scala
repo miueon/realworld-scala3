@@ -76,7 +76,7 @@ object ArticleServiceImpl:
           .map(GetArticleOutput(_))
           .onError(e => Logger[F].warn(e)(s"Failed to get article: $slug"))
           .recoverWith:
-            case ArticleError.NotFound(slug) => NotFoundError().raise
+            case ArticleError.NotFound(slug) => NotFoundError(s"Slug=$slug".some).raise
 
       def createArticle(
           createArticleData: CreateArticleData,
@@ -100,7 +100,7 @@ object ArticleServiceImpl:
         result
           .onError(e => Logger[F].warn(e)(s"Failed to update article: $slug"))
           .recoverWith:
-            case ArticleError.NotFound(slug) => NotFoundError().raise
+            case ArticleError.NotFound(slug) => NotFoundError(s"Slug=$slug".some).raise
       end updateArticle
 
       def deleteArticle(slug: Slug, authHeader: AuthHeader): F[Unit] =
@@ -109,7 +109,7 @@ object ArticleServiceImpl:
           _   <- articles.delete(slug, uid)
         yield ()
         result.recoverWith:
-          case ArticleError.NotFound(slug) => NotFoundError().raise
+          case ArticleError.NotFound(slug) => NotFoundError(s"Slug=$slug".some).raise
 
       def favoriteArticle(slug: Slug, authHeader: AuthHeader): F[FavoriteArticleOutput] =
         val result = for

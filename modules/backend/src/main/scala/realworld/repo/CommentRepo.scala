@@ -59,15 +59,21 @@ private object CommentSQL:
       )
 
   private val commentViewFr =
-    sql"SELECT ${CommentViews} FROM $c INNER JOIN $u ON ${c.c(_.authorId)} = ${u.c(_.id)}"
+    fr"""
+    SELECT ${CommentViews} FROM $c INNER JOIN $u ON ${c.c(_.authorId)} = ${u.c(_.id)}
+    """
 
   def selectCommentsByArticleId(articleId: ArticleId) =
     val q =
-      commentViewFr ++ sql"WHERE ${c.c(_.articleId) === articleId} ORDER BY ${c.c(_.createdAt)} DESC"
+      commentViewFr ++ fr"""
+      WHERE ${c.c(_.articleId) === articleId} ORDER BY ${c.c(_.createdAt)} DESC
+      """
     q.queryOf(CommentViews).to[List]
 
   def selectCommentById(id: CommentId) =
-    val q = commentViewFr ++ sql"WHERE ${c.c(_.id) === id}  "
+    val q = commentViewFr ++ fr"""
+    WHERE ${c.c(_.id) === id}  
+    """
     q.queryOf(CommentViews).unique
 
   def insert() =
@@ -75,6 +81,8 @@ private object CommentSQL:
 
   def delete(commentId: CommentId, articleId: ArticleId, authorId: UserId) =
     val q =
-      sql"DELETE FROM ${Comments} WHERE ${Comments.id === commentId} AND ${Comments.articleId === articleId} AND ${Comments.authorId === authorId}"
+      sql"""
+      DELETE FROM ${Comments} WHERE ${Comments.id === commentId} AND ${Comments.articleId === articleId} AND ${Comments.authorId === authorId}
+      """
     q.update.run.map(affectedToOption)
 end CommentSQL

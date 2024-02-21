@@ -6,9 +6,10 @@ import realworld.service.Articles
 import realworld.service.Comments
 import realworld.service.Profiles
 import realworld.service.Tags
+import org.typelevel.log4cats.Logger
 
 object Services:
-  def make[F[_]: MonadCancelThrow: GenUUID](
+  def make[F[_]: MonadCancelThrow: GenUUID: Logger](
       repos: Repos[F]
   ): Services[F] =
     new Services[F](

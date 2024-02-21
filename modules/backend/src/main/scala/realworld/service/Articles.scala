@@ -35,6 +35,9 @@ import java.time.Instant
 import smithy4s.Timestamp
 import realworld.spec.UpdatedAt
 import realworld.spec.UpdateArticleData
+import java.text.Normalizer
+import java.text.Normalizer.Form
+import org.typelevel.log4cats.Logger
 
 trait Articles[F[_]]:
   def list(
@@ -51,7 +54,7 @@ trait Articles[F[_]]:
   def unfavoriteArticle(slug: Slug, uid: UserId): F[Article]
 
 object Articles:
-  def make[F[_]: MonadCancelThrow: GenUUID](
+  def make[F[_]: MonadCancelThrow: GenUUID: Logger](
       articleRepo: ArticleRepo[F],
       favRepo: FavoriteRepo[F],
       tagRepo: TagRepo[F],
@@ -128,13 +131,14 @@ object Articles:
         val newSlug = data.title.map(mkSlug(_, uid, now)).getOrElse(slug)
 
         val result = for
-          article <- OptionT(articleRepo.update(data, newSlug, UpdatedAt(now.toTimestamp), uid))
+          article <- OptionT(articleRepo.update(data, newSlug, slug, UpdatedAt(now.toTimestamp), uid))
           extra   <- OptionT.liftF(articleExtra(uid.some, article.id))
         yield article.toArticleOutput(false, extra)
 
         result.value.flatMap:
-          case None        => ArticleError.NotFound(slug).raiseError
+          case None        => ArticleError.NotFound(newSlug).raiseError
           case Some(value) => value.pure
+      end update
 
       def delete(slug: Slug, uid: UserId): F[Unit] =
         articleRepo
@@ -165,8 +169,18 @@ object Articles:
           case Some(value) => value.pure
       end favOrUnfav
 
+      val notAsciiRe = "[^\\p{ASCII}]".r
+      val notWordsRs = "[^\\w]".r
+      val spacesRe   = "\\s+".r
+      def slugify(s: String): String =
+        // get rid of fancy characters accents
+        val normalized = Normalizer.normalize(s, Form.NFD)
+        val cleaned    = notAsciiRe.replaceAllIn(normalized, "")
+
+        val wordsOnly = notWordsRs.replaceAllIn(cleaned, " ").trim
+        spacesRe.replaceAllIn(wordsOnly, "-").toLowerCase
       private def mkSlug(title: Title, authorId: UserId, nowTime: Instant): Slug =
-        Slug(s"${title.value}-${authorId.value}-${nowTime}")
+        Slug(s"${slugify(title.value)}-${authorId.value}-${nowTime.toEpochMilli()}")
 
       private def articlesExtras(
           uidOpt: Option[UserId],

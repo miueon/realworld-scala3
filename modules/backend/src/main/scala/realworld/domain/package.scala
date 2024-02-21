@@ -19,11 +19,12 @@ import doobie.util.meta.Meta
 import realworld.spec.CreatedAt
 import realworld.spec.UpdatedAt
 import java.time.Instant
-import doobie.implicits.javatime.JavaTimeInstantMeta
 import smithy4s.Timestamp
 import realworld.spec.Limit
 import realworld.spec.Skip
 import realworld.spec.CommentId
+import doobie.util.meta.MetaConstructors
+import doobie.postgres.JavaTimeInstances
 
 package object domain:
   def documentToJson(doc: Document): Json = doc match
@@ -32,7 +33,7 @@ package object domain:
     case Document.DBoolean(value) => value.asJson
     case Document.DNull           => Json.Null
     case Document.DArray(value)   => value.map(documentToJson).asJson
-    case Document.DObject(value) => value.mapValues(documentToJson).toMap.asJson
+    case Document.DObject(value)  => value.mapValues(documentToJson).toMap.asJson
 
   def jsonToDocument(json: Json): Document = json.fold(
     Document.DNull,
@@ -65,17 +66,22 @@ package object domain:
     Codec.from(decoder, encoder)
   end documentCodec
 
-  given Codec[User] = documentCodec
-  given Codec[Email] = documentCodec
+  given Codec[User]     = documentCodec
+  given Codec[Email]    = documentCodec
   given Codec[Username] = documentCodec
-  given Codec[Token] = documentCodec
-  given Codec[Bio] = documentCodec
+  given Codec[Token]    = documentCodec
+  given Codec[Bio]      = documentCodec
   given Codec[ImageUrl] = documentCodec
 
-  given Meta[CreatedAt] = Meta[Instant].imap(i => CreatedAt(Timestamp.fromInstant(i)))(_.value.toInstant)
-  given Meta[UpdatedAt] = Meta[Instant].imap(i => UpdatedAt(Timestamp.fromInstant(i)))(_.value.toInstant)
+  object DoobieMeta extends MetaConstructors with JavaTimeInstances 
+  import DoobieMeta.given
 
-  given Meta[Limit] = Meta[Int].imap(Limit(_))(_.value)
-  given Meta[Skip] = Meta[Int].imap(Skip(_))(_.value)
-  given Meta[CommentId]   = Meta[Int].imap(CommentId(_))(_.value)
+  given Meta[CreatedAt] =
+    Meta[Instant].imap(i => CreatedAt(Timestamp.fromInstant(i)))(_.value.toInstant)
+  given Meta[UpdatedAt] =
+    Meta[Instant].imap(i => UpdatedAt(Timestamp.fromInstant(i)))(_.value.toInstant)
+
+  given Meta[Limit]     = Meta[Int].imap(Limit(_))(_.value)
+  given Meta[Skip]      = Meta[Int].imap(Skip(_))(_.value)
+  given Meta[CommentId] = Meta[Int].imap(CommentId(_))(_.value)
 end domain

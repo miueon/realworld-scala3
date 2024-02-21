@@ -106,21 +106,25 @@ private object UserSQL:
   private def queryUser(
       conditionFragment: Fragment
   ) =
-    (fr"SELECT ${u.rowCol} FROM $u" ++ conditionFragment)
+    (fr"SELECT ${u.rowCol} FROM $u " ++ conditionFragment)
       .queryOf(u.rowCol)
 
   def get(userId: UserId): ConnectionIO[Option[WithId[UserId, DBUser]]] =
-    queryUser(fr"WHERE ${u.id === userId}").option
+    queryUser(fr"WHERE ${u.id === userId} ").option
 
   def selectByEmail(email: Email): ConnectionIO[Option[WithId[UserId, DBUser]]] =
-    sql"SELECT ${u.rowCol} FROM $u WHERE ${u.email === email}"
+    sql"""
+    SELECT ${u.rowCol} FROM $u WHERE ${u.email === email}
+    """
       .queryOf(u.rowCol)
       .option
 
   def selectByUsername(
       username: Username
   ): ConnectionIO[Option[WithId[UserId, DBUser]]] =
-    sql"SELECT ${u.rowCol} FROM $u WHERE ${u.username === username}"
+    sql"""
+    SELECT ${u.rowCol} FROM $u WHERE ${u.username === username}
+    """
       .queryOf(u.rowCol)
       .option
 

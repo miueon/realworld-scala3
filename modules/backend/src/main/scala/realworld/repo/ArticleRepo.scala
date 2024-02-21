@@ -38,7 +38,8 @@ trait ArticleRepo[F[_]]:
   def create(article: WithId[ArticleId, Article], tags: List[TagName]): F[ArticleView]
   def update(
       data: UpdateArticleData,
-      slug: Slug,
+      newSlug: Slug,
+      oldSlug: Slug,
       updatedAt: UpdatedAt,
       authorId: UserId
   ): F[Option[ArticleView]]
@@ -81,14 +82,15 @@ object ArticleRepo:
 
       def update(
           data: UpdateArticleData,
-          slug: Slug,
+          newSlug: Slug,
+          oldSlug: Slug,
           updatedAt: UpdatedAt,
           authorId: UserId
       ): F[Option[ArticleView]] =
         val trx =
           for
-            _       <- OptionT(A.update(data, slug, updatedAt, authorId))
-            article <- OptionT(A.selectBySlug(slug))
+            _       <- OptionT(A.update(data, newSlug, oldSlug, updatedAt, authorId))
+            article <- OptionT(A.selectBySlug(newSlug))
           yield article
         trx.value.transact(xa)
 
@@ -131,7 +133,9 @@ private object ArticleSQL:
   end ArticleViews
 
   private val articleViewFr =
-    sql"SELECT ${ArticleViews} FROM $a INNER JOIN $au ON ${a.c(_.authorId)} = ${au.c(_.id)}"
+    sql"""
+    SELECT ${ArticleViews} FROM $a INNER JOIN $au ON ${a.c(_.authorId)} = ${au.c(_.id)} 
+    """
 
   def list(
       query: ListArticleQuery,
@@ -157,24 +161,32 @@ private object ArticleSQL:
 
   def selectBySlug(slug: Slug): ConnectionIO[Option[ArticleView]] =
     val q =
-      articleViewFr ++ fr"WHERE ${a.c(_.slug) === slug}"
+      articleViewFr ++ fr"""
+      WHERE ${a.c(_.slug) === slug}
+      """
     q.queryOf(ArticleViews).option
 
   def selectById(id: ArticleId): ConnectionIO[ArticleView] =
     val q =
-      articleViewFr ++ fr"WHERE ${a.c(_.id) === id}"
+      articleViewFr ++ fr"""
+      WHERE ${a.c(_.id) === id}
+      """
     q.queryOf(ArticleViews).unique
 
   def listTotal(query: ListArticleQuery): ConnectionIO[Int] =
     val q =
-      fr"SELECT COUNT(*) FROM $a INNER JOIN $au ON ${a.c(_.authorId)} = ${au.c(_.id)}" ++ whereWithQuery(
+      fr"""
+      SELECT COUNT(*) FROM $a INNER JOIN $au ON ${a.c(_.authorId)} = ${au.c(_.id)}
+      """ ++ whereWithQuery(
         query
       )
     q.query[Int].unique
 
   def listFeedTotal(followerId: UserId): ConnectionIO[Int] =
     val q =
-      fr"SELECT COUNT(*) FROM $a INNER JOIN $au ON ${a.c(_.authorId)} = ${au.c(_.id)}" ++ whereWithFollower(
+      fr"""
+      SELECT COUNT(*) FROM $a INNER JOIN $au ON ${a.c(_.authorId)} = ${au.c(_.id)}
+      """ ++ whereWithFollower(
         followerId
       )
     q.query[Int].unique
@@ -188,7 +200,8 @@ private object ArticleSQL:
   import Articles as ar
   def update(
       data: UpdateArticleData,
-      slug: Slug,
+      newSlug: Slug,
+      oldSlug: Slug,
       updatedAt: UpdatedAt,
       authorId: UserId
   ): ConnectionIO[Option[Unit]] =
@@ -197,36 +210,39 @@ private object ArticleSQL:
     val bodyOpt        = data.body.map(b => ar.body --> b)
 
     val fields      = List(titleOpt, descriptionOpt, bodyOpt).flatten
-    val otherFields = List(ar.updatedAt --> updatedAt, ar.slug --> slug)
+    val otherFields = List(ar.updatedAt --> updatedAt, ar.slug --> newSlug)
     NonEmptyList
       .fromList(fields)
-      .fold(none.pure[ConnectionIO])(fields =>
-        val q =
-          sql"""
+      .fold(none.pure[ConnectionIO])(fields => sql"""
           ${updateTable[NonEmptyList](ar, fields ++ otherFields)} 
-          WHERE ${ar.authorId === authorId} AND ${ar.slug === slug}
-          """.update.run
-        q.map(_ => none)
-      )
+          WHERE ${ar.authorId === authorId} AND ${ar.slug === oldSlug}
+          """.update.run.map(affectedToOption))
   end update
 
   def deleteBySlug(slug: Slug, authorId: UserId): ConnectionIO[Option[Unit]] =
-    val q = sql"DELETE FROM $ar WHERE ${ar.slug === slug} AND ${ar.authorId === authorId}"
+    val q = sql"""
+    DELETE FROM $ar WHERE ${ar.slug === slug} AND ${ar.authorId === authorId}
+    """
     q.update.run.map(affectedToOption)
 
   private def whereWithQuery(query: ListArticleQuery) =
-    val tag = query.tag.map(tagName =>
-      fr"${a.c(_.id)} IN (SELECT DISTINCT ${t.c(_.articleId)} FROM $t WHERE ${t.c(_.tag) === tagName}) "
-    )
-    val author = query.author.map(username => fr"${au.c(_.username) === username}")
+    val tag = query.tag.map(tagName => fr"""
+      ${a.c(_.id)} IN (SELECT DISTINCT ${t.c(_.articleId)} FROM $t WHERE ${t.c(_.tag) === tagName}) 
+      """)
+    val author = query.author.map(username => fr" ${au.c(_.username) === username} ")
     val favorited = query.favorited.map(username =>
-      fr"${a.c(_.id)} IN (SELECT DISTINCT ${f.c(_.articleId)} FROM $f INNER JOIN $cu ON ${f
-          .c(_.userId)} = ${cu.c(_.id)} WHERE ${cu.c(_.username) === username})"
+      fr"""
+      ${a.c(_.id)} IN (SELECT DISTINCT ${f.c(_.articleId)} FROM $f INNER JOIN $cu ON ${f
+          .c(_.userId)} = ${cu.c(_.id)} WHERE ${cu.c(_.username) === username})
+          """
     )
     whereAndOpt(tag, author, favorited)
+  end whereWithQuery
 
   private def whereWithFollower(followerId: UserId) =
-    fr"${a.c(_.authorId)} IN (SELECT DISTINCT ${fo.userId} FROM $fo WHERE ${fo.userId === followerId} "
+    fr"""
+    ${a.c(_.authorId)} IN (SELECT DISTINCT ${fo.userId} FROM $fo WHERE ${fo.userId === followerId} 
+    """
 
   private def recentWithPagination(pagination: Pagination) =
     fr"""

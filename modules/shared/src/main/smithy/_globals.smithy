@@ -21,7 +21,9 @@ structure ForbiddenError {}
 
 @error("client")
 @httpError(404)
-structure NotFoundError {}
+structure NotFoundError {
+    message: String
+}
 
 @error("client")
 @httpError(422)
