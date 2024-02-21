@@ -1,6 +1,5 @@
 @port = 8080
 @baseURL = http://127.0.0.1:{{port}}
-GET {{baseURL}}/api/user
 ###
 
 PUT {{baseURL}}/api/users
@@ -12,8 +11,8 @@ PUT {{baseURL}}/api/users
   "password": "12345678"
   }
 }
-
 ###
+# @name login
 POST {{baseURL}}/api/users/login
 
 {
@@ -23,6 +22,28 @@ POST {{baseURL}}/api/users/login
   }
 }
 
+@token = {{login.response.body.user.token}}
+@auth = Token {{token}}
+@username = {{login.response.body.user.username}}
+
 ###
 # GET PROFILE
-GET {{baseURL}}/api/profiles/testa
+GET {{baseURL}}/api/profiles/{{username}}
+
+###
+
+GET {{baseURL}}/api/user
+Authorization: {{auth}}
+### Article
+### Create
+POST {{baseURL}}/api/articles
+Authorization: {{auth}}
+
+{
+  "article": {
+    "title": "How to train your dragon",
+    "description": "Ever wonder how?",
+    "body": "You have to believe",
+    "tagList": ["reactjs", "angularjs", "dragons"]
+  }
+}

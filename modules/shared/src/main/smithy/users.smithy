@@ -28,7 +28,7 @@ service UserService {
         FollowUser
         UnfollowUser
     ]
-    errors: [UnauthorizedError]
+    errors: [UnauthorizedError, CredentialsError]
 }
 
 @http(method: "POST", uri: "/api/users/login", code: 200)
@@ -36,7 +36,7 @@ service UserService {
 operation LoginUser {
     input: LoginUserInput
     output: LoginUserOutput
-    errors: [CredentialsError, NotFoundError, ForbiddenError]
+    errors: [NotFoundError, ForbiddenError]
 }
 
 @idempotent
@@ -60,7 +60,7 @@ operation GetUser {
 operation UpdateUser {
     input: UpdateUserInput
     output: UpdateUserOutput
-    errors: [CredentialsError, UnprocessableEntity]
+    errors: [UnprocessableEntity]
 }
 
 @readonly

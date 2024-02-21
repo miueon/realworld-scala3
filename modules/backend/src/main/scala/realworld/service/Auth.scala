@@ -46,6 +46,8 @@ import realworld.db.transactK
 import realworld.db.DoobieTx
 import realworld.repo.UserRepo
 import realworld.spec.CredentialsError
+import cats.data.OptionT
+import cats.data.EitherT
 
 trait Auth[F[_]: Functor]:
   def login(user: LoginUserInputData): F[User]
@@ -75,25 +77,29 @@ object Auth:
             case Some(WithId(_, dbUser))
                 if !crypto.verifyPassword(user.password, dbUser.password) =>
               UserError.UserPasswordNotMatched().raiseError[F, User]
-            case Some(WithId(_, dbUser)) =>
+            case Some(WithId(uid, dbUser)) =>
               redis
                 .get(user.email.value)
                 .flatMap:
                   case Some(t) =>
                     dbUser.toUser(Token(t).some).pure[F]
                   case None =>
-                    jwt.create.flatMap: t =>
-                      redis.setEx(
-                        t.value,
-                        dbUser.asJson.noSpaces,
-                        TokenExpiration
-                      )
-                      redis.setEx(
-                        user.email.value,
-                        t.value,
-                        TokenExpiration
-                      )
-                      dbUser.toUser(t.some).pure[F]
+                    jwt.create
+                      .flatMap: t =>
+                        dbUser.toUser(t.some).pure[F]
+                      .flatTap { u =>
+                        val token = u.token.get.value
+                        redis.setEx(
+                          token,
+                          UserSession(uid, u).asJson.noSpaces,
+                          TokenExpiration
+                        ) *>
+                          redis.setEx(
+                            user.email.value,
+                            token,
+                            TokenExpiration
+                          )
+                      }
       end login
 
       def register(user: RegisterUserData): F[User] =
@@ -125,18 +131,24 @@ object Auth:
       end register
 
       def access(header: AuthHeader): F[UserSession] =
-        if header.value.startsWith("Bearer ") then
-          val token = header.value.drop("Bearer ".length)
-          redis
-            .get(token)
-            .flatMap {
-              _.flatMap { u =>
-                decode[UserSession](u).toOption
-              }.fold(UnauthorizedError().raiseError[F, UserSession])(
-                _.pure[F]
-              )
-            }
-        else CredentialsError("Auth header incorrect").raiseError[F, UserSession]
+        val result = for
+          token <- EitherT.fromOption(
+            extractTokenValue(header),
+            CredentialsError(s"Auth header incorrect=$header")
+          )
+          u <- EitherT.fromOptionF(
+            redis.get(token),
+            UnauthorizedError(s"Token expired or not found, toke=$token".some)
+          )
+          session <- EitherT.fromOption(
+            decode[UserSession](u).toOption,
+            UnauthorizedError("Token decode error".some)
+          )
+        yield session
+        result.value.flatMap:
+          case Right(s) => s.pure[F]
+          case Left(e)  => e.raiseError[F, UserSession]
+      end access
 
       def update(uid: UserId, updateData: UpdateUserData): F[DBUser] =
         val emailCleanOpt =
@@ -154,6 +166,12 @@ object Auth:
           case Some(WithId(_, user)) => user.pure[F]
           case None                  => UserError.UserNotFound().raiseError[F, DBUser]
       end update
+
+      val tokenPattern = "^Token (.+)".r
+      def extractTokenValue(s: AuthHeader): Option[String] =
+        s.value match
+          case tokenPattern(value) => value.some
+          case _                   => None
 
       def emailNotUsed(email: Email, userId: UserId): F[Unit] =
         userRepo
