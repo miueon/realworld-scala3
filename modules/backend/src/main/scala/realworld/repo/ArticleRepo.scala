@@ -241,7 +241,9 @@ private object ArticleSQL:
 
   private def whereWithFollower(followerId: UserId) =
     fr"""
-    ${a.c(_.authorId)} IN (SELECT DISTINCT ${fo.userId} FROM $fo WHERE ${fo.userId === followerId} 
+    WHERE ${a.c(
+        _.authorId
+      )} IN (SELECT DISTINCT ${fo.userId} FROM $fo WHERE ${fo.followerId === followerId} )
     """
 
   private def recentWithPagination(pagination: Pagination) =

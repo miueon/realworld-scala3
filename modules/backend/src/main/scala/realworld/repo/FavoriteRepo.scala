@@ -76,7 +76,7 @@ private object FavoriteSQL:
       .to[List]
 
   def insert() =
-    f.rowCol.insert
+    f.rowCol.insertOnConflictDoNothing0
 
   def delete(articleId: ArticleId, uid: UserId) =
     sql"""

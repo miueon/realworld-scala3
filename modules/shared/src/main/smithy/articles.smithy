@@ -75,6 +75,7 @@ operation UpdateArticle {
 @http(method: "DELETE", uri: "/api/articles/{slug}", code: 204)
 operation DeleteArticle {
     input: DeleteArticleInput
+    errors: [NotFoundError]
 }
 
 @http(method: "POST", uri: "/api/articles/{slug}/favorite", code: 200)

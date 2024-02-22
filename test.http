@@ -56,7 +56,7 @@ Authorization: {{auth}}
   }
 }
 
-@slug = did-you-train-your-dragon-fuckjiajiaaaaacccc-8ab9900e-9fc5-41a2-953d-99ca782b7071-1708532529077
+@slug = how-to-train-your-dragon-8ab9900e-9fc5-41a2-953d-99ca782b7071-1708579842391
 
 ### Update
 PUT {{baseURL}}/api/articles/{{slug}}
@@ -71,10 +71,43 @@ Authorization: {{auth}}
 ### Get
 GET {{baseURL}}/api/article/{{slug}}
 
+### List Feed
+GET {{baseURL}}/api/articles/feed
+Authorization: {{auth}}
+
 ### Fav
 POST  {{baseURL}}/api/articles/{{slug}}/favorite
+Authorization: {{auth}}
+
+### Unfav
+DELETE {{baseURL}}/api/articles/{{slug}}/favorite
+Authorization: {{auth}}
+
+### Delete
+DELETE {{baseURL}}/api/articles/{{slug}}
 Authorization: {{auth}}
 
 ### Tag
 ### Get
 GET {{baseURL}}/api/tags
+
+
+### Comment
+### Create 
+POST {{baseURL}}/api/articles/{{slug}}/comments
+Authorization: {{auth}}
+
+{
+  "comment": {
+    "body": "His name was my name too."
+  }
+}
+
+### Get All
+GET {{baseURL}}/api/articles/{{slug}}/comments
+Authorization: {{auth}}
+
+### Delete
+DELETE  {{baseURL}}/api/articles/{{slug}}/comments/1
+Authorization: {{auth}}
+
