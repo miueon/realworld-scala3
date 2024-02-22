@@ -6,31 +6,39 @@ PUT {{baseURL}}/api/users
 
 {
   "user": {
-  "username": "test",
-  "email": "test@123.com",
+  "username": "test2",
+  "email": "test2@123.com",
   "password": "12345678"
   }
 }
+
+@u1 = {"user": {    "email": "test@123.com","password": "12345678"}}
+@u2 = {"user": {    "email": "test2@123.com", "password": "12345678"}}
 ###
 # @name login
 POST {{baseURL}}/api/users/login
 
-{
-  "user": {
-    "email": "test@123.com",
-    "password": "12345678"
-  }
-}
+{{u2}}
 
 @token = {{login.response.body.user.token}}
 @auth = Token {{token}}
 @username = {{login.response.body.user.username}}
+@u1name = test
 
 ###
 # GET PROFILE
-GET {{baseURL}}/api/profiles/{{username}}
+GET {{baseURL}}/api/profiles/{{u1name}}
+Authorization: {{auth}}
 
+
+### Follow
+POST {{baseURL}}/api/profiles/{{u1name}}/follow
+Authorization: {{auth}}
 ###
+
+### Unfollow
+DELETE {{baseURL}}/api/profiles/{{u1name}}/follow
+Authorization: {{auth}}
 
 GET {{baseURL}}/api/user
 Authorization: {{auth}}
@@ -62,3 +70,11 @@ Authorization: {{auth}}
 
 ### Get
 GET {{baseURL}}/api/article/{{slug}}
+
+### Fav
+POST  {{baseURL}}/api/articles/{{slug}}/favorite
+Authorization: {{auth}}
+
+### Tag
+### Get
+GET {{baseURL}}/api/tags

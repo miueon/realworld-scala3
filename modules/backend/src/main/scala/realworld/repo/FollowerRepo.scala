@@ -33,8 +33,10 @@ object FollowerRepo:
         p.delete(followeeId, followerId).map(_ => ()).transact(xa)
 
       def createFollower(followeeId: UserId, followerId: UserId): F[Follower] =
-        p.insert(followeeId, followerId)
-          .map(_ => Follower(followeeId, followerId))
+        val follower = Follower(followeeId, followerId)
+        p.insert()
+          .run(follower)
+          .map(_ => follower)
           .transact(xa)
 end FollowerRepo
 
@@ -56,12 +58,6 @@ private object ProfileSQL:
       WHERE ${f.userId === followeeId} AND ${f.followerId === followerId}
     """.update.run
 
-  def insert(followeeId: UserId, followerId: UserId): ConnectionIO[Int] =
-    insertInto(
-      f,
-      NonEmptyVector.of(
-        f.userId --> followeeId,
-        f.followerId --> followerId
-      )
-    ).update.run
+  def insert() =
+    f.rowCol.insertOnConflictDoNothing0
 end ProfileSQL

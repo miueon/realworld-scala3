@@ -40,8 +40,8 @@ object UserServiceImpl:
           authHeaderOpt: Option[AuthHeader]
       ): F[GetProfileOutput] =
         val result = for
-          userSessionsOpt <- authHeaderOpt.map(auth.access).sequence
-          profile         <- profiles.get(username, userSessionsOpt.map(_.id))
+          uidOpt <- authHeaderOpt.map(auth.authUserId).sequence
+          profile         <- profiles.get(username, uidOpt)
         yield GetProfileOutput(profile)
         result
           .onError(e => Logger[F].warn(e)(s"Failed to get profile for user: $username"))
@@ -69,6 +69,7 @@ object UserServiceImpl:
         yield FollowUserOutput(profile)
         result.recoverWith:
           case UserError.ProfileNotFound() => NotFoundError().raise
+
       def loginUser(user: LoginUserInputData): F[LoginUserOutput] =
         auth
           .login(user)
