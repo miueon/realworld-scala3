@@ -19,7 +19,7 @@ import doobie.TableDefinition.RowHelpers
 import realworld.spec.CommentId
 import scala.util.control.NoStackTrace
 
-given Meta[CommentBody] = Meta[String].imap(CommentBody(_))(_.value)
+given Meta[CommentBody] = metaOf(CommentBody)
 
 case class Comment(
     articleId: ArticleId,

@@ -25,6 +25,7 @@ import realworld.spec.Skip
 import realworld.spec.CommentId
 import doobie.util.meta.MetaConstructors
 import doobie.postgres.JavaTimeInstances
+import smithy4s.Newtype
 
 package object domain:
   def documentToJson(doc: Document): Json = doc match
@@ -73,15 +74,17 @@ package object domain:
   given Codec[Bio]      = documentCodec
   given Codec[ImageUrl] = documentCodec
 
-  object DoobieMeta extends MetaConstructors with JavaTimeInstances 
+  object DoobieMeta extends MetaConstructors with JavaTimeInstances
   import DoobieMeta.given
+
+  def metaOf[A: Meta](nt: Newtype[A]): Meta[nt.Type] = Meta[A].imap(nt.apply)(_.value)
 
   given Meta[CreatedAt] =
     Meta[Instant].imap(i => CreatedAt(Timestamp.fromInstant(i)))(_.value.toInstant)
   given Meta[UpdatedAt] =
     Meta[Instant].imap(i => UpdatedAt(Timestamp.fromInstant(i)))(_.value.toInstant)
 
-  given Meta[Limit]     = Meta[Int].imap(Limit(_))(_.value)
-  given Meta[Skip]      = Meta[Int].imap(Skip(_))(_.value)
-  given Meta[CommentId] = Meta[Int].imap(CommentId(_))(_.value)
+  given Meta[Limit]     = metaOf(Limit)
+  given Meta[Skip]      = metaOf(Skip)
+  given Meta[CommentId] = metaOf(CommentId)
 end domain

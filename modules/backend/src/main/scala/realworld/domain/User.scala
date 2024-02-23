@@ -23,6 +23,7 @@ import scala.CanEqual.derived
 import realworld.domain.WithId
 import scala.util.control.NoStackTrace
 import realworld.spec.Profile
+import realworld.domain.metaOf
 
 type UserId = UserId.Type
 object UserId extends IdNewtype
@@ -33,12 +34,11 @@ object EncryptedPassword extends Newtype[String]
 case class EncryptCipher(value: Cipher)
 case class DecryptCipher(value: Cipher)
 
-given Meta[Email]    = Meta[String].imap(Email(_))(_.value)
-given Meta[Username] = Meta[String].imap(Username(_))(_.value)
-given Meta[EncryptedPassword] =
-  Meta[String].imap(EncryptedPassword(_))(_.value)
-given Meta[Bio]      = Meta[String].imap(Bio(_))(_.value)
-given Meta[ImageUrl] = Meta[String].imap(ImageUrl(_))(_.value)
+given Meta[Email]    = metaOf(Email)
+given Meta[Username] = metaOf(Username)
+given Meta[EncryptedPassword] = EncryptedPassword.derive
+given Meta[Bio]      = metaOf(Bio)
+given Meta[ImageUrl] = metaOf(ImageUrl)
 
 case class DBUser(
     email: Email,

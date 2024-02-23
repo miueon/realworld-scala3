@@ -29,10 +29,10 @@ import doobie.TableDefinition.RowHelpers
 type ArticleId = ArticleId.Type
 object ArticleId extends IdNewtype
 
-given Meta[Slug]        = Meta[String].imap(Slug(_))(_.value)
-given Meta[Title]       = Meta[String].imap(Title(_))(_.value)
-given Meta[Description] = Meta[String].imap(Description(_))(_.value)
-given Meta[Body]        = Meta[String].imap(Body(_))(_.value)
+given Meta[Slug]        = metaOf(Slug)
+given Meta[Title]       = metaOf(Title)
+given Meta[Description] = metaOf(Description)
+given Meta[Body]        = metaOf(Body)
 
 case class Article(
     slug: Slug,

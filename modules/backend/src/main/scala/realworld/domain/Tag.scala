@@ -11,7 +11,7 @@ import doobie.TableDefinition.RowHelpers
 
 case class Tag(articleId: ArticleId, tag: TagName)
 
-given Meta[TagName] = Meta[String].imap(TagName(_))(_.value)
+given Meta[TagName] = metaOf(TagName)
 
 object Tags extends TableDefinition("tags_articles"):
   val articleId: Column[ArticleId] = Column("article_id")
