@@ -9,7 +9,7 @@ addSbtPlugin("org.scala-js"     % "sbt-scalajs"         % "1.14.0")
 addSbtPlugin("com.timushev.sbt" % "sbt-updates"         % "0.6.4")
 addSbtPlugin("org.scalameta"    % "sbt-scalafmt"        % "2.5.0")
 addSbtPlugin("com.armanbilge"   % "sbt-bundlemon"       % "0.1.3")
-addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta43")
+addSbtPlugin("org.scalablytyped.converter" % "sbt-converter" % "1.0.0-beta44")
 addSbtPlugin("nl.gn0s1s"                   % "sbt-dotenv"    % "3.0.0")
 
 libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always

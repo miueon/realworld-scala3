@@ -282,7 +282,7 @@ buildFrontend := {
         IO.copyFile(indexHtml, out)
       }
     })
-  copyFile(List("index.html", "output.css"), buildDir, folder.getParentFile())
+  copyFile(List("index.html", "output.css", "index.js", "style.less"), buildDir, folder.getParentFile())
 
   // val indexHtml = buildDir / "index.html"
   // val out       = folder.getParentFile() / "index.html"
