@@ -4,7 +4,7 @@ import typings.bootstrap.mod.*
 import com.raquo.app.form.ControlledInputsView
 object Main:
   def main(args: Array[String]): Unit =
-    renderOnDomContentLoaded(dom.document.querySelector("#app"), ControlledInputsView())
+    renderOnDomContentLoaded(dom.document.querySelector("#app"), appElement())
 
   def appElement() =
     div(

@@ -1,2 +1,2 @@
-import './style.less'
+import './style.scss'
 import 'scalajs:main.mjs'

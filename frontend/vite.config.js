@@ -41,7 +41,7 @@ export default defineConfig({
     importSideEffectPlugin({
       // See https://github.com/raquo/vite-plugin-import-side-effect
       defNames: ['importStyle'],
-      rewriteModuleIds: ['**/*.less', '**/*.css'],
+      rewriteModuleIds: ['**/*.less', '**/*.css', "**/*.scss"],
       // verbose: true
     }),
     injectHtmlVarsPlugin({
@@ -68,9 +68,6 @@ export default defineConfig({
     }
    
   },
-  // plugins: [scalaJSPlugin({
-  //   cwd: "..",
-  //   uriPrefix: "modules-js-3"
-  // })]
+
 }
 )
