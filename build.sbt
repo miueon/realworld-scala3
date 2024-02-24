@@ -169,7 +169,7 @@ lazy val shared = projectMatrix
   )
 
 lazy val frontend = projectMatrix
-  .in(file("modules/frontend"))
+  .in(file("frontend"))
   .customRow(
     Seq(Versions.Scala),
     axisValues = Seq(VirtualAxis.js, BuildStyle.SingleFile),
@@ -200,7 +200,7 @@ lazy val frontend = projectMatrix
           .withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
           .withSourceMap(true)
     },
-    externalNpm := (ThisBuild / baseDirectory).value / "frontend-build",
+    externalNpm := (ThisBuild / baseDirectory).value / "frontend",
     libraryDependencies ++= Seq(
       ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
         .cross(CrossVersion.for3Use2_13),
@@ -265,34 +265,34 @@ addCommandAlias(
   "backend/testOnly jobby.tests.frontend.*"
 )
 
-lazy val buildFrontend = taskKey[Unit]("")
+// lazy val buildFrontend = taskKey[Unit]("")
 
-buildFrontend := {
-  val (_, folder) = frontendModules.value
-  val buildDir    = (ThisBuild / baseDirectory).value / "frontend-build"
+// buildFrontend := {
+//   val (_, folder) = frontendModules.value
+//   val buildDir    = (ThisBuild / baseDirectory).value / "frontend-build"
 
-  def copyFile(fileNames: List[String], baseDir: File, outDir: File) =
-    fileNames.foreach(name => {
-      val indexHtml = buildDir / name
-      val out       = folder.getParentFile() / name
+//   def copyFile(fileNames: List[String], baseDir: File, outDir: File) =
+//     fileNames.foreach(name => {
+//       val indexHtml = buildDir / name
+//       val out       = folder.getParentFile() / name
 
-      import java.nio.file.Files
+//       import java.nio.file.Files
 
-      if (!Files.exists(out.toPath) || IO.read(indexHtml) != IO.read(out)) {
-        IO.copyFile(indexHtml, out)
-      }
-    })
-  copyFile(List("index.html", "output.css", "index.js", "style.less"), buildDir, folder.getParentFile())
+//       if (!Files.exists(out.toPath) || IO.read(indexHtml) != IO.read(out)) {
+//         IO.copyFile(indexHtml, out)
+//       }
+//     })
+//   copyFile(List("index.html", "output.css", "index.js", "style.less"), buildDir, folder.getParentFile())
 
-  // val indexHtml = buildDir / "index.html"
-  // val out       = folder.getParentFile() / "index.html"
+//   // val indexHtml = buildDir / "index.html"
+//   // val out       = folder.getParentFile() / "index.html"
 
-  // import java.nio.file.Files
+//   // import java.nio.file.Files
 
-  // if (!Files.exists(out.toPath) || IO.read(indexHtml) != IO.read(out)) {
-  //   IO.copyFile(indexHtml, out)
-  // }
-}
+//   // if (!Files.exists(out.toPath) || IO.read(indexHtml) != IO.read(out)) {
+//   //   IO.copyFile(indexHtml, out)
+//   // }
+// }
 
 ThisBuild / concurrentRestrictions ++= {
   if (sys.env.contains("CI")) {

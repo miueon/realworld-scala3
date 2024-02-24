@@ -21,7 +21,7 @@ import rollupCopyPlugin from 'rollup-plugin-copy'
 // }, {});
 
 export default defineConfig({
-  root: path.resolve(__dirname, './../modules/frontend/target/modules-js-3/'),
+  // root: path.resolve(__dirname, './../modules/frontend/target/modules-js-3/'),
   // resolve: {
   //   alias
   // },
