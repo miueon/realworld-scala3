@@ -4,6 +4,9 @@ import smithy4s.codegen.Smithy4sCodegenPlugin
 
 Compile / run / fork          := true
 Global / onChangedBuildSource := ReloadOnSourceChanges
+Global / scalacOptions := Seq(
+      "-Wunused:all"
+    )
 
 val Versions = new {
   val ciris             = "3.5.0"

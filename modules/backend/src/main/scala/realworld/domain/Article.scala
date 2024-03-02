@@ -10,9 +10,6 @@ import realworld.spec.UpdatedAt
 import realworld.domain.user.UserId
 import doobie.util.meta.Meta
 import doobie.implicits.*
-import doobie.implicits.javatime.JavaTimeInstantMeta
-import java.time.Instant
-import smithy4s.Timestamp
 import doobie.TableDefinition
 import doobie.Column
 import doobie.WithSQLDefinition
@@ -24,7 +21,6 @@ import realworld.spec.TagName
 import realworld.spec.Bio
 import realworld.spec.ImageUrl
 import scala.util.control.NoStackTrace
-import doobie.TableDefinition.RowHelpers
 
 type ArticleId = ArticleId.Type
 object ArticleId extends IdNewtype

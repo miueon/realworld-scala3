@@ -5,8 +5,6 @@ import java.time.Clock
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
 
-import pdi.jwt.JwtAlgorithm
-import pdi.jwt.JwtCirce
 import pdi.jwt.JwtClaim
 import realworld.config.types.TokenExpiration
 import realworld.effects.JwtClock

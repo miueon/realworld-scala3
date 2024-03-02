@@ -1,6 +1,5 @@
 package realworld.domain.types
 
-import smithy4s.Newtype
 import monocle.Iso
 import cats.kernel.Eq
 import cats.kernel.Order
@@ -22,7 +21,6 @@ abstract class DeriveType[A]:
       Iso[A, Type](apply(_))(_.value)
 
 abstract class Newtype[A](using
-    eqv: Eq[A],
     ord: Order[A],
     shw: Show[A],
     wr: Write[A],

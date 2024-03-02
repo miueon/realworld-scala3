@@ -1,20 +1,10 @@
 package realworld.domain
 
-import io.circe.Codec
 import io.circe.Decoder
 import io.circe.Encoder
-import realworld.domain.types.IdNewtype
 import doobie.WithSQLDefinition
 import doobie.SQLDefinition
 import doobie.Composite
-import realworld.domain.user.UserId
-import realworld.domain.user.DBUser
-import java.util.UUID
-import monocle.Iso
-import realworld.domain.types.IsUUID
-import realworld.spec.Email
-import realworld.spec.Username
-import realworld.domain.user.EncryptedPassword
 import realworld.spec.Total
 import cats.Functor
 import scala.annotation.targetName

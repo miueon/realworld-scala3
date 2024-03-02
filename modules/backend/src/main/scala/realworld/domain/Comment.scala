@@ -6,12 +6,10 @@ import realworld.spec.UpdatedAt
 import realworld.domain.user.UserId
 import realworld.spec.CommentBody
 import doobie.util.meta.Meta
-import realworld.domain.types.Newtype
 import doobie.TableDefinition
 import doobie.Column
 import doobie.WithSQLDefinition
 import doobie.Composite
-import realworld.domain.Comments.createdAt
 import realworld.spec.Username
 import realworld.spec.Bio
 import realworld.spec.ImageUrl

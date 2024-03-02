@@ -9,7 +9,6 @@ import doobie.implicits.*
 import doobie.util.transactor.Transactor
 import realworld.domain.Comment
 import realworld.domain.CommentDBView
-import realworld.domain.WithId
 import realworld.domain.article.ArticleId
 import realworld.domain.user.UserId
 import realworld.spec.CommentId

@@ -9,7 +9,6 @@ import pdi.jwt.JwtCirce
 import pdi.jwt.JwtClaim
 import realworld.config.types.JwtAccessTokenKeyConfig
 import realworld.config.types.TokenExpiration
-import realworld.domain.types.DeriveType
 import realworld.effects.GenUUID
 import realworld.spec.Token
 

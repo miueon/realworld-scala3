@@ -1,29 +1,14 @@
 package realworld.auth
 
-import java.security.SecureRandom
-import java.util.Base64
-import javax.crypto.Cipher
-import javax.crypto.SecretKeyFactory
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.PBEKeySpec
-import javax.crypto.spec.SecretKeySpec
 
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
 
-import io.github.iltotore.iron.autoRefine
-import io.github.iltotore.iron.refine
 import realworld.config.types.PasswordSalt
-import realworld.domain.user.DecryptCipher
-import realworld.domain.user.EncryptCipher
 import realworld.domain.user.EncryptedPassword
 import realworld.spec.Password
-import cats.effect.IOApp
-import cats.effect.ExitCode
-import cats.effect.IO
 import com.password4j.Argon2Function
 import com.password4j.Password as pswd
-import realworld.domain.user.Users.password
 import realworld.spec
 
 trait Crypto:

@@ -1,29 +1,23 @@
 package realworld.domain.user
 
-import java.util.UUID
-import javax.crypto.Cipher
-
 import cats.syntax.all.*
-
 import doobie.*
 import io.circe.Codec
+import realworld.domain.WithId
 import realworld.domain.given
-import realworld.domain.types.DeriveType
+import realworld.domain.metaOf
 import realworld.domain.types.IdNewtype
-import realworld.domain.types.IsUUID
 import realworld.domain.types.Newtype
-import realworld.domain.types.Wrapper
 import realworld.spec.Bio
 import realworld.spec.Email
 import realworld.spec.ImageUrl
+import realworld.spec.Profile
 import realworld.spec.Token
 import realworld.spec.User
 import realworld.spec.Username
-import scala.CanEqual.derived
-import realworld.domain.WithId
+
+import javax.crypto.Cipher
 import scala.util.control.NoStackTrace
-import realworld.spec.Profile
-import realworld.domain.metaOf
 
 type UserId = UserId.Type
 object UserId extends IdNewtype

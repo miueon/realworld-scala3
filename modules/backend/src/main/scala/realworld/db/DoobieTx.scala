@@ -8,7 +8,6 @@ import cats.syntax.all.*
 import cats.~>
 
 import doobie.*
-import doobie.free.Embedded.Connection
 import doobie.free.connection.setAutoCommit
 import doobie.hi.connection.commit
 import doobie.hi.connection.rollback

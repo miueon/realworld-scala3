@@ -1,5 +1,4 @@
 package realworld.http
-import cats.effect.IO
 import cats.effect.kernel.Async
 import cats.effect.kernel.Resource
 
@@ -8,7 +7,6 @@ import org.http4s.ember.server.EmberServerBuilder
 import org.http4s.server.Server
 import org.http4s.server.defaults.Banner
 
-import com.comcast.ip4s.*
 import org.typelevel.log4cats.Logger
 import realworld.config.types.HttpServerConfig
 
