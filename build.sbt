@@ -5,8 +5,8 @@ import smithy4s.codegen.Smithy4sCodegenPlugin
 Compile / run / fork          := true
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / scalacOptions := Seq(
-      "-Wunused:all"
-    )
+  "-Wunused:all"
+)
 
 val Versions = new {
   val ciris             = "3.5.0"
@@ -103,11 +103,11 @@ val iron = Seq(
 )
 
 val db = Seq(
-  "org.flywaydb"         % "flyway-core"     % Versions.flyway,
-  "org.tpolecat"        %% "doobie-postgres" % Versions.doobie,
-  "org.tpolecat"        %% "doobie-hikari"   % Versions.doobie,
-  "io.github.arturaz"   %% "doobie-typesafe" % Versions.doobieTypeSafe,
-  "io.github.iltotore"  %% "iron-doobie"     % Versions.iron
+  "org.flywaydb"        % "flyway-core"     % Versions.flyway,
+  "org.tpolecat"       %% "doobie-postgres" % Versions.doobie,
+  "org.tpolecat"       %% "doobie-hikari"   % Versions.doobie,
+  "io.github.arturaz"  %% "doobie-typesafe" % Versions.doobieTypeSafe,
+  "io.github.iltotore" %% "iron-doobie"     % Versions.iron
 )
 
 lazy val backend = projectMatrix
@@ -195,12 +195,12 @@ lazy val frontend = projectMatrix
       if (virtualAxes.value.contains(BuildStyle.SingleFile)) config
       else
         config
-          .withModuleSplitStyle(
-            ModuleSplitStyle
-              .SmallModulesFor(List(s"${Config.BasePackage}.frontend"))
-          )
+          // .withModuleSplitStyle(
+          //   ModuleSplitStyle
+          //     .SmallModulesFor(List(s"${Config.BasePackage}.frontend"))
+          // )
           .withModuleKind(ModuleKind.ESModule)
-          .withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
+          // .withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
           .withSourceMap(true)
     },
     externalNpm := (ThisBuild / baseDirectory).value / "frontend",
@@ -215,7 +215,11 @@ lazy val frontend = projectMatrix
       "io.circe"                     %%% "circe-parser"                % Versions.circe,
       "org.http4s"                   %%% "http4s-dom"                  % Versions.http4sDom,
       "org.scala-js"                 %%% "scala-js-macrotask-executor" % Versions.macroTaskExecutor
-    )
+    ),
+    watchSources := watchSources.value.filterNot { source =>
+      source.base.getName.endsWith(".less") || source.base.getName.endsWith(".css")
+    },
+    stIgnore ++= List("bootstrap-icons")
   )
 
 lazy val defaults =

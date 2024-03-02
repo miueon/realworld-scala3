@@ -1,7 +1,9 @@
 backend/target
 frontend/target
 shared/target
-
+/dist/
+/frontend/dist/
+/frontend/public/assets/shoelace/assets/icons/
 project/target
 project/metals.sbt
 

@@ -14,12 +14,17 @@
     "@types/chart.js": "^2.9.29",
     "less": "^4.2.0",
     "postcss": "^8.4.33",
-    "rollup-plugin-copy": "^3.5.0",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
-    "vite": "^4.1.0"
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-sourcemaps": "^0.6.3",
+    "vite": "^4.1.0",
+    "terser": "^5.20.0",
+    "glob": "^10.3.10"
   },
   "dependencies": {
+    "@shoelace-style/shoelace": "~2.11.2",
+    "bootstrap-icons": "^1.11.1",
     "autoprefixer": "^10.4.17",
     "chart.js": "^2.9.4"
   }

@@ -1,14 +1,10 @@
-/**
- * @type {import('vite').UserConfig}
- */
-
 import { defineConfig } from "vite";
 import path from 'path';
 // import scalaJSPlugin from "@scala-js/vite-plugin-scalajs";
 import fs from 'fs'
 import scalaJSPlugin from "@scala-js/vite-plugin-scalajs";
 import injectHtmlVarsPlugin from "./vite-plugins/inject-html-vars.js";
-// import rollupPluginSourcemaps from "rollup-plugin-sourcemaps";
+import rollupPluginSourcemaps from "rollup-plugin-sourcemaps";
 import globResolverPlugin from "@raquo/vite-plugin-glob-resolver";
 import importSideEffectPlugin from "@raquo/vite-plugin-import-side-effect";
 import rollupCopyPlugin from 'rollup-plugin-copy'
@@ -25,6 +21,8 @@ export default defineConfig({
   // resolve: {
   //   alias
   // },
+  base: "/",
+  publicDir: "public",
   plugins: [
     scalaJSPlugin({
       cwd: "..", // path to build.sbt
@@ -42,23 +40,33 @@ export default defineConfig({
       // See https://github.com/raquo/vite-plugin-import-side-effect
       defNames: ['importStyle'],
       rewriteModuleIds: ['**/*.less', '**/*.css', "**/*.scss"],
-      // verbose: true
+      verbose: true
     }),
     injectHtmlVarsPlugin({
       SCRIPT_URL: './index.js'
     }),
-    // rollupCopyPlugin({
-    //   copyOnce: true,
-    //   targets: [
-    //     {
-    //       // If changing `dest`, you must also change the call to `Shoelace.setBasePath` in your Scala.js code.
-    //       // Required by Shoelace: https://shoelace.style/getting-started/installation
-    //       src: path.resolve(__dirname, 'node_modules/@shoelace-style/shoelace/dist/assets/icons/*.svg'),
-    //       dest: path.resolve(__dirname, 'public/assets/shoelace/assets/icons')
-    //     }
-    //   ]
-    // })
+    rollupCopyPlugin({
+      copyOnce: true,
+      targets: [
+        {
+          // If changing `dest`, you must also change the call to `Shoelace.setBasePath` in your Scala.js code.
+          // Required by Shoelace: https://shoelace.style/getting-started/installation
+          src: path.resolve(__dirname, 'node_modules/@shoelace-style/shoelace/dist/assets/icons/*.svg'),
+          dest: path.resolve(__dirname, 'public/assets/shoelace/assets/icons')
+        }
+      ]
+    })
   ],
+  build: {
+    outDir: "dist",
+    assetsDir: "assets",
+    cssCodeSplit: false,
+    rollupOptions: {
+      plugins: [rollupPluginSourcemaps()],
+    },
+    minify: "terser",
+    sourcemap: true
+  },
   server: {
     proxy: {
       '/api': {
