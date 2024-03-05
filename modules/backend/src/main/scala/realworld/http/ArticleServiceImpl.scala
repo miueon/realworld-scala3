@@ -2,7 +2,6 @@ package realworld.http
 
 import cats.effect.*
 import cats.syntax.all.*
-
 import org.typelevel.log4cats.Logger
 import realworld.domain.article.ArticleError
 import realworld.domain.article.ListArticleQuery
@@ -10,10 +9,9 @@ import realworld.service.Articles
 import realworld.service.Auth
 import realworld.spec.ArticleService
 import realworld.spec.AuthHeader
-import realworld.spec.Body
 import realworld.spec.CreateArticleData
 import realworld.spec.CreateArticleOutput
-import realworld.spec.Description
+import realworld.spec.FavoriteArticleOutput
 import realworld.spec.GetArticleOutput
 import realworld.spec.Limit
 import realworld.spec.ListArticleOutput
@@ -22,12 +20,10 @@ import realworld.spec.NotFoundError
 import realworld.spec.Skip
 import realworld.spec.Slug
 import realworld.spec.TagName
-import realworld.spec.Title
+import realworld.spec.UnfavoriteArticleOutput
 import realworld.spec.UpdateArticleData
 import realworld.spec.UpdateArticleOutput
 import realworld.spec.Username
-import realworld.spec.FavoriteArticleOutput
-import realworld.spec.UnfavoriteArticleOutput
 
 object ArticleServiceImpl:
   def make[F[_]: MonadCancelThrow: Logger](

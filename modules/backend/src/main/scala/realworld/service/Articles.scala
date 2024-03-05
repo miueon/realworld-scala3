@@ -18,7 +18,6 @@ import realworld.repo.ArticleRepo
 import realworld.repo.FavoriteRepo
 import realworld.repo.FollowerRepo
 import realworld.repo.TagRepo
-import realworld.repo.UserRepo
 import realworld.spec.Article
 import realworld.spec.ArticleList
 import realworld.spec.CreatedAt
@@ -32,7 +31,6 @@ import realworld.domain.ID
 import realworld.domain.WithId
 import realworld.spec.Title
 import java.time.Instant
-import smithy4s.Timestamp
 import realworld.spec.UpdatedAt
 import realworld.spec.UpdateArticleData
 import java.text.Normalizer

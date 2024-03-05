@@ -7,28 +7,19 @@ import cats.syntax.all.*
 import cats.~>
 
 import doobie.*
-import doobie.hikari.HikariTransactor
 import doobie.implicits.*
-import io.github.iltotore.iron.refine
 import realworld.db.DoobieTx
 import realworld.db.transaction
-import realworld.domain.ID
 import realworld.domain.WithId
 import realworld.domain.user.DBUser
 import realworld.domain.user.EncryptedPassword
-import realworld.domain.user.UserError
 import realworld.domain.user.UserId
 import realworld.domain.user.Users.password
-import realworld.effects.GenUUID
 import realworld.spec.Email
-import realworld.spec.NotFoundError
-import realworld.spec.Password
 import realworld.spec.RegisterUserData
 import realworld.spec.UpdateUserData
-import realworld.spec.User
 import realworld.spec.Username
 import doobie.free.connection.ConnectionIO
-import realworld.spec.Profile
 
 trait UserRepo[F[_]]:
   def findById(id: UserId): F[Option[WithId[UserId, DBUser]]]

@@ -1,11 +1,13 @@
 package realworld.repo
 
+import cats.data.NonEmptyList
+import cats.data.OptionT
 import cats.effect.*
 import cats.syntax.all.*
-
 import doobie.Fragments.*
 import doobie.*
 import doobie.implicits.*
+import realworld.domain.Tag
 import realworld.domain.WithId
 import realworld.domain.WithTotal
 import realworld.domain.article.*
@@ -17,16 +19,11 @@ import realworld.spec.CreatedAt
 import realworld.spec.Description
 import realworld.spec.ImageUrl
 import realworld.spec.Slug
+import realworld.spec.TagName
 import realworld.spec.Title
-import realworld.spec.Total
+import realworld.spec.UpdateArticleData
 import realworld.spec.UpdatedAt
 import realworld.spec.Username
-import realworld.spec.CreateArticleData
-import realworld.spec.TagName
-import realworld.domain.Tag
-import realworld.spec.UpdateArticleData
-import cats.data.NonEmptyList
-import cats.data.OptionT
 
 trait ArticleRepo[F[_]]:
   def list(

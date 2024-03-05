@@ -79,7 +79,7 @@ object Comments:
           case Some(value) => CommentViewList(value).pure
 
       def mkComments(comments: List[CommentDBView], followers: List[Follower]) =
-        val authorFollowerMap = followers.groupBy(_.userId)
+        // val authorFollowerMap = followers.groupBy(_.userId)
 
         comments.map(c => c.toCommentView(followers.contains(c.authorId)))
 

@@ -2,14 +2,9 @@ package realworld
 
 import cats.MonadError
 import cats.MonadThrow
-import cats.data.*
-import cats.effect.kernel.Sync
 import cats.syntax.all.*
-
 import realworld.spec.Limit
 import realworld.spec.Skip
-import realworld.spec.UnprocessableEntity
-import realworld.spec.ValidationErrors
 import smithy4s.Smithy4sThrowable
 
 package object http:

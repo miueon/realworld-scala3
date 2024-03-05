@@ -1,23 +1,22 @@
 package realworld.modules
 
-import cats.syntax.all.*
-import org.http4s.HttpApp
-import cats.effect.kernel.Resource
-import realworld.config.types.AppConfig
-import realworld.service.Auth
-import realworld.auth.JwtExpire
-import cats.effect.kernel.Async
-import realworld.auth.JWT
-import dev.profunktor.redis4cats.RedisCommands
-import realworld.auth.Crypto
-import org.typelevel.log4cats.Logger
-import smithy4s.http4s.SimpleRestJsonBuilder
-import realworld.http.UserServiceImpl
-import org.http4s.HttpRoutes
 import cats.data.Kleisli
-import org.http4s.dsl.request
+import cats.effect.kernel.Async
+import cats.effect.kernel.Resource
+import cats.syntax.all.*
+import dev.profunktor.redis4cats.RedisCommands
+import org.http4s.HttpApp
+import org.http4s.HttpRoutes
+import org.typelevel.log4cats.Logger
+import realworld.auth.Crypto
+import realworld.auth.JWT
+import realworld.auth.JwtExpire
+import realworld.config.types.AppConfig
 import realworld.http.ArticleServiceImpl
 import realworld.http.CommentServiceImpl
+import realworld.http.UserServiceImpl
+import realworld.service.Auth
+import smithy4s.http4s.SimpleRestJsonBuilder
 
 def HttpApi[F[_]: Async: Logger](
     config: AppConfig,

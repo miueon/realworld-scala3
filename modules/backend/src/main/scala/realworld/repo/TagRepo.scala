@@ -4,7 +4,6 @@ import cats.data.NonEmptyList
 import cats.effect.*
 import cats.syntax.all.*
 
-import doobie.Fragments.*
 import doobie.*
 import doobie.implicits.*
 import doobie.util.transactor.Transactor

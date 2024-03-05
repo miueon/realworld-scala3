@@ -1,22 +1,17 @@
 package realworld.modules
 
-import cats.Monad
 import cats.MonadThrow
 import cats.syntax.all.*
-
 import org.http4s.AuthScheme
 import org.http4s.Credentials
 import org.http4s.HttpApp
 import org.http4s.Response
-import org.http4s.dsl.request
 import org.http4s.headers.Authorization
-
 import realworld.auth.JWT
 import realworld.spec.Token
 import realworld.spec.UnauthorizedError
 import smithy4s.Endpoint
 import smithy4s.Hints
-import smithy4s.Service
 import smithy4s.http4s.ServerEndpointMiddleware
 
 object JwtAuthMiddleware:

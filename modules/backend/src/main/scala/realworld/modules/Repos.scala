@@ -1,8 +1,6 @@
 package realworld.modules
 
-import cats.data.*
 import cats.effect.*
-import cats.syntax.all.*
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.util.transactor.Transactor
 import realworld.db.DoobieTx

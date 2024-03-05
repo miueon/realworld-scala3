@@ -2,7 +2,6 @@ package realworld.repo
 
 import cats.Functor
 import cats.data.NonEmptyList
-import cats.data.NonEmptyVector
 import cats.effect.*
 import cats.syntax.all.*
 

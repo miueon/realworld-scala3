@@ -1,7 +1,6 @@
 package realworld.service
 
 import cats.Functor
-import cats.Monad
 import cats.effect.kernel.MonadCancelThrow
 import cats.syntax.all.*
 
@@ -10,11 +9,8 @@ import io.circe.Codec
 import io.circe.Decoder
 import io.circe.DecodingFailure
 import io.circe.Encoder
-import io.circe.Json
 import io.circe.parser.decode
 import io.circe.syntax.*
-import org.typelevel.log4cats.Logger
-import pdi.jwt.JwtClaim
 import realworld.auth.Crypto
 import realworld.auth.JWT
 import realworld.config.types.TokenExpiration
@@ -22,31 +18,22 @@ import realworld.domain.ID
 import realworld.domain.given
 import realworld.domain.user.DBUser
 import realworld.domain.user.UserId
-import realworld.domain.user.Users.username
 import realworld.effects.GenUUID
 import realworld.spec.AuthHeader
-import realworld.spec.ForbiddenError
 import realworld.spec.LoginUserInputData
-import realworld.spec.NotFoundError
 import realworld.spec.RegisterUserData
 import realworld.spec.Token
 import realworld.spec.UnauthorizedError
 import realworld.spec.User
-import smithy4s.Document
-import smithy4s.schema.Schema
 import realworld.domain.user.UserError
 import realworld.domain.WithId
 import realworld.spec.UpdateUserData
 import realworld.spec.Email
 import realworld.spec.Username
-import realworld.domain.user.EncryptedPassword
-import doobie.util.transactor.Transactor
-import realworld.db.transaction
-import realworld.db.transactK
+
 import realworld.db.DoobieTx
 import realworld.repo.UserRepo
 import realworld.spec.CredentialsError
-import cats.data.OptionT
 import cats.data.EitherT
 
 trait Auth[F[_]: Functor]:
@@ -151,10 +138,10 @@ object Auth:
       end access
 
       def update(uid: UserId, updateData: UpdateUserData): F[DBUser] =
-        val emailCleanOpt =
-          updateData.email.map(e => e.value.toLowerCase.trim())
-        val usernameCleanOpt =
-          updateData.username.map(un => un.value.trim())
+        // val emailCleanOpt =
+        //   updateData.email.map(e => e.value.toLowerCase.trim())
+        // val usernameCleanOpt =
+        //   updateData.username.map(un => un.value.trim())
 
         val hasedPsw = updateData.password.map(crypto.encrypt(_))
         val userOpt = for

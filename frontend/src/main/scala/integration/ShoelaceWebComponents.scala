@@ -35,7 +35,7 @@ object ShoelaceWebComponents:
     div(
       cls("ShoelaceWebComponentsView"),
       p(
-        Button.of(
+        Button(
           _ => "Reload",
           _ => onClick --> { _ => dom.window.alert("Clicked") },
           _.slots.prefix(
@@ -43,13 +43,14 @@ object ShoelaceWebComponents:
           )
         ),
         " ",
-        Button.of(
-          _.variant.success,
+        Button(
+          _.variant.warning,
           _ => "User",
-          _ => onClick --> { _ => dom.window.alert("Clicked") },
+          // _ => onClick --> { _ => dom.window.alert("Clicked") },
+          onClick --> {_ => dom.window.alert("ClickedUser")},
           _.slots.suffix(
             Icon.of(_.name("person-fill"))
-          )
+          ),
         )
       )
     )

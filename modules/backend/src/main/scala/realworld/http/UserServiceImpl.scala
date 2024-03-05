@@ -1,12 +1,7 @@
 package realworld.http
 
-import cats.Monad
-import cats.MonadError
 import cats.MonadThrow
-import cats.data.OptionT
-import cats.effect.kernel.Sync
 import cats.syntax.all.*
-
 import org.typelevel.log4cats.Logger
 import realworld.domain.user.UserError
 import realworld.service.Auth
@@ -27,7 +22,6 @@ import realworld.spec.UpdateUserData
 import realworld.spec.UpdateUserOutput
 import realworld.spec.UserService
 import realworld.spec.Username
-import smithy4s.Smithy4sThrowable
 
 object UserServiceImpl:
   def make[F[_]:  MonadThrow: Logger](

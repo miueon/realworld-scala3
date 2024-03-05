@@ -2,10 +2,8 @@ package realworld.resources
 
 import cats.effect.Concurrent
 import cats.effect.Resource
-import cats.effect.Temporal
 import cats.effect.kernel.Async
 import cats.effect.kernel.Resource
-import cats.effect.kernel.Sync
 import cats.effect.std.Console
 import cats.syntax.all.*
 
@@ -16,7 +14,6 @@ import dev.profunktor.redis4cats.effect.MkRedis
 import doobie.*
 import doobie.hikari.HikariTransactor
 import doobie.implicits.*
-import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor
 import org.flywaydb.core.Flyway
 import org.typelevel.log4cats.Logger
