@@ -2,7 +2,7 @@
 export default {
   content: [
     "./index.html",
-    "../modules/frontend/src/**/*.scala",
+    "./src/**/*.scala",
   ],
   theme: {
     fontFamily: {

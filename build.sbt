@@ -214,7 +214,8 @@ lazy val frontend = projectMatrix
       "io.circe"                     %%% "circe-core"                  % Versions.circe,
       "io.circe"                     %%% "circe-parser"                % Versions.circe,
       "org.http4s"                   %%% "http4s-dom"                  % Versions.http4sDom,
-      "org.scala-js"                 %%% "scala-js-macrotask-executor" % Versions.macroTaskExecutor
+      "org.scala-js"                 %%% "scala-js-macrotask-executor" % Versions.macroTaskExecutor,
+      "io.laminext"                  %%% "validation-cats"             % "0.15.0"
     ),
     watchSources := watchSources.value.filterNot { source =>
       source.base.getName.endsWith(".less") || source.base.getName.endsWith(".css")

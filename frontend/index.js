@@ -1,2 +1,2 @@
-// import './style.less'
+import './style.css'
 import 'scalajs:main.js'

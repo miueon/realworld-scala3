@@ -173,8 +173,8 @@ end Helper
 object Input:
   opaque type InputType = String
   object InputType:
-    val PASSOWRD = "password"
-    val TEXT     = "text"
+    val PASSOWRD: InputType = "password"
+    val TEXT: InputType     = "text"
   def Password(
       lableText: String,
       id: String,
@@ -196,7 +196,7 @@ object Input:
   private def Input(
       lableText: String,
       id: String,
-      inputType: String,
+      inputType: InputType,
       valueObserver: Observer[String],
       inputStateConfig: InputStateConfig,
       validators: Seq[Validator]

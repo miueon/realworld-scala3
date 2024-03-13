@@ -3,10 +3,11 @@ import org.scalajs.dom
 import todomvc.TodoMvcApp
 import integration.ShoelaceWebComponents
 import Form.FormSkeleton
+import industries.sunshine.agecalendar.Tailwind
 
 object Main {
   def main(args: Array[String]): Unit = {
     // Laminar initialization
-    renderOnDomContentLoaded(dom.document.querySelector("#app"), FormSkeleton.RegisterForm())
+    renderOnDomContentLoaded(dom.document.querySelector("#app"), Tailwind.appElement())
   }
 }
