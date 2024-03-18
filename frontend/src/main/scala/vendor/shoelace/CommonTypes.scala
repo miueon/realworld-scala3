@@ -7,8 +7,9 @@ import com.raquo.laminar.keys
 import com.raquo.laminar.keys.DerivedStyleProp
 import com.raquo.laminar.modifiers.KeySetter
 import com.raquo.laminar.modifiers.KeySetter.StyleSetter
+import scala.scalajs.js
 
-trait CommonTypes {
+trait CommonTypes:
 
   // #TODO Move to Laminar
   type HtmlPropOf[V] = keys.HtmlProp[V, V]
@@ -30,11 +31,23 @@ trait CommonTypes {
 
   protected def boolProp(name: String): HtmlPropOf[Boolean] = htmlProp(name, BooleanAsIsCodec)
 
-  protected def boolAttr(name: String): HtmlAttr[Boolean] = htmlAttr(name, BooleanAsAttrPresenceCodec)
+  protected def boolAttr(name: String): HtmlAttr[Boolean] =
+    htmlAttr(name, BooleanAsAttrPresenceCodec)
 
   protected def stringAttr(name: String): HtmlAttr[String] = htmlAttr(name, StringAsIsCodec)
 
-  protected def lengthAutoStyle(name: String): StyleProp[String] with s.Auto with u.Length[DSP, Int] = {
+  protected def doubleProp(name: String) = htmlProp(name, DoubleAsIsCodec)
+  protected def doubleAttr(name: String) = htmlAttr(name, DoubleAsStringCodec)
+
+  protected def callBack(name: String)(value: scala.scalajs.js.Any) =
+    inContext(thisNode =>
+      onMountCallback(_ => thisNode.ref.asInstanceOf[js.Dynamic].updateDynamic(name)(value))
+    )
+
+  // protected def callBack(name: String) =
+
+  protected def lengthAutoStyle(
+      name: String
+  ): StyleProp[String] with s.Auto with u.Length[DSP, Int] =
     new StyleProp[String](name) with s.Auto with u.Length[DSP, Int]
-  }
-}
+end CommonTypes

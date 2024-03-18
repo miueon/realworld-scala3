@@ -209,7 +209,7 @@ lazy val frontend = projectMatrix
         .cross(CrossVersion.for3Use2_13),
       "dev.optics"                   %%% "monocle-core"                % Versions.monocle,
       "com.raquo"                    %%% "waypoint"                    % Versions.waypoint,
-      "com.github.japgolly.scalacss" %%% "core"                        % Versions.scalacss,
+      // "com.github.japgolly.scalacss" %%% "core"                        % Versions.scalacss,
       "com.raquo"                    %%% "laminar"                     % Versions.Laminar,
       "io.circe"                     %%% "circe-core"                  % Versions.circe,
       "io.circe"                     %%% "circe-parser"                % Versions.circe,

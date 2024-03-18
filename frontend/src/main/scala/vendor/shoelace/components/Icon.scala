@@ -63,6 +63,7 @@ object Icon extends WebComponent("sl-icon") { self =>
   // -- Slots --
 
   @inline def noSlots: Unit = ()
+  
 
 
   // -- CSS Parts --
