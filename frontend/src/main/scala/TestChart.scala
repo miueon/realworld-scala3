@@ -7,40 +7,38 @@ import com.raquo.laminar.api.L.{*, given}
 
 import org.scalajs.dom
 
-object Main {
+object TestChart:
   final class DataItemID
 
   case class DataItem(id: DataItemID, label: String, value: Double)
 
-  object DataItem {
+  object DataItem:
     def apply(): DataItem = DataItem(DataItemID(), "?", Math.random())
-  }
 
-  val dataVar = Var[List[DataItem]](List(DataItem(DataItemID(), "one", 1.0)))
+  val dataVar    = Var[List[DataItem]](List(DataItem(DataItemID(), "one", 1.0)))
   val dataSignal = dataVar.signal
-  val allValues = dataSignal.map(_.map(_.value))
+  val allValues  = dataSignal.map(_.map(_.value))
 
   // def main(args: Array[String]): Unit = {
   //   // Laminar initialization
   //   renderOnDomContentLoaded(dom.document.querySelector("#app"), appElement())
   // }
 
-  def appElement(): HtmlElement = {
+  def appElement(): HtmlElement =
     div(
       h1("Hello Vite!"),
       renderDataTable(),
       ul(
         li("Sum of values: ", child.text <-- allValues.map(_.sum)),
-        li("Average value: ", child.text <-- allValues.map(vs => vs.sum / vs.size)),
+        li("Average value: ", child.text <-- allValues.map(vs => vs.sum / vs.size))
       ),
-      renderDataGraph(),
+      renderDataGraph()
     )
-  }
 
-  def renderDataTable(): HtmlElement = {
+  def renderDataTable(): HtmlElement =
     table(
       thead(
-        tr(th("Label"), th("Value"), th("Action")),
+        tr(th("Label"), th("Value"), th("Action"))
       ),
       tbody(
         children <-- dataSignal.split(_.id) { (id, initial, itemSignal) =>
@@ -48,12 +46,11 @@ object Main {
         }
       ),
       tfoot(
-        tr(td(button("➕", onClick --> (_ => dataVar.update(data => data :+ DataItem()))))),
-      ),
+        tr(td(button("➕", onClick --> (_ => dataVar.update(data => data :+ DataItem())))))
+      )
     )
-  }
 
-  def renderDataItem(id: DataItemID, item: Signal[DataItem]): HtmlElement = {
+  def renderDataItem(id: DataItemID, item: Signal[DataItem]): HtmlElement =
     val labelUpdater = dataVar.updater[String] { (data, newLabel) =>
       data.map(item => if item.id == id then item.copy(label = newLabel) else item)
     }
@@ -65,27 +62,26 @@ object Main {
     tr(
       td(inputForString(item.map(_.label), labelUpdater)),
       td(inputForDouble(item.map(_.value), valueUpdater)),
-      td(button("🗑️", onClick --> (_ => dataVar.update(data => data.filter(_.id != id))))),
+      td(button("🗑️", onClick --> (_ => dataVar.update(data => data.filter(_.id != id)))))
     )
-  }
+  end renderDataItem
 
-  def inputForString(valueSignal: Signal[String], valueUpdater: Observer[String]): Input = {
+  def inputForString(valueSignal: Signal[String], valueUpdater: Observer[String]): Input =
     input(
       typ := "text",
       controlled(
         value <-- valueSignal,
-        onInput.mapToValue --> valueUpdater,
-      ),
+        onInput.mapToValue --> valueUpdater
+      )
     )
-  }
 
-  def inputForDouble(valueSignal: Signal[Double], valueUpdater: Observer[Double]): Input = {
+  def inputForDouble(valueSignal: Signal[Double], valueUpdater: Observer[Double]): Input =
     val strValue = Var[String]("")
     input(
       typ := "text",
       controlled(
         value <-- strValue.signal,
-        onInput.mapToValue --> strValue,
+        onInput.mapToValue --> strValue
       ),
       valueSignal --> strValue.updater[Double] { (prevStr, newValue) =>
         if prevStr.toDoubleOption.contains(newValue) then prevStr
@@ -93,56 +89,50 @@ object Main {
       },
       strValue.signal --> { valueStr =>
         valueStr.toDoubleOption.foreach(valueUpdater.onNext)
-      },
+      }
     )
-  }
+  end inputForDouble
 
-  def renderDataGraph(): HtmlElement = {
+  def renderDataGraph(): HtmlElement =
     import typings.chartJs.mod.*
 
     var optChart: Option[Chart] = None
 
     canvasTag(
-      width := "100%",
+      width  := "100%",
       height := "500px",
-
       onMountUnmountCallback(
-        mount = { nodeCtx =>
+        mount = nodeCtx =>
           val ctx = nodeCtx.thisNode.ref // the DOM HTMLCanvasElement
-          val chart = Chart.apply.newInstance2(ctx, new ChartConfiguration {
-            `type` = ChartType.bar
-            data = new ChartData {
-              datasets = js.Array(new ChartDataSets {
-                label = "Value"
-                borderWidth = 1
-              })
-            }
-            options = new ChartOptions {
-              scales = new ChartScales {
-                yAxes = js.Array(new CommonAxe {
-                  ticks = new TickOptions {
-                    beginAtZero = true
-                  }
-                })
-              }
-            }
-          })
+          val chart = Chart.apply.newInstance2(
+            ctx,
+            new ChartConfiguration:
+              `type` = ChartType.bar
+              data = new ChartData:
+                datasets = js.Array(new ChartDataSets:
+                  label = "Value"
+                  borderWidth = 1
+                )
+              options = new ChartOptions:
+                scales = new ChartScales:
+                  yAxes = js.Array(
+                    new CommonAxe:
+                      ticks = new TickOptions:
+                        beginAtZero = true
+                  )
+          )
           optChart = Some(chart)
-        },
-        unmount = { thisNode =>
-          for (chart <- optChart)
-            chart.destroy()
+        ,
+        unmount = thisNode =>
+          for chart <- optChart do chart.destroy()
           optChart = None
-        }
       ),
-
       dataSignal --> { data =>
-        for (chart <- optChart) {
+        for chart <- optChart do
           chart.data.labels = data.map(_.label).toJSArray
           chart.data.datasets.get(0).data = data.map(_.value).toJSArray
           chart.update()
-        }
-      },
+      }
     )
-  }
-}
+  end renderDataGraph
+end TestChart

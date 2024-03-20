@@ -8,6 +8,6 @@ import industries.sunshine.agecalendar.Tailwind
 object Main {
   def main(args: Array[String]): Unit = {
     // Laminar initialization
-    renderOnDomContentLoaded(dom.document.querySelector("#app"), ShoelaceWebComponents.apply())
+    renderOnDomContentLoaded(dom.document.querySelector("#app"), testvite.TestChart.appElement())
   }
 }

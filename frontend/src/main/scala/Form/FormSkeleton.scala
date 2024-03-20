@@ -32,10 +32,6 @@ object FormSkeleton:
   case class FormState(email: Option[String], password: Option[String])
 
   def RegisterForm() =
-    // val s_emailValue            = Var("")
-    // val s_passwordValue         = Var("")
-    // val s_repeatedPasswordValue = Var("")
-
     val s_formSend  = Var(false)
     val s_formState = Var(FormState(None, None))
 
@@ -44,16 +40,6 @@ object FormSkeleton:
       form(
         cls := "form",
         Header(),
-        // div(
-        //   Input.Email(
-        //     "E-mail",
-        //     "email",
-        //     s_emailValue.writer,
-        //     Signal.fromValue(Some("Invalid e-mail"))
-        //   ),
-        //   Input.Password("Password", "password", s_passwordValue.writer),
-        //   Input.Password("Repeat-Password", "repeat-password", s_repeatedPasswordValue.writer)
-        // ),
         onSubmit.preventDefault.map(_ => true) --> s_formSend,
         Email(
           s_formSend.signal,
@@ -79,10 +65,6 @@ object FormSkeleton:
         s_email.writer
       ),
       InputStateConfig(touched = s_emailTourched.writer),
-      // s_email.signal.map(isEmailValid).combineWith(s_formSend, s_emailTourched.signal).map {
-      //   case (emailValidationResult, formSend, emailTourched) =>
-      //     if formSend || emailTourched then emailValidationResult else None
-      // }
       s_email.signal.map(isEmailValid).validateIf(s_formSend or s_emailTourched.signal)
     )
   end Email
