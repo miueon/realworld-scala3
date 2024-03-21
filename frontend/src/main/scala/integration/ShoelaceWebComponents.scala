@@ -40,6 +40,7 @@ object ShoelaceWebComponents:
       cls("ShoelaceWebComponentsView"),
       p(
         Button(
+          // cls := "btn btn-primary",
           _ => "Reload",
           _ => onClick --> { _ => dom.window.alert("Clicked") },
           _.slots.prefix(

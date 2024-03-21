@@ -220,7 +220,8 @@ lazy val frontend = projectMatrix
     watchSources := watchSources.value.filterNot { source =>
       source.base.getName.endsWith(".less") || source.base.getName.endsWith(".css")
     },
-    stIgnore ++= List("bootstrap-icons", "autoprefixer", "less", "terser", "glob", "vite", "rollup-plugin-copy", "rollup-plugin-sourcemaps", "@shoelace-style/shoelace", "@scala-js/vite-plutin-scalaja", "@raquo/vite-plugin-import-side-effect", "@raquo/vite-plugin-glob-resolver", "postcess", "tailwindcss")
+    stIgnore ++= List("bootstrap-icons", "autoprefixer", "less", "terser", "glob", "vite", "rollup-plugin-copy", "rollup-plugin-sourcemaps", "@shoelace-style/shoelace", "@scala-js/vite-plutin-scalaja", "@raquo/vite-plugin-import-side-effect", "@raquo/vite-plugin-glob-resolver", "postcess", "tailwindcss"),
+    stIncludeDev := true
   )
 
 lazy val defaults =
