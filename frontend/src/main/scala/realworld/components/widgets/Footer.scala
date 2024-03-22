@@ -1,4 +1,4 @@
-package realworld.components.footer
+package realworld.components.widgets
 
 import com.raquo.laminar.api.L.{*, given}
 

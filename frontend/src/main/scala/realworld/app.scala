@@ -5,7 +5,6 @@ import realworld.routes.Page
 
 object App:
   def main() =
-    given Router[Page] = Page.router
     div(
 
     )

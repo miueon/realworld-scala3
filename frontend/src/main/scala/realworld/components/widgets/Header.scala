@@ -1,13 +1,13 @@
-package realworld.components.header
+package realworld.components.widgets
 
 import com.raquo.laminar.api.L.{*, given}
 import com.raquo.waypoint.Router
 import realworld.routes.Page
-import realworld.routes.navigateTo
 import realworld.routes.Page.Home
-import realworld.routes.Page.router
+import realworld.routes.JsRouter.*
+import realworld.routes.JsRouter
 
-def Header()(using Router[Page]) =
+def Header() =
   navTag(
     cls := "navbar navbar-light",
     div(
@@ -22,12 +22,12 @@ def Header()(using Router[Page]) =
     )
   )
 
-def navItem(text: String, page: Page, icon: String = "")(using Router[Page]) =
+def navItem(text: String, page: Page, icon: String = "") =
   li(
     cls("nav-item"),
     a(
       cls("nav-link"),
-      cls <-- router.currentPageSignal.map(cur => if cur == page then "active" else ""),
+      cls <-- JsRouter.currentPageSignal.map(cur => if cur == page then "active" else ""),
       navigateTo(page),
       if icon.nonEmpty then List[Modifier.Base](i(cls(icon)), s" $text") else text
     )
