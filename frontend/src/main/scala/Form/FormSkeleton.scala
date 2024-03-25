@@ -66,6 +66,7 @@ object FormSkeleton:
       ),
       InputStateConfig(touched = s_emailTourched.writer),
       s_email.signal.map(isEmailValid).validateIf(s_formSend or s_emailTourched.signal)
+      // only emit validation result if condition met
     )
   end Email
 

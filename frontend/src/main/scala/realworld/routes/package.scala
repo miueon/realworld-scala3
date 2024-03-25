@@ -1,6 +1,5 @@
 package realworld
 
-
 import com.raquo.waypoint.*
 import urldsl.language.PathSegment
 import urldsl.errors.DummyError
@@ -10,7 +9,7 @@ package object routes:
 
   val routes = List(
     fragmentStatic(Page.Home, root / endOfSegments),
-    fragmentStatic(Page.SignIn, root / "login"),
-    fragmentStatic(Page.SignUp, root / "register")
+    fragmentStatic(Page.Login, root / "login"),
+    fragmentStatic(Page.Register, root / "register")
   )
 end routes

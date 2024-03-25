@@ -6,6 +6,5 @@ CREATE TABLE IF NOT EXISTS articles (
   body TEXT NOT NULL,
   created_at timestamp NOT NULL,
   updated_at timestamp NOT NULL,
-  author_id UUID NOT NULL,
-  FOREIGN KEY (author_id) REFERENCES users (id)
+  author_id UUID NOT NULL
 );

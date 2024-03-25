@@ -16,8 +16,8 @@ def Header() =
       ul(
         cls("nav navbar-nav pull-xs-right"),
         navItem("Home", Home),
-        navItem("Sign in", Page.SignIn, "ion-compose"),
-        navItem("Sign up", Page.SignUp, "ion-gear-a")
+        navItem("Sign in", Page.Login, "ion-compose"),
+        navItem("Sign up", Page.Register, "ion-gear-a")
       )
     )
   )
