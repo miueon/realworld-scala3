@@ -7,7 +7,7 @@ import realworld.spec.TagName
 import realworld.components.Component
 
 final case class TagList(tagList: List[TagName]) extends Component:
-  def body: HtmlElement =
+  override def body: HtmlElement =
     ul(
       cls := "tag-list",
       tagList.map(tag =>

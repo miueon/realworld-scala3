@@ -45,7 +45,7 @@ operation LoginUser {
 operation RegisterUser {
     input: RegisterUserInput
     output: RegisterUserOutput
-    errors: [ValidationError]
+    errors: [ValidationError, UnprocessableEntity]
 }
 
 @readonly

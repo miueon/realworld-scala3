@@ -22,9 +22,10 @@ import realworld.spec.UpdateUserData
 import realworld.spec.UpdateUserOutput
 import realworld.spec.UserService
 import realworld.spec.Username
+import realworld.spec.ValidationErrors
 
 object UserServiceImpl:
-  def make[F[_]:  MonadThrow: Logger](
+  def make[F[_]: MonadThrow: Logger](
       auth: Auth[F],
       profiles: Profiles[F]
   ): UserService[F] =
@@ -34,8 +35,8 @@ object UserServiceImpl:
           authHeaderOpt: Option[AuthHeader]
       ): F[GetProfileOutput] =
         val result = for
-          uidOpt <- authHeaderOpt.map(auth.authUserId).sequence
-          profile         <- profiles.get(username, uidOpt)
+          uidOpt  <- authHeaderOpt.map(auth.authUserId).sequence
+          profile <- profiles.get(username, uidOpt)
         yield GetProfileOutput(profile)
         result
           .onError(e => Logger[F].warn(e)(s"Failed to get profile for user: $username"))
@@ -103,6 +104,6 @@ object UserServiceImpl:
           )
           .recoverWith:
             case UserError.EmailAlreadyExists() =>
-              UnprocessableEntity().raise
+              UnprocessableEntity(Map("Email" -> List("already exisits")).some).raise
 
 end UserServiceImpl

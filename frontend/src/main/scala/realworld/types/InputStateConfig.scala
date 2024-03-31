@@ -1,9 +1,6 @@
-package realworld.components.widgets.utils
+package realworld.types
 
 import com.raquo.laminar.api.L.*
-import com.raquo.laminar.nodes.ReactiveHtmlElement
-import scala.scalajs.js.annotation.JSImport
-import scala.scalajs.js
 import com.raquo.airstream.core.Observer
 
 case class InputStateConfig(

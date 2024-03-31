@@ -39,11 +39,10 @@ object Utils:
     def emitIfValid(validator: A => Option[A]) =
       obs.contramap((value: A) => if validator(value).isEmpty then Some(value) else None)
 
-  extension [A](signal: Signal[Option[A]])
+  extension [A](signal: Signal[A])
     def validateIf(actionSignal: Signal[Boolean]) =
       actionSignal.combineWith(signal).map {
         case (activationSignal, signal) if activationSignal => signal
-        case _                                              => None
       }
 
   extension (signal: Signal[Boolean])
@@ -84,4 +83,5 @@ object Utils:
         onInput.mapToValue --> sv.writerNTF(nt, f)
       )
   end extension
+
 end Utils

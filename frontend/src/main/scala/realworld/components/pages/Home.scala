@@ -74,7 +74,7 @@ final case class Home()(using api: Api) extends Component:
       )
       .flatten
 
-  def body: HtmlElement =
+  override def body: HtmlElement =
     div(
       cls := "home-page",
       banner(),
