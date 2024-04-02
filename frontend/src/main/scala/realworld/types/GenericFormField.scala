@@ -1,6 +1,13 @@
 package realworld.types
 import com.raquo.laminar.api.L.{*, given}
 import com.raquo.laminar.nodes.ReactiveElement
+import realworld.spec.Body
+import realworld.spec.Description
+import realworld.spec.Email
+import realworld.spec.Password
+import realworld.spec.Title
+import realworld.spec.Username
+import realworld.spec.TagName
 opaque type InputType = String
 object InputType:
   val Text: InputType                        = "text"
@@ -20,3 +27,10 @@ case class GenericFormField(
     isLarge: Boolean = true,
     controlled: Mod[Input | TextArea]
 )
+sealed trait FormRecord
+
+case class LoginCredential(email: Email, password: Password) extends FormRecord
+case class RegisterCredential(username: Username, email: Email, password: Password)
+    extends FormRecord
+case class ArticleForm(title: Title, description: Description, body: Body, tagList: List[TagName])
+    extends FormRecord
