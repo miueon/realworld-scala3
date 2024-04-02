@@ -22,7 +22,6 @@ import realworld.spec.UpdateUserData
 import realworld.spec.UpdateUserOutput
 import realworld.spec.UserService
 import realworld.spec.Username
-import realworld.spec.ValidationErrors
 
 object UserServiceImpl:
   def make[F[_]: MonadThrow: Logger](

@@ -12,10 +12,8 @@ import realworld.types.GenericFormField
 import realworld.types.validation.GenericError
 
 import realworld.types.FormRecord
-import realworld.AppState
-import realworld.AuthState
 
-final case class CredentialForm(
+final case class GenericForm(
     esg: Signal[GenericError],
     onSubmit: EventListener[Event, ? <: FormRecord],
     submitButtonText: String,
@@ -49,4 +47,4 @@ final case class CredentialForm(
       )
     )
   end fragement
-end CredentialForm
+end GenericForm

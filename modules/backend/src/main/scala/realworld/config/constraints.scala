@@ -1,11 +1,6 @@
 package realworld.config
 
 import io.github.iltotore.iron.*
-import io.github.iltotore.iron.cats.*
-import io.github.iltotore.iron.cats.given
-import io.github.iltotore.iron.cats.given_Order_:|
-import io.github.iltotore.iron.circe.given
-import io.github.iltotore.iron.ciris.*
 import io.github.iltotore.iron.constraint.all.*
 import io.github.iltotore.iron.constraint.any.DescribedAs
 import io.github.iltotore.iron.constraint.any.Not

@@ -12,14 +12,11 @@ import io.github.iltotore.iron.ciris.given
 import realworld.config.types.AppConfig
 import realworld.config.types.HttpServerConfig
 import realworld.config.types.JwtAccessTokenKeyConfig
-import realworld.config.types.JwtClaimConfig
-import realworld.config.types.JwtSecretKeyConfig
 import realworld.config.types.PasswordSalt
 import realworld.config.types.PostgresSQLConfig
 import realworld.config.types.RedisConfig
 import realworld.config.types.RedisURI
 import realworld.config.types.TokenExpiration
-import doobie.util.pos
 
 object Config:
   def load[F[_]: Async]: F[AppConfig] =

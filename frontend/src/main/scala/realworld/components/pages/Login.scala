@@ -2,12 +2,19 @@ package realworld.components.pages
 
 import com.raquo.laminar.api.L.{*}
 import monocle.syntax.all.*
+import realworld.AppState
+import realworld.AuthEvent
+import realworld.AuthState
 import realworld.api.Api
 import realworld.components.Component
 import realworld.components.widgets.ContainerPage
-import realworld.components.widgets.CredentialForm
+import realworld.components.widgets.GenericForm
+import realworld.routes.JsRouter.*
+import realworld.routes.Page
+import realworld.spec.AuthHeader
 import realworld.spec.Email
 import realworld.spec.LoginUserInputData
+import realworld.spec.LoginUserOutput
 import realworld.spec.Password
 import realworld.spec.UnprocessableEntity
 import realworld.types.FieldType
@@ -18,7 +25,6 @@ import realworld.types.validation.GenericError
 import utils.Utils.writerNTF
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import realworld.AppState
 
 final case class Login()(using api: Api, state: AppState) extends Component:
   val credential: Var[LoginCredential] = Var(LoginCredential(Email(""), Password("")))
@@ -39,7 +45,17 @@ final case class Login()(using api: Api, state: AppState) extends Component:
       )
       .collect {
         case Left(UnprocessableEntity(Some(e))) => errors.set(e)
-        case Right(_)                           => ???
+        case Right(LoginUserOutput(usr)) =>
+          errors.set(Map())
+          state.events.emit(
+            AuthEvent.Force(
+              AuthState.Token(
+                AuthHeader(s"Token ${usr.token.get}"),
+                usr
+              )
+            )
+          )
+          navigateTo(Page.Home)
       }
   }
   override def body: HtmlElement =
@@ -49,8 +65,8 @@ final case class Login()(using api: Api, state: AppState) extends Component:
         div(
           cls := "col-md-6 offset-md-3 col-xs-12",
           h1(cls := "text-xs-center", "Sign In"),
-          p(cls  := "text-xs-center", a(href := "/#/register", "Need an account?")),
-          CredentialForm(
+          p(cls  := "text-xs-center", a(navigateTo(Page.Register), "Need an account?")),
+          GenericForm(
             errors.signal,
             onSubmit.preventDefault.mapTo(credential.now()) --> handler,
             "Sign in",
@@ -60,9 +76,7 @@ final case class Login()(using api: Api, state: AppState) extends Component:
                 "Email",
                 InputType.Text,
                 "Email",
-                FieldType.Input,
-                true,
-                controlled(
+                controlled = controlled(
                   value <-- credential.signal.map(_.email.value),
                   onInput.mapToValue --> emailWriter
                 )
@@ -71,9 +85,7 @@ final case class Login()(using api: Api, state: AppState) extends Component:
                 "Password",
                 InputType.Password,
                 "Password",
-                FieldType.Input,
-                false,
-                controlled(
+                controlled = controlled(
                   value <-- credential.signal.map(_.password.value),
                   onInput.mapToValue --> passwordWriter
                 )

@@ -2,10 +2,11 @@ package realworld
 
 import com.raquo.laminar.api.L.*
 import realworld.spec.AuthHeader
+import realworld.spec.User
 
 enum AuthState:
   case Unauthenticated
-  case Token(value: AuthHeader)
+  case Token(value: AuthHeader, user: User)
 
 enum AuthEvent:
   case Force(value: AuthState)
@@ -32,6 +33,9 @@ class AppState private (
 
   val tokenWriter = _authToken.writer
 end AppState
+
+// def test = 
+//   dom.window.localStorage.getItem("test")
 
 object AppState:
   def init =
