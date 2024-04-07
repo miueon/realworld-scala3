@@ -3,16 +3,73 @@ import com.raquo.laminar.api.L.{*, given}
 import realworld.components.widgets.ContainerPage
 import realworld.api.Api
 import realworld.components.Component
+import realworld.components.widgets.ArticleViewer
+import realworld.spec.TagName
 import realworld.spec.Article
-import com.raquo.laminar.nodes.ReactiveElement
-import realworld.spec.Slug
-import utils.Utils.*
-import realworld.routes.JsRouter
-import realworld.components.widgets.TagList
+import realworld.spec.Total
+import monocle.syntax.all.*
+import utils.Utils.writerF
+import realworld.AppState
+import realworld.spec.ListFeedArticleOutput
+import realworld.spec.ListArticleOutput
+import realworld.components.pages.ArticlePage.toPage
+import utils.Utils.some
+import com.raquo.airstream.core.Signal
+import realworld.spec.Skip
+case class ArticlePage(
+    articleCount: Total = Total(0),
+    articles: List[Article] = List()
+)
+object ArticlePage:
+  extension (a: ListFeedArticleOutput) def toPage = ArticlePage(a.articlesCount, a.articles)
+  extension (a: ListArticleOutput) def toPage     = ArticlePage(a.articlesCount, a.articles)
 
-final case class Home()(using api: Api) extends Component:
-  def articles =
-    api.stream(_.articles.listArticle().map(_.articles))
+case class HomeState(
+    articleList: ArticlePage = ArticlePage(),
+    currentPage: Int = 1
+)
+
+sealed trait Tab
+case class Tag(tag: TagName) extends Tab:
+  override def toString(): String = s"# ${tag.value}"
+case object Feed extends Tab:
+  override def toString(): String = "Your Feed"
+case object GlobalFeed extends Tab:
+  override def toString(): String = "Global Feed"
+final case class Home()(using api: Api, state: AppState) extends Component:
+  def tags = api.stream(_.tags.listTag().map(_.tags))
+
+  val homeState: Var[HomeState] = Var(HomeState())
+  val articlePageObserver       = homeState.writerF(_.focus(_.articleList).optic)
+
+  private val tabVar = Var[Tab](GlobalFeed)
+  val loadArticle =
+    tabVar.signal.combineWith(homeState.signal.map(_.currentPage)).flatMap {
+      case (tab: Tab, curPage: Int) =>
+        val skip = Skip((curPage - 1) * 20)
+        tab match
+          case Tag(tag) =>
+            api
+              .stream(_.articles.listArticle(tag = tag.some, skip = skip))
+              .map(_.toPage)
+          case Feed =>
+            api
+              .stream(_.articles.listFeedArticle(state.authHeader.get, skip = skip))
+              .map(_.toPage)
+          case GlobalFeed =>
+            api.stream(_.articles.listArticle(skip = skip)).map(_.toPage)
+    } --> articlePageObserver
+
+  private val tabObserver = Observer[Tab] { tab =>
+    tabVar.set(tab)
+    homeState.set(HomeState())
+  }
+  private val curPageObserver =
+    homeState.writerF(_.focus(_.currentPage).optic)
+  private val s_tabs: Signal[Seq[Tab]] = tabVar.signal.map { t =>
+    if state.authHeader.isDefined then Set(Feed, GlobalFeed, t).toSeq
+    else Set(GlobalFeed, t).toSeq
+  }
 
   def banner() =
     div(
@@ -23,64 +80,53 @@ final case class Home()(using api: Api) extends Component:
         p("A place to share your knowledge.")
       )
     )
-  import typings.dateFns.formatMod
-  def articlePreview(s: Slug, article: Article, s_article: Signal[Article]) =
-    div(
-      cls := "article-preview",
-      div(
-        cls := "article-meta",
-        a(
-          cls := "author",
-          img(
-            src := article.author.image
-              .map(_.value)
-              .getOrElse("https://api.realworld.io/images/demo-avatar.png")
-          )
-        ),
-        div(
-          cls := "info",
-          a(cls    := "author", href := "/", article.author.username.value),
-          span(cls := "date", formatMod.format(article.createdAt.value.toDate, "PP"))
-        ),
-        button(
-          cls := s"btn btn-sm pull-xs-right ${
-              if article.favorited then "btn-primary" else "btn-outline-primary"
-            }",
-          aria.label := "Toggle Favorite",
-          // disabled := ""
-          i(cls := "ion-heart")
-        )
-      ),
-      a(
-        href := s"/#/article/${article.slug}",
-        cls  := "preview-link",
-        h1(article.title.value),
-        p(article.description.value),
-        span("Read more..."),
-        TagList(article.tagList)
-      )
-    )
-  
 
-  def articleDisplay(articles: EventStream[List[Article]]) =
-    // TODO is there any better way to deal with this?
-    articles.toWeakSignal
-      .splitOption(
-        (initial, s) =>
-          if initial.isEmpty then
-            div(cls := "article-preview", "No articles are here... yet.").toList.toSignal
-          else s.split(_.slug)(articlePreview),
-        ifEmpty = div(cls := "article-preview", "Loading articles...").toList.toSignal
-      )
-      .flatten
+  def homeSidebar() =
+    div(
+      cls := "sidebar",
+      p("Popular Tags"),
+      child <-- tags.toWeakSignal
+        .splitOption(
+          (initial, _) =>
+            div(
+              cls := "tag-list",
+              initial.map { tag =>
+                a(
+                  cls  := "tag-pill tag-default",
+                  href := "#",
+                  tag.value,
+                  onClick.mapTo(Tag(tag)) --> tabObserver
+                )
+              }
+            ),
+          ifEmpty = span("Loading tags...")
+        )
+    )
 
   override def body: HtmlElement =
     div(
+      onMountBind(el =>
+        api.stream(
+          _.articles.listArticle().map(_.toPage)
+        ) --> articlePageObserver
+      ),
       cls := "home-page",
       banner(),
       ContainerPage(
-        div(cls := "col-md-9", children <-- articleDisplay(articles))
-      )
+        div(
+          cls := "col-md-9",
+          ArticleViewer(
+            homeState.signal,
+            tabObserver,
+            s_tabs,
+            "feed-toggle",
+            tabVar.signal,
+            curPageObserver
+          ).fragement
+        ),
+        div(cls := "col-md-3", homeSidebar())
+      ),
+      loadArticle
     )
 
 end Home

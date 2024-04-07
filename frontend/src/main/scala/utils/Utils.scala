@@ -84,4 +84,6 @@ object Utils:
       )
   end extension
 
+  def classTupleToClassName(obj: Map[String, Boolean]) = 
+    obj.filter(_._2).keys.mkString(" ")
 end Utils

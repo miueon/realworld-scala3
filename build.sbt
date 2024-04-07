@@ -166,7 +166,9 @@ lazy val shared = projectMatrix
   .settings(
     libraryDependencies ++= Seq(
       "com.disneystreaming.smithy4s" %%% "smithy4s-http4s" % smithy4sVersion.value,
-      "org.typelevel"                %%% "cats-core"       % Versions.cats
+      "org.typelevel"                %%% "cats-core"       % Versions.cats,
+      "io.circe"                     %%% "circe-core"      % Versions.circe,
+      "io.circe"                     %%% "circe-parser"    % Versions.circe
     ),
     Compile / doc / sources := Seq.empty
   )
@@ -207,20 +209,33 @@ lazy val frontend = projectMatrix
     libraryDependencies ++= Seq(
       ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
         .cross(CrossVersion.for3Use2_13),
-      "dev.optics"                   %%% "monocle-core"                % Versions.monocle,
-      "com.raquo"                    %%% "waypoint"                    % Versions.waypoint,
+      "dev.optics" %%% "monocle-core" % Versions.monocle,
+      "com.raquo"  %%% "waypoint"     % Versions.waypoint,
       // "com.github.japgolly.scalacss" %%% "core"                        % Versions.scalacss,
-      "com.raquo"                    %%% "laminar"                     % Versions.Laminar,
-      "io.circe"                     %%% "circe-core"                  % Versions.circe,
-      "io.circe"                     %%% "circe-parser"                % Versions.circe,
-      "org.http4s"                   %%% "http4s-dom"                  % Versions.http4sDom,
-      "org.scala-js"                 %%% "scala-js-macrotask-executor" % Versions.macroTaskExecutor,
-      "io.laminext"                  %%% "validation-cats"             % "0.15.0"
+      "com.raquo"    %%% "laminar"                     % Versions.Laminar,
+      "org.http4s"   %%% "http4s-dom"                  % Versions.http4sDom,
+      "org.scala-js" %%% "scala-js-macrotask-executor" % Versions.macroTaskExecutor,
+      "io.laminext"  %%% "validation-cats"             % "0.15.0"
     ),
     watchSources := watchSources.value.filterNot { source =>
       source.base.getName.endsWith(".less") || source.base.getName.endsWith(".css")
     },
-    stIgnore ++= List("bootstrap-icons", "autoprefixer", "less", "terser", "glob", "vite", "rollup-plugin-copy", "rollup-plugin-sourcemaps", "@shoelace-style/shoelace", "@scala-js/vite-plutin-scalaja", "@raquo/vite-plugin-import-side-effect", "@raquo/vite-plugin-glob-resolver", "postcess", "tailwindcss"),
+    stIgnore ++= List(
+      "bootstrap-icons",
+      "autoprefixer",
+      "less",
+      "terser",
+      "glob",
+      "vite",
+      "rollup-plugin-copy",
+      "rollup-plugin-sourcemaps",
+      "@shoelace-style/shoelace",
+      "@scala-js/vite-plutin-scalaja",
+      "@raquo/vite-plugin-import-side-effect",
+      "@raquo/vite-plugin-glob-resolver",
+      "postcess",
+      "tailwindcss"
+    ),
     stIncludeDev := true
   )
 

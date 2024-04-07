@@ -21,7 +21,7 @@ final case class GenericForm(
     fields: List[GenericFormField]
 ) extends ComponentSeq:
 
-  override def fragement: Seq[HtmlElement] =
+  override def fragement =
     List(
       Errors(esg),
       form(
