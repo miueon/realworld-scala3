@@ -60,7 +60,7 @@ final case class Register()(using api: Api, state: AppState) extends Component:
               )
             )
           )
-          navigateTo(Page.Login)
+          redirectTo(Page.Login)
       }
   }
 

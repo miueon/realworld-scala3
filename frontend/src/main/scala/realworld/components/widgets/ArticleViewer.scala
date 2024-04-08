@@ -1,16 +1,16 @@
 package realworld.components.widgets
 
+import _root_.utils.Utils.*
+import com.raquo.airstream.state.StrictSignal
 import com.raquo.laminar.api.L.{*, given}
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import realworld.spec.TagName
+import org.scalajs.dom.HTMLElement
 import realworld.components.ComponentSeq
+import realworld.components.pages.HomeState
+import realworld.components.pages.Tab
 import realworld.spec.Article
 import realworld.spec.Slug
-import _root_.utils.Utils.*
-import org.scalajs.dom.HTMLElement
-import realworld.components.pages.Tab
-import com.raquo.airstream.state.StrictSignal
-import realworld.components.pages.HomeState
+import realworld.spec.TagName
 
 final case class ArticleViewer(
     s_homeState: StrictSignal[HomeState],

@@ -45,6 +45,9 @@ object JsRouter
     }).bind(el)
   }
 
+  def redirectTo(page: Page) = 
+    pushState(page)
+
   // Add this to h1..h6 to lmake title clickable, id would appear in the URL
   def titleLink(id: String, caption: String = "#"): Modifier.Base =
     List[Modifier.Base](

@@ -12,8 +12,8 @@ import realworld.routes.JsRouter
 import realworld.routes.Page
 
 object App:
-  def renderPage(using state: AppState, api: Api) =
-    SplitRender(JsRouter.currentPageSignal)
+  def renderPage(using state: AppState, api: Api): Signal[HtmlElement] =
+    SplitRender(JsRouter.currentPageSignal.distinct)
       .collectStatic(Page.Home)(Home().body)
       .collectStatic(Page.Login)(Login().body)
       .collectStatic(Page.Register)(Register().body)

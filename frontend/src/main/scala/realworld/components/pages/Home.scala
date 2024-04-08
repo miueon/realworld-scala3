@@ -1,21 +1,21 @@
 package realworld.components.pages
+import com.raquo.airstream.core.Signal
 import com.raquo.laminar.api.L.{*, given}
-import realworld.components.widgets.ContainerPage
+import monocle.syntax.all.*
+import realworld.AppState
 import realworld.api.Api
 import realworld.components.Component
-import realworld.components.widgets.ArticleViewer
-import realworld.spec.TagName
-import realworld.spec.Article
-import realworld.spec.Total
-import monocle.syntax.all.*
-import utils.Utils.writerF
-import realworld.AppState
-import realworld.spec.ListFeedArticleOutput
-import realworld.spec.ListArticleOutput
 import realworld.components.pages.ArticlePage.toPage
-import utils.Utils.some
-import com.raquo.airstream.core.Signal
+import realworld.components.widgets.ArticleViewer
+import realworld.components.widgets.ContainerPage
+import realworld.spec.Article
+import realworld.spec.ListArticleOutput
+import realworld.spec.ListFeedArticleOutput
 import realworld.spec.Skip
+import realworld.spec.TagName
+import realworld.spec.Total
+import utils.Utils.some
+import utils.Utils.writerF
 case class ArticlePage(
     articleCount: Total = Total(0),
     articles: Option[List[Article]] = None
@@ -127,7 +127,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
       homeState.signal
         .distinctBy(_.currentPage)
         .map(_.currentPage)
-        .changes
+                .changes
         .flatMap(a => loadArticle(tabVar.now(), Skip((a - 1) * 10))) --> articlePageObserver
     )
 

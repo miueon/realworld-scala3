@@ -55,7 +55,7 @@ final case class Login()(using api: Api, state: AppState) extends Component:
               )
             )
           )
-          navigateTo(Page.Home)
+          redirectTo(Page.Home)
       }
   }
   override def body: HtmlElement =
