@@ -181,7 +181,7 @@ structure GetArticleOutput {
 
 structure ListFeedArticleInput {
     @httpQuery("limit")
-    limit: Limit = 20
+    limit: Limit = 10
     @httpQuery("skip")
     skip: Skip = 0
     @required
@@ -204,7 +204,7 @@ structure ListArticleInput {
     @httpQuery("favorited")
     favorited: Username
     @httpQuery("limit")
-    limit: Limit = 20
+    limit: Limit = 10
     @httpQuery("skip")
     skip: Skip = 0
     @httpHeader("Authorization")

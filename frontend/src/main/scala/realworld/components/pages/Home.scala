@@ -16,7 +16,6 @@ import realworld.components.pages.ArticlePage.toPage
 import utils.Utils.some
 import com.raquo.airstream.core.Signal
 import realworld.spec.Skip
-import realworld.routes.Page
 case class ArticlePage(
     articleCount: Total = Total(0),
     articles: Option[List[Article]] = None
@@ -129,7 +128,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
         .distinctBy(_.currentPage)
         .map(_.currentPage)
         .changes
-        .flatMap(a => loadArticle(tabVar.now(), Skip((a - 1) * 20))) --> articlePageObserver
+        .flatMap(a => loadArticle(tabVar.now(), Skip((a - 1) * 10))) --> articlePageObserver
     )
 
 end Home

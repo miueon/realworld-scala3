@@ -99,6 +99,7 @@ object Articles:
           case Some(value) => value.pure
         }
 
+        // TODO Add Conflict Error output
       def create(uid: UserId, data: CreateArticleData): F[Article] =
         def articleWithId(
             id: ArticleId,

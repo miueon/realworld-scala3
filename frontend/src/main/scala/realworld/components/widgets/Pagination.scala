@@ -17,7 +17,7 @@ def Pagination(
       children <-- count.map { count =>
         val pages = Math.ceil(count / itemsPerPage).toInt
         if pages > 1 then
-          val pagesList = (1 to pages).toList
+          val pagesList = (1 to pages + 1).toList
           pagesList.map { page =>
             li(
               cls <-- currentPage.map(cur =>

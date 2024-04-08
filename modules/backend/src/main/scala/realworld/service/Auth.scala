@@ -15,7 +15,7 @@ import realworld.auth.Crypto
 import realworld.auth.JWT
 import realworld.config.types.TokenExpiration
 import realworld.domain.ID
-import realworld.domain.given
+import realworld.codec.given
 import realworld.domain.user.DBUser
 import realworld.domain.user.UserId
 import realworld.effects.GenUUID

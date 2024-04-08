@@ -79,9 +79,9 @@ final case class ArticleViewer(
       Pagination(
         s_homeState.map(_.currentPage),
         s_homeState.map(_.articleList.articleCount.value),
-        itemsPerPage = 20,
+        itemsPerPage = 10,
         curPageObserver
-      ),
+      )
     )
 end ArticleViewer
 
@@ -103,7 +103,7 @@ def Tab(tab: Tab, active: Boolean, tabObserver: Observer[Tab]) =
   li(
     cls := "nav-item",
     a(
-      cls  := classTupleToClassName(Map("nav-line" -> true, "active" -> active)),
+      cls  := classTupleToClassName(Map("nav-link" -> true, "active" -> active)),
       href := "#",
       onClick.preventDefault.mapTo(tab) --> tabObserver,
       tab.toString()
