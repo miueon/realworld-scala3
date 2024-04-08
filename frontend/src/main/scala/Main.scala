@@ -11,5 +11,4 @@ import todomvc.TodoMvcApp
 
 object Main:
   def main(args: Array[String]): Unit =
-    given Api = Api.create()
-    renderOnDomContentLoaded(dom.document.querySelector("#app"),  TodoMvcApp.node)
+    renderOnDomContentLoaded(dom.document.querySelector("#app"),  realworld.App.main())

@@ -16,13 +16,14 @@ import realworld.components.pages.ArticlePage.toPage
 import utils.Utils.some
 import com.raquo.airstream.core.Signal
 import realworld.spec.Skip
+import realworld.routes.Page
 case class ArticlePage(
     articleCount: Total = Total(0),
-    articles: List[Article] = List()
+    articles: Option[List[Article]] = None
 )
 object ArticlePage:
-  extension (a: ListFeedArticleOutput) def toPage = ArticlePage(a.articlesCount, a.articles)
-  extension (a: ListArticleOutput) def toPage     = ArticlePage(a.articlesCount, a.articles)
+  extension (a: ListFeedArticleOutput) def toPage = ArticlePage(a.articlesCount, a.articles.some)
+  extension (a: ListArticleOutput) def toPage     = ArticlePage(a.articlesCount, a.articles.some)
 
 case class HomeState(
     articleList: ArticlePage = ArticlePage(),
@@ -43,22 +44,18 @@ final case class Home()(using api: Api, state: AppState) extends Component:
   val articlePageObserver       = homeState.writerF(_.focus(_.articleList).optic)
 
   private val tabVar = Var[Tab](GlobalFeed)
-  val loadArticle =
-    tabVar.signal.combineWith(homeState.signal.map(_.currentPage)).flatMap {
-      case (tab: Tab, curPage: Int) =>
-        val skip = Skip((curPage - 1) * 20)
-        tab match
-          case Tag(tag) =>
-            api
-              .stream(_.articles.listArticle(tag = tag.some, skip = skip))
-              .map(_.toPage)
-          case Feed =>
-            api
-              .stream(_.articles.listFeedArticle(state.authHeader.get, skip = skip))
-              .map(_.toPage)
-          case GlobalFeed =>
-            api.stream(_.articles.listArticle(skip = skip)).map(_.toPage)
-    } --> articlePageObserver
+  def loadArticle(tab: Tab, skip: Skip = Skip(0)) =
+    tab match
+      case Tag(tag) =>
+        api
+          .stream(_.articles.listArticle(tag = tag.some, skip = skip))
+          .map(_.toPage)
+      case Feed =>
+        api
+          .stream(_.articles.listFeedArticle(state.authHeader.get, skip = skip))
+          .map(_.toPage)
+      case GlobalFeed =>
+        api.stream(_.articles.listArticle(skip = skip)).map(_.toPage)
 
   private val tabObserver = Observer[Tab] { tab =>
     tabVar.set(tab)
@@ -126,7 +123,13 @@ final case class Home()(using api: Api, state: AppState) extends Component:
         ),
         div(cls := "col-md-3", homeSidebar())
       ),
-      loadArticle
+      tabVar.signal.changes.flatMap(t => loadArticle(t)) --> articlePageObserver,
+      // if we don't use the distincy operator here, the event would fire indefinately as every time the articlePageObserver updates would replace the currentPage either.
+      homeState.signal
+        .distinctBy(_.currentPage)
+        .map(_.currentPage)
+        .changes
+        .flatMap(a => loadArticle(tabVar.now(), Skip((a - 1) * 20))) --> articlePageObserver
     )
 
 end Home

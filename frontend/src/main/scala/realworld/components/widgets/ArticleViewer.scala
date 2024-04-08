@@ -62,7 +62,7 @@ final case class ArticleViewer(
     // TODO is there any better way to deal with this?
     s_homeState
       .map(_.articleList.articles)
-      .toWeakSignal
+      .signal
       .splitOption(
         (initial, s) =>
           if initial.isEmpty then
@@ -81,7 +81,7 @@ final case class ArticleViewer(
         s_homeState.map(_.articleList.articleCount.value),
         itemsPerPage = 20,
         curPageObserver
-      )
+      ),
     )
 end ArticleViewer
 
