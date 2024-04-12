@@ -25,6 +25,7 @@ import realworld.types.validation.GenericError
 import utils.Utils.writerNTF
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import realworld.guestOnly
 final case class Register()(using api: Api, state: AppState) extends Component:
   val credential                = Var(RegisterCredential(Username(""), Email(""), Password("")))
   val usernameWriter            = credential.writerNTF(Username, _.focus(_.username).optic)
@@ -66,6 +67,7 @@ final case class Register()(using api: Api, state: AppState) extends Component:
 
   def body: HtmlElement =
     div(
+      guestOnly,
       cls := "auth-page",
       ContainerPage(
         div(

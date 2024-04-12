@@ -5,7 +5,6 @@ import com.raquo.laminar.api.L.*
 import org.scalajs.dom
 import realworld.api.Api
 import realworld.spec.AuthHeader
-import realworld.spec.CredentialsError
 import realworld.spec.Token
 import realworld.spec.User
 import utils.Utils.some
@@ -29,9 +28,9 @@ class AppState private (
     case _                          => false
   }
 
-  val s_authHeader = _authToken.signal.map {
-    case Some(tok: AuthState.Token) => Some(tok.value)
-    case _                          => None
+  val s_auth = _authToken.signal.map {
+    case None | Some(AuthState.Unauthenticated) => None
+    case t => t
   }
 
   def authHeader = _authToken.now() match

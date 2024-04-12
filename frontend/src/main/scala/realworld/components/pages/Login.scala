@@ -25,6 +25,7 @@ import realworld.types.validation.GenericError
 import utils.Utils.writerNTF
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import realworld.guestOnly
 
 final case class Login()(using api: Api, state: AppState) extends Component:
   val credential: Var[LoginCredential] = Var(LoginCredential(Email(""), Password("")))
@@ -60,6 +61,7 @@ final case class Login()(using api: Api, state: AppState) extends Component:
   }
   override def body: HtmlElement =
     div(
+      guestOnly,
       cls := "auth-page",
       ContainerPage(
         div(
