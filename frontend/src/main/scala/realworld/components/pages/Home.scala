@@ -55,14 +55,14 @@ final case class Home()(using api: Api, state: AppState) extends Component:
     tab match
       case Tag(tag) =>
         api
-          .stream(_.articles.listArticle(tag = tag.some, skip = skip))
+          .stream(_.articles.listArticle(tag = tag.some, skip = skip, authHeader = state.authHeader))
           .map(_.toPage)
       case Feed =>
         api
           .stream(_.articles.listFeedArticle(state.authHeader.get, skip = skip))
           .map(_.toPage)
       case GlobalFeed =>
-        api.stream(_.articles.listArticle(skip = skip)).map(_.toPage)
+        api.stream(_.articles.listArticle(skip = skip, authHeader = state.authHeader)).map(_.toPage)
 
   private val tabObserver = Observer[Tab] { tab =>
     tabVar.set(tab)
@@ -142,7 +142,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
     div(
       onMountBind(el =>
         api.stream(
-          _.articles.listArticle().map(_.toPage)
+          _.articles.listArticle(authHeader = state.authHeader).map(_.toPage)
         ) --> articlePageObserver
       ),
       cls := "home-page",
