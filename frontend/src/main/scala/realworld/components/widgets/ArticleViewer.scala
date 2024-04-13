@@ -29,8 +29,8 @@ final case class ArticleViewer(
       s_articlePreview: Signal[ArticlePreview]
   ) =
     val articleVar = Var(articlePreview.article)
-    val article = articlePreview.article
-    val s_article = s_articlePreview.map(_.article)
+    val article    = articlePreview.article
+    val s_article  = s_articlePreview.map(_.article)
     div(
       s_article --> articleVar.writer,
       cls := "article-preview",
@@ -52,9 +52,8 @@ final case class ArticleViewer(
           span(cls := "date", formatMod.format(article.createdAt.value.toDate, "PP"))
         ),
         button(
-          cls := s"btn btn-sm pull-xs-right ${
-              if article.favorited then "btn-primary" else "btn-outline-primary"
-            }",
+          cls := "btn btn-sm pull-xs-right",
+          cls <-- s_article.map(a => if a.favorited then "btn-primary" else "btn-outline-primary"),
           aria.label := "Toggle Favorite",
           disabled <-- s_articlePreview.map(_.isSubmitting),
           i(cls := "ion-heart"),
