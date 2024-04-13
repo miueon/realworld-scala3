@@ -9,12 +9,12 @@ import realworld.spec.Slug
 
 sealed trait Page derives Codec.AsObject
 object Page:
-  case object Home                       extends Page
-  case object Login                      extends Page
-  case object Register                   extends Page
-  case object Setting                    extends Page
-  case object Editor                     extends Page
+  case object Home                           extends Page
+  case object Login                          extends Page
+  case object Register                       extends Page
+  case object Setting                        extends Page
+  case object NewArticle                     extends Page
   case class ProfilePage(username: Username) extends Page
-  case class ArticlePage(slug: Slug)         extends Page
+  case class ArticleDetailPage(slug: Slug)   extends Page
   case class EditArticlePage(slug: Slug)     extends Page
 end Page

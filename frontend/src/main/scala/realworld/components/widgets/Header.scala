@@ -33,7 +33,7 @@ private def guestLinks =
 
 private def authenticatedLinks(username: Username) =
   List(
-    navItem("New Article", Page.Editor, "ion-compose"),
+    navItem("New Article", Page.NewArticle, "ion-compose"),
     navItem("Settings", Page.Setting, "ion-gear-a"),
     navItem(username.value, Page.ProfilePage(username))
   )

@@ -12,6 +12,11 @@ import realworld.routes.JsRouter
 import realworld.routes.Page
 import realworld.components.Component
 import utils.Utils.toSignal
+import realworld.components.pages.EditArticlePage
+import realworld.components.pages.ProfilePage
+import realworld.components.pages.Settings
+import realworld.components.pages.NewArticle
+import realworld.components.pages.ArticleDetailPage
 
 object App:
   extension [P](sp: SplitRender[P, HtmlElement])
@@ -23,6 +28,11 @@ object App:
       .collectComponent(Page.Home)(Home())
       .collectComponent(Page.Login)(Login())
       .collectComponent(Page.Register)(Register())
+      .collectComponent(Page.Setting)(Settings())
+      .collectComponent(Page.NewArticle)(NewArticle())
+      .collectSignal[Page.ArticleDetailPage](ArticleDetailPage(_).body)
+      .collectSignal[Page.EditArticlePage](EditArticlePage(_).body)
+      .collectSignal[Page.ProfilePage](ProfilePage(_).body)
       .signal
 
   def main() =
