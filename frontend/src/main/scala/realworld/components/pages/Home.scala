@@ -16,13 +16,21 @@ import realworld.spec.TagName
 import realworld.spec.Total
 import utils.Utils.some
 import utils.Utils.writerF
+import realworld.routes.JsRouter
+import realworld.routes.Page
+import realworld.spec.Slug
+import concurrent.ExecutionContext.Implicits.global
+
+case class ArticlePreview(article: Article, isSubmitting: Boolean)
 case class ArticlePage(
     articleCount: Total = Total(0),
-    articles: Option[List[Article]] = None
+    articlePreviews: Option[List[ArticlePreview]] = None
 )
 object ArticlePage:
-  extension (a: ListFeedArticleOutput) def toPage = ArticlePage(a.articlesCount, a.articles.some)
-  extension (a: ListArticleOutput) def toPage     = ArticlePage(a.articlesCount, a.articles.some)
+  extension (a: ListFeedArticleOutput)
+    def toPage = ArticlePage(a.articlesCount, a.articles.map(ArticlePreview(_, false)).some)
+  extension (a: ListArticleOutput)
+    def toPage = ArticlePage(a.articlesCount, a.articles.map(ArticlePreview(_, false)).some)
 
 case class HomeState(
     articleList: ArticlePage = ArticlePage(),
@@ -66,6 +74,37 @@ final case class Home()(using api: Api, state: AppState) extends Component:
     if state.authHeader.isDefined then Set(Feed, GlobalFeed, t).toSeq
     else Set(GlobalFeed, t).toSeq
   }
+
+  private def onFavorite(article: Article) =
+    if state.authHeader.isEmpty then JsRouter.redirectTo(Page.Login)
+    else
+      starSubmittingFav(article.slug, true)
+      api
+        .future(a =>
+          if article.favorited then
+            a.articles.unfavoriteArticle(article.slug, state.authHeader.get).map(_.article)
+          else 
+            a.articles.favoriteArticle(article.slug, state.authHeader.get).map(_.article)
+        )
+        .map(rsp => endSubmittingFav(article.slug, rsp))
+
+  private def starSubmittingFav(slug: Slug, isSubmitting: Boolean) =
+    updatePreviews(slug, elem => elem.copy(isSubmitting = isSubmitting))
+
+  private def updatePreviews(slug: Slug, articleUpdater: ArticlePreview => ArticlePreview) =
+    val homeStateNow = homeState.now()
+    val len          = homeStateNow.focus(_.articleList.articlePreviews).optic
+    val updatedPreview = homeStateNow.articleList.articlePreviews.map {
+      (previews: List[ArticlePreview]) =>
+        previews.map {
+          case elem if elem.article.slug == slug => articleUpdater(elem)
+          case elem                              => elem
+        }
+    }
+    homeState.set(len.replace(updatedPreview)(homeStateNow))
+
+  private def endSubmittingFav(slug: Slug, article: Article) =
+    updatePreviews(slug, _ => ArticlePreview(article, false))
 
   def banner() =
     div(
@@ -117,7 +156,8 @@ final case class Home()(using api: Api, state: AppState) extends Component:
             s_tabs,
             "feed-toggle",
             tabVar.signal,
-            curPageObserver
+            curPageObserver,
+            onFavorite
           ).fragement
         ),
         div(cls := "col-md-3", homeSidebar())
@@ -127,7 +167,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
       homeState.signal
         .distinctBy(_.currentPage)
         .map(_.currentPage)
-                .changes
+        .changes
         .flatMap(a => loadArticle(tabVar.now(), Skip((a - 1) * 10))) --> articlePageObserver
     )
 

@@ -8,9 +8,10 @@ import org.scalajs.dom.HTMLElement
 import realworld.components.ComponentSeq
 import realworld.components.pages.HomeState
 import realworld.components.pages.Tab
-import realworld.spec.Article
 import realworld.spec.Slug
 import realworld.spec.TagName
+import realworld.components.pages.ArticlePreview
+import realworld.spec.Article
 
 final case class ArticleViewer(
     s_homeState: StrictSignal[HomeState],
@@ -18,20 +19,31 @@ final case class ArticleViewer(
     s_tabs: Signal[Seq[Tab]],
     toggleClassName: String,
     selectedTab: StrictSignal[Tab],
-    curPageObserver: Observer[Int]
+    curPageObserver: Observer[Int],
+    onFavorite: (Article) => Unit = (_) => ()
 ) extends ComponentSeq:
   import typings.dateFns.formatMod
-  def articlePreview(s: Slug, article: Article, s_article: Signal[Article]) =
+  def articlePreview(
+      s: Slug,
+      articlePreview: ArticlePreview,
+      s_articlePreview: Signal[ArticlePreview]
+  ) =
+    val articleVar = Var(articlePreview.article)
+    val article = articlePreview.article
+    val s_article = s_articlePreview.map(_.article)
     div(
+      s_article --> articleVar.writer,
       cls := "article-preview",
       div(
         cls := "article-meta",
         a(
           cls := "author",
           img(
-            src := article.author.image
-              .map(_.value)
-              .getOrElse("https://api.realworld.io/images/demo-avatar.png")
+            src <-- s_article.map(
+              _.author.image
+                .map(_.value)
+                .getOrElse("https://api.realworld.io/images/demo-avatar.png")
+            )
           )
         ),
         div(
@@ -44,8 +56,12 @@ final case class ArticleViewer(
               if article.favorited then "btn-primary" else "btn-outline-primary"
             }",
           aria.label := "Toggle Favorite",
-          // disabled := ""
-          i(cls := "ion-heart")
+          disabled <-- s_articlePreview.map(_.isSubmitting),
+          i(cls := "ion-heart"),
+          child.text <-- s_article.map(a => s" ${a.favoritesCount.value}"),
+          onClick.preventDefault --> { _ =>
+            onFavorite(articleVar.now())
+          }
         )
       ),
       a(
@@ -57,17 +73,18 @@ final case class ArticleViewer(
         TagList(article.tagList)
       )
     )
+  end articlePreview
 
   def articleDisplay() =
     // TODO is there any better way to deal with this?
     s_homeState
-      .map(_.articleList.articles)
+      .map(_.articleList.articlePreviews)
       .signal
       .splitOption(
         (initial, s) =>
           if initial.isEmpty then
             div(cls := "article-preview", "No articles are here... yet.").toList.toSignal
-          else s.split(_.slug)(articlePreview),
+          else s.split(_.article.slug)(articlePreview),
         ifEmpty = div(cls := "article-preview", "Loading articles...").toList.toSignal
       )
       .flatten
