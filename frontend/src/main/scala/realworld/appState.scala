@@ -30,12 +30,16 @@ class AppState private (
 
   val s_auth = _authToken.signal.map {
     case None | Some(AuthState.Unauthenticated) => None
-    case t => t
+    case t                                      => t
   }
 
   def authHeader = _authToken.now() match
     case Some(tok: AuthState.Token) => Some(tok.value)
     case _                          => None
+
+  def user = _authToken.now() match
+    case Some(AuthState.Token(_, user)) => Some(user)
+    case _                              => None
 
   val tokenWriter = _authToken.writer
 end AppState

@@ -20,6 +20,8 @@ import realworld.routes.JsRouter
 import realworld.routes.Page
 import realworld.spec.Slug
 import concurrent.ExecutionContext.Implicits.global
+import scala.util.Failure
+import scala.util.Success
 
 case class ArticlePreview(article: Article, isSubmitting: Boolean)
 case class ArticlePage(
@@ -55,7 +57,9 @@ final case class Home()(using api: Api, state: AppState) extends Component:
     tab match
       case Tag(tag) =>
         api
-          .stream(_.articles.listArticle(tag = tag.some, skip = skip, authHeader = state.authHeader))
+          .stream(
+            _.articles.listArticle(tag = tag.some, skip = skip, authHeader = state.authHeader)
+          )
           .map(_.toPage)
       case Feed =>
         api
@@ -83,10 +87,12 @@ final case class Home()(using api: Api, state: AppState) extends Component:
         .future(a =>
           if article.favorited then
             a.articles.unfavoriteArticle(article.slug, state.authHeader.get).map(_.article)
-          else 
-            a.articles.favoriteArticle(article.slug, state.authHeader.get).map(_.article)
+          else a.articles.favoriteArticle(article.slug, state.authHeader.get).map(_.article)
         )
-        .map(rsp => endSubmittingFav(article.slug, rsp))
+        .onComplete {
+          case Failure(_)   => JsRouter.redirectTo(Page.Login)
+          case Success(rsp) => endSubmittingFav(article.slug, rsp)
+        }
 
   private def starSubmittingFav(slug: Slug, isSubmitting: Boolean) =
     updatePreviews(slug, elem => elem.copy(isSubmitting = isSubmitting))

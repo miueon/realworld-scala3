@@ -84,6 +84,15 @@ object Utils:
       )
   end extension
 
-  def classTupleToClassName(obj: Map[String, Boolean]) = 
-    obj.filter(_._2).keys.mkString(" ")
+  extension [A, T](sv: Var[Option[A]])
+    def someWriterF(f: A => Lens[A, T]) =
+      sv.updater[T] {
+        case (None, _) => None
+        case (Some(state), cur) =>
+          val lens = f(state)
+          lens.replace(cur)(state).some
+      }
+
+  def classTupleToClassName(obj: (String, Boolean)*) =
+    obj.toMap.filter(_._2).keys.mkString(" ")
 end Utils
