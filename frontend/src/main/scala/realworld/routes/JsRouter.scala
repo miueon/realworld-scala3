@@ -27,7 +27,7 @@ object JsRouter
     if isLinkElement then
       Try(absoluteUrlForPage(page)) match
         case Success(url) => el.amend(href(url))
-        case Failure(err) => dom.console.error(err)
+        case Failure(err) => dom.console.error(s"$page $err")
 
     // If element is a link and user is holding a modifier while clicking:
     //  - Do nothing, browser will open the URL in new tab / window / etc. depending on the modifier key

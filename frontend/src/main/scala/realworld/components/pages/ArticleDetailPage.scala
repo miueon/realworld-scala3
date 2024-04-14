@@ -1,33 +1,28 @@
 package realworld.components.pages
 
-import cats.data.EitherT
 import com.raquo.laminar.api.L.{*, given}
 import com.raquo.laminar.modifiers.RenderableText
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import monocle.syntax.all.*
 import org.scalajs.dom.HTMLButtonElement
 import org.scalajs.dom.HTMLElement
+import org.scalajs.dom.MouseEvent
 import realworld.AppState
 import realworld.api.Api
 import realworld.components.Component
+import realworld.components.widgets.TagListWidget
 import realworld.routes.JsRouter
 import realworld.routes.Page
 import realworld.spec.Article
 import realworld.spec.CommentView
 import utils.Utils.classTupleToClassName
 import utils.Utils.some
-import utils.Utils.toSignal
-
-import java.lang.Throwable
+import utils.Utils.someWriterF
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
 import concurrent.ExecutionContext.Implicits.global
-import org.scalajs.dom.MouseEvent
-import utils.Utils.writerNTF
-import utils.Utils.writerF
-import utils.Utils.someWriterF
 
 case class CommentSectionState(
     comments: Option[List[CommentView]] = None,
@@ -67,7 +62,21 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
   private def display() =
     articleVar.signal
       .splitOption(
-        (article, s_article) => div(cls := "article-page", articlePageBanner(article, s_article)),
+        (article, s_article) =>
+          div(
+            cls := "article-page",
+            articlePageBanner(article, s_article),
+            div(
+              cls := "container page",
+              div(
+                cls := "row article-content",
+                div(cls := "col-md-12", article.body.value),
+                TagListWidget(article.tagList)
+              )
+            ),
+            hr(),
+            div(cls := "article-actions", articleMeta(article, s_article))
+          ),
         ifEmpty = div("Loading article...")
       )
 

@@ -12,6 +12,8 @@ import realworld.spec.Slug
 import realworld.spec.TagName
 import realworld.components.pages.ArticlePreview
 import realworld.spec.Article
+import realworld.routes.JsRouter
+import realworld.routes.Page
 
 final case class ArticleViewer(
     s_homeState: StrictSignal[HomeState],
@@ -64,12 +66,12 @@ final case class ArticleViewer(
         )
       ),
       a(
-        href := s"/#/article/${article.slug}",
+        JsRouter.navigateTo(Page.ArticleDetailPage(article.slug)),
         cls  := "preview-link",
         h1(article.title.value),
         p(article.description.value),
         span("Read more..."),
-        TagList(article.tagList)
+        TagListWidget(article.tagList)
       )
     )
   end articlePreview
@@ -126,7 +128,7 @@ def Tab(tab: Tab, active: Boolean, tabObserver: Observer[Tab]) =
     )
   )
 
-def TagList(tagList: List[TagName]) =
+def TagListWidget(tagList: List[TagName]) =
   ul(
     cls := "tag-list",
     tagList.map(tag =>
