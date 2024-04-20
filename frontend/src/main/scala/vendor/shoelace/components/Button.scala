@@ -19,7 +19,7 @@ object Button extends WebComponent("sl-button"):
   @js.native
   protected object RawImport extends js.Object
 
-  type Ref = dom.HTMLButtonElement with HasGetForm
+  type Ref = dom.HTMLButtonElement & HasGetForm
 
   // Events
   export L.onClick

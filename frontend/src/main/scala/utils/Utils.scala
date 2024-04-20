@@ -9,6 +9,8 @@ import scala.scalajs.js
 import monocle.Lens
 import smithy4s.Newtype
 import vendor.shoelace.CommonKeys.onInput
+import realworld.spec.Token
+import realworld.spec.AuthHeader
 
 object Utils:
 
@@ -43,6 +45,7 @@ object Utils:
     def validateIf(actionSignal: Signal[Boolean]) =
       actionSignal.combineWith(signal).map {
         case (activationSignal, signal) if activationSignal => signal
+        case _                                              =>
       }
 
   extension (signal: Signal[Boolean])
@@ -77,6 +80,13 @@ object Utils:
         lens.replace(v)(state)
       }
 
+    def writerOptNTF(nt: Newtype[T], f: A => Lens[A, Option[nt.Type]]) =
+      sv.updater[T] { case (state, cur) =>
+        val lens = f(state)
+        val v    = nt.apply(cur)
+        lens.replace(v.some)(state)
+      }
+
     def controlledNTF(nt: Newtype[String], f: A => Lens[A, nt.Type]) =
       controlled(
         value <-- sv.signal.map(cj => f(cj).get(cj).value),
@@ -95,4 +105,10 @@ object Utils:
 
   def classTupleToClassName(obj: (String, Boolean)*) =
     obj.toMap.filter(_._2).keys.mkString(" ")
+
+  extension (tokenOpt: Option[Token])
+    def toAuthHeader = tokenOpt match
+      case None      => AuthHeader("")
+      case Some(tok) => AuthHeader(s"Token $tok")
+
 end Utils

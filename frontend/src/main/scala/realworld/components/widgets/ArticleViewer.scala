@@ -71,10 +71,13 @@ final case class ArticleViewer(
         h1(article.title.value),
         p(article.description.value),
         span("Read more..."),
-        TagListWidget(article.tagList)
+        TagListWidget(article.tagList),
+        test
       )
     )
   end articlePreview
+
+  def test = 1
 
   def articleDisplay() =
     // TODO is there any better way to deal with this?
@@ -125,7 +128,7 @@ def Tab(tab: Tab, active: Boolean, tabObserver: Observer[Tab]) =
       href := "#",
       onClick.preventDefault.mapTo(tab) --> tabObserver,
       tab.toString()
-    )
+    ),
   )
 
 def TagListWidget(tagList: List[TagName]) =

@@ -8,6 +8,8 @@ import realworld.spec.Password
 import realworld.spec.Title
 import realworld.spec.Username
 import realworld.spec.TagName
+import realworld.spec.Bio
+import realworld.spec.ImageUrl
 opaque type InputType = String
 object InputType:
   val Text: InputType                        = "text"
@@ -20,12 +22,13 @@ enum FieldType:
   case Lst
 
 case class GenericFormField(
-    name: String,
     tpe: InputType = InputType.Text,
     placeholder: String = "",
-    filedType: FieldType = FieldType.Input,
+    fieldType: FieldType = FieldType.Input,
     isLarge: Boolean = true,
-    controlled: Mod[Input | TextArea]
+    controlled: Mod[Input | TextArea],
+    rows: Option[Int] = None,
+    s_tags: Option[Signal[List[TagName]]] = None
 )
 sealed trait FormRecord
 
@@ -34,3 +37,10 @@ case class RegisterCredential(username: Username, email: Email, password: Passwo
     extends FormRecord
 case class ArticleForm(title: Title, description: Description, body: Body, tagList: List[TagName])
     extends FormRecord
+case class UserSettings(
+    email: Option[Email] = None,
+    username: Option[Username] = None,
+    password: Option[Password] = None,
+    bio: Option[Bio] = None,
+    image: Option[ImageUrl] = None
+) extends FormRecord

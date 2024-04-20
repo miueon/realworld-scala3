@@ -23,6 +23,8 @@ import scala.util.Success
 import scala.util.Try
 
 import concurrent.ExecutionContext.Implicits.global
+import com.raquo.airstream.core.Observer
+import realworld.spec.Profile
 
 case class CommentSectionState(
     comments: Option[List[CommentView]] = None,
@@ -42,7 +44,7 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
   private val commentSectionVar                = Var(CommentSectionState())
   private val metaSectionVar                   = Var(MetaSectionState())
   private val articleVar: Var[Option[Article]] = Var(None)
-  private val authorWriter                     = articleVar.someWriterF(_.focus(_.author).optic)
+  private val authorWriter  = articleVar.someWriterF(_.focus(_.author).optic)
 
   private val onLoad = s_page.flatMap { case Page.ArticleDetailPage(slug) =>
     api.stream(a =>

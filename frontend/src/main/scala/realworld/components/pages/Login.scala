@@ -1,6 +1,6 @@
 package realworld.components.pages
 
-import com.raquo.laminar.api.L.{*}
+import com.raquo.laminar.api.L.*
 import monocle.syntax.all.*
 import realworld.AppState
 import realworld.AuthEvent
@@ -26,6 +26,7 @@ import utils.Utils.writerNTF
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import realworld.guestOnly
+import utils.Utils.toAuthHeader
 
 final case class Login()(using api: Api, state: AppState) extends Component:
   val credential: Var[LoginCredential] = Var(LoginCredential(Email(""), Password("")))
@@ -51,7 +52,7 @@ final case class Login()(using api: Api, state: AppState) extends Component:
           state.events.emit(
             AuthEvent.Force(
               AuthState.Token(
-                AuthHeader(s"Token ${usr.token.get}"),
+                usr.token.toAuthHeader,
                 usr
               )
             )
@@ -75,7 +76,6 @@ final case class Login()(using api: Api, state: AppState) extends Component:
             state.s_login,
             List(
               GenericFormField(
-                "Email",
                 InputType.Text,
                 "Email",
                 controlled = controlled(
@@ -84,7 +84,6 @@ final case class Login()(using api: Api, state: AppState) extends Component:
                 )
               ),
               GenericFormField(
-                "Password",
                 InputType.Password,
                 "Password",
                 controlled = controlled(

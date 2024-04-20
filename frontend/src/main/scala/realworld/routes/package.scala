@@ -29,6 +29,7 @@ package object routes:
     fragmentStatic(Page.Home, root / endOfSegments),
     fragmentStatic(Page.Login, root / "login"),
     fragmentStatic(Page.Register, root / "register"),
+    fragmentStatic(Page.Setting, root / "settings"),
     articleDetailPageRoute,
     profileRoute
   )

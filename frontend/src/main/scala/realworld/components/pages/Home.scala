@@ -168,7 +168,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
         ),
         div(cls := "col-md-3", homeSidebar())
       ),
-      tabVar.signal.changes.flatMap(t => loadArticle(t)) --> articlePageObserver,
+      tabVar.signal.changes.flatMap(loadArticle(_)) --> articlePageObserver,
       // if we don't use the distincy operator here, the event would fire indefinately as every time the articlePageObserver updates would replace the currentPage either.
       homeState.signal
         .distinctBy(_.currentPage)

@@ -144,11 +144,11 @@ object Helper:
       })
 
   implicit class BooleanOps($signal: Signal[Boolean]):
-    def and($secondSignal: Signal[Boolean]): Signal[Boolean] =
+    infix def and($secondSignal: Signal[Boolean]): Signal[Boolean] =
       $signal.combineWith($secondSignal)
         .map({ case (signal, secondSignal) => signal && secondSignal })
 
-    def or($secondSignal: Signal[Boolean]): Signal[Boolean] =
+    infix def or($secondSignal: Signal[Boolean]): Signal[Boolean] =
       $signal.combineWith($secondSignal)
         .map({ case (signal, secondSignal) => signal || secondSignal })
 end Helper

@@ -57,7 +57,7 @@ object Icon extends WebComponent("sl-icon") { self =>
     * To change their size, set the font-size property
     * on the icon itself or on a parent element.
     */
-  lazy val fontSize: StyleProp[String] with s.FontSize = L.fontSize
+  lazy val fontSize: StyleProp[String] & s.FontSize = L.fontSize
 
 
   // -- Slots --

@@ -2,11 +2,13 @@ package vendor.shoelace
 
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.codecs.*
-import com.raquo.laminar.defs.styles.{traits as s, units as u}
+import com.raquo.laminar.defs.styles.traits as s
+import com.raquo.laminar.defs.styles.units as u
 import com.raquo.laminar.keys
 import com.raquo.laminar.keys.DerivedStyleProp
 import com.raquo.laminar.modifiers.KeySetter
 import com.raquo.laminar.modifiers.KeySetter.StyleSetter
+
 import scala.scalajs.js
 
 trait CommonTypes:
@@ -48,6 +50,6 @@ trait CommonTypes:
 
   protected def lengthAutoStyle(
       name: String
-  ): StyleProp[String] with s.Auto with u.Length[DSP, Int] =
+  ): StyleProp[String] & s.Auto & u.Length[DSP, Int] =
     new StyleProp[String](name) with s.Auto with u.Length[DSP, Int]
 end CommonTypes

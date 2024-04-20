@@ -1,15 +1,16 @@
 package realworld.domain
 
+import cats.Functor
+import doobie.Composite
+import doobie.SQLDefinition
+import doobie.TableDefinition
+import doobie.TableDefinition.RowHelpers
+import doobie.WithSQLDefinition
 import io.circe.Decoder
 import io.circe.Encoder
-import doobie.WithSQLDefinition
-import doobie.SQLDefinition
-import doobie.Composite
 import realworld.spec.Total
-import cats.Functor
+
 import scala.annotation.targetName
-import doobie.TableDefinition.RowHelpers
-import doobie.TableDefinition
 
 case class WithId[Id, T](id: Id, entity: T)
 
@@ -18,7 +19,7 @@ object WithId:
       idRead: Decoder[Id],
       tRead: Decoder[T]
   ): Decoder[WithId[Id, T]] =
-    Decoder[(Id, T)].map((WithId.apply[Id, T] _).tupled)
+    Decoder[(Id, T)].map((WithId.apply[Id, T]).tupled)
 
   given withIdWrite[Id, T](using
       idWrite: Encoder[Id],
@@ -35,7 +36,7 @@ object WithId:
       Composite(
         idSqldef,
         entitySqlDef
-      )(WithId.apply)(Tuple.fromProductTyped)
+      )((id, e) => WithId(id, e))(Tuple.fromProductTyped[WithId[Id, T]])
     ) with TableDefinition.RowHelpers[WithId[Id, T]](tableDef) {}
 
 end WithId

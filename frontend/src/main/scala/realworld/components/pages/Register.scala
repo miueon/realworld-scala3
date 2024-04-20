@@ -81,7 +81,6 @@ final case class Register()(using api: Api, state: AppState) extends Component:
             signingUp.signal,
             List(
               GenericFormField(
-                "Username",
                 InputType.Text,
                 "Username",
                 controlled = controlled(
@@ -90,7 +89,6 @@ final case class Register()(using api: Api, state: AppState) extends Component:
                 )
               ),
               GenericFormField(
-                "Email",
                 InputType.Text,
                 "Email",
                 controlled = controlled(
@@ -99,7 +97,6 @@ final case class Register()(using api: Api, state: AppState) extends Component:
                 )
               ),
               GenericFormField(
-                "Password",
                 InputType.Password,
                 "Password",
                 controlled = controlled(
