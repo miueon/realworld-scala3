@@ -11,6 +11,7 @@ import smithy4s.Newtype
 import vendor.shoelace.CommonKeys.onInput
 import realworld.spec.Token
 import realworld.spec.AuthHeader
+import realworld.spec.Skip
 
 object Utils:
 
@@ -111,4 +112,7 @@ object Utils:
       case None      => AuthHeader("")
       case Some(tok) => AuthHeader(s"Token $tok")
 
+  extension (a: Int)
+    def toArticleViewerSkip =
+      Skip((a - 1) * 10)
 end Utils

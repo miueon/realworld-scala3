@@ -25,6 +25,10 @@ case object Feed extends Tab:
   override def toString(): String = "Your Feed"
 case object GlobalFeed extends Tab:
   override def toString(): String = "Global Feed"
+case object Favorited extends Tab:
+  override def toString(): String = "Favorited Articles"
+case object MyArticle extends Tab:
+  override def toString(): String = "My Articles"
 final case class ArticleViewer(
     s_viewerState: Signal[ArticleViewrState],
     tabObserver: Observer[Tab],
@@ -32,7 +36,7 @@ final case class ArticleViewer(
     toggleClassName: String,
     selectedTab: StrictSignal[Tab],
     curPageObserver: Observer[Int],
-    onFavorite: (Article) => Unit = (_) => ()
+    onFavoriteObserver: Observer[Article] = Observer.empty
 ) extends ComponentSeq:
   import typings.dateFns.formatMod
   def articlePreview(
@@ -70,9 +74,7 @@ final case class ArticleViewer(
           disabled <-- s_articlePreview.map(_.isSubmitting),
           i(cls := "ion-heart"),
           child.text <-- s_article.map(a => s" ${a.favoritesCount.value}"),
-          onClick.preventDefault --> { _ =>
-            onFavorite(articleVar.now())
-          }
+          onClick.preventDefault.mapTo(articleVar.now()) --> onFavoriteObserver
         )
       ),
       a(

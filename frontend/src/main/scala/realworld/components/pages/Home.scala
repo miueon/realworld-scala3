@@ -29,6 +29,7 @@ import scala.util.Failure
 import scala.util.Success
 
 import concurrent.ExecutionContext.Implicits.global
+import utils.Utils.toArticleViewerSkip
 
 case class ArticlePreview(article: Article, isSubmitting: Boolean)
 case class ArticlePage(
@@ -65,9 +66,8 @@ final case class Home()(using api: Api, state: AppState) extends Component:
         api
           .stream(_.articles.listFeedArticle(state.authHeader.get, skip = skip))
           .map(_.toPage)
-      case GlobalFeed =>
+      case GlobalFeed | _ =>
         api.stream(_.articles.listArticle(skip = skip, authHeader = state.authHeader)).map(_.toPage)
-
   private val tabObserver = Observer[Tab] { tab =>
     tabVar.set(tab)
     homeState.set(HomeState())
@@ -79,20 +79,20 @@ final case class Home()(using api: Api, state: AppState) extends Component:
     else Set(GlobalFeed, t).toSeq
   }
 
-  private def onFavorite(article: Article) =
-    if state.authHeader.isEmpty then JsRouter.redirectTo(Page.Login)
-    else
+  private val onFavoriteObserver = Observer[Article]: article =>
+    state.authHeader.fold(JsRouter.redirectTo(Page.Login))(authHeader =>
       starSubmittingFav(article.slug, true)
       api
         .future(a =>
           if article.favorited then
-            a.articles.unfavoriteArticle(article.slug, state.authHeader.get).map(_.article)
-          else a.articles.favoriteArticle(article.slug, state.authHeader.get).map(_.article)
+            a.articles.unfavoriteArticle(article.slug, authHeader).map(_.article)
+          else a.articles.favoriteArticle(article.slug, authHeader).map(_.article)
         )
         .onComplete {
           case Failure(_)   => JsRouter.redirectTo(Page.Login)
           case Success(rsp) => endSubmittingFav(article.slug, rsp)
         }
+    )
 
   private def starSubmittingFav(slug: Slug, isSubmitting: Boolean) =
     updatePreviews(slug, elem => elem.copy(isSubmitting = isSubmitting))
@@ -169,7 +169,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
             "feed-toggle",
             tabVar.signal,
             curPageObserver,
-            onFavorite
+            onFavoriteObserver
           ).fragement
         ),
         div(cls := "col-md-3", homeSidebar())
@@ -180,7 +180,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
         .distinctBy(_.currentPage)
         .map(_.currentPage)
         .changes
-        .flatMap(a => loadArticle(tabVar.now(), Skip((a - 1) * 10))) --> articlePageObserver
+        .flatMap(a => loadArticle(tabVar.now(), a.toArticleViewerSkip)) --> articlePageObserver
     )
 
 end Home
