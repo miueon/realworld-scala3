@@ -11,7 +11,6 @@ import realworld.components.widgets.ContainerPage
 import realworld.components.widgets.GenericForm
 import realworld.routes.JsRouter.*
 import realworld.routes.Page
-import realworld.spec.AuthHeader
 import realworld.spec.Email
 import realworld.spec.Password
 import realworld.spec.RegisterUserData
@@ -26,6 +25,7 @@ import utils.Utils.writerNTF
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import realworld.guestOnly
+import utils.Utils.toAuthHeader
 final case class Register()(using api: Api, state: AppState) extends Component:
   val credential                = Var(RegisterCredential(Username(""), Email(""), Password("")))
   val usernameWriter            = credential.writerNTF(Username, _.focus(_.username).optic)
@@ -56,7 +56,7 @@ final case class Register()(using api: Api, state: AppState) extends Component:
           state.events.emit(
             AuthEvent.Force(
               AuthState.Token(
-                AuthHeader(s"Token ${usr.token.get}"),
+                usr.token.toAuthHeader,
                 usr
               )
             )

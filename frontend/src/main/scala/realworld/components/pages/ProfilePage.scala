@@ -6,4 +6,5 @@ import realworld.components.Component
 import realworld.routes.Page
 
 final case class ProfilePage(s_profile: Signal[Page.ProfilePage]) extends Component:
+  
   def body: HtmlElement = ???

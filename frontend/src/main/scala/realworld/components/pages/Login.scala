@@ -11,7 +11,6 @@ import realworld.components.widgets.ContainerPage
 import realworld.components.widgets.GenericForm
 import realworld.routes.JsRouter.*
 import realworld.routes.Page
-import realworld.spec.AuthHeader
 import realworld.spec.Email
 import realworld.spec.LoginUserInputData
 import realworld.spec.LoginUserOutput

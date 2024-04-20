@@ -2,12 +2,10 @@ package realworld.components.widgets
 
 import _root_.utils.Utils.*
 import com.raquo.airstream.state.StrictSignal
-import com.raquo.laminar.api.L.{*, given}
+import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import org.scalajs.dom.HTMLElement
 import realworld.components.ComponentSeq
-import realworld.components.pages.HomeState
-import realworld.components.pages.Tab
 import realworld.spec.Slug
 import realworld.spec.TagName
 import realworld.components.pages.ArticlePreview
@@ -15,8 +13,20 @@ import realworld.spec.Article
 import realworld.routes.JsRouter
 import realworld.routes.Page
 
+case class ArticleViewrState(
+    articlePreviews: Option[List[ArticlePreview]],
+    currentPage: Int,
+    articleCount: Int
+)
+sealed trait Tab
+case class Tag(tag: TagName) extends Tab:
+  override def toString(): String = s"# ${tag.value}"
+case object Feed extends Tab:
+  override def toString(): String = "Your Feed"
+case object GlobalFeed extends Tab:
+  override def toString(): String = "Global Feed"
 final case class ArticleViewer(
-    s_homeState: StrictSignal[HomeState],
+    s_viewerState: Signal[ArticleViewrState],
     tabObserver: Observer[Tab],
     s_tabs: Signal[Seq[Tab]],
     toggleClassName: String,
@@ -67,7 +77,7 @@ final case class ArticleViewer(
       ),
       a(
         JsRouter.navigateTo(Page.ArticleDetailPage(article.slug)),
-        cls  := "preview-link",
+        cls := "preview-link",
         h1(article.title.value),
         p(article.description.value),
         span("Read more..."),
@@ -81,8 +91,8 @@ final case class ArticleViewer(
 
   def articleDisplay() =
     // TODO is there any better way to deal with this?
-    s_homeState
-      .map(_.articleList.articlePreviews)
+    s_viewerState
+      .map(_.articlePreviews)
       .signal
       .splitOption(
         (initial, s) =>
@@ -98,8 +108,8 @@ final case class ArticleViewer(
       ArticleTabSet(s_tabs, toggleClassName, selectedTab, tabObserver),
       children <-- articleDisplay(),
       Pagination(
-        s_homeState.map(_.currentPage),
-        s_homeState.map(_.articleList.articleCount.value),
+        s_viewerState.map(_.currentPage),
+        s_viewerState.map(_.articleCount),
         itemsPerPage = 10,
         curPageObserver
       )
@@ -128,7 +138,7 @@ def Tab(tab: Tab, active: Boolean, tabObserver: Observer[Tab]) =
       href := "#",
       onClick.preventDefault.mapTo(tab) --> tabObserver,
       tab.toString()
-    ),
+    )
   )
 
 def TagListWidget(tagList: List[TagName]) =

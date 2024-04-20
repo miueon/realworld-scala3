@@ -1,27 +1,34 @@
 package realworld.components.pages
 import com.raquo.airstream.core.Signal
-import com.raquo.laminar.api.L.{*, given}
+import com.raquo.laminar.api.L.*
 import monocle.syntax.all.*
 import realworld.AppState
 import realworld.api.Api
 import realworld.components.Component
 import realworld.components.pages.ArticlePage.toPage
 import realworld.components.widgets.ArticleViewer
+import realworld.components.widgets.ArticleViewrState
 import realworld.components.widgets.ContainerPage
+import realworld.components.widgets.Feed
+import realworld.components.widgets.GlobalFeed
+import realworld.components.widgets.Tab
+import realworld.components.widgets.Tag
+import realworld.routes.JsRouter
+import realworld.routes.Page
 import realworld.spec.Article
 import realworld.spec.ListArticleOutput
 import realworld.spec.ListFeedArticleOutput
 import realworld.spec.Skip
+import realworld.spec.Slug
 import realworld.spec.TagName
 import realworld.spec.Total
 import utils.Utils.some
 import utils.Utils.writerF
-import realworld.routes.JsRouter
-import realworld.routes.Page
-import realworld.spec.Slug
-import concurrent.ExecutionContext.Implicits.global
+
 import scala.util.Failure
 import scala.util.Success
+
+import concurrent.ExecutionContext.Implicits.global
 
 case class ArticlePreview(article: Article, isSubmitting: Boolean)
 case class ArticlePage(
@@ -39,13 +46,6 @@ case class HomeState(
     currentPage: Int = 1
 )
 
-sealed trait Tab
-case class Tag(tag: TagName) extends Tab:
-  override def toString(): String = s"# ${tag.value}"
-case object Feed extends Tab:
-  override def toString(): String = "Your Feed"
-case object GlobalFeed extends Tab:
-  override def toString(): String = "Global Feed"
 final case class Home()(using api: Api, state: AppState) extends Component:
   def tags = api.stream(_.tags.listTag().map(_.tags))
 
@@ -157,7 +157,13 @@ final case class Home()(using api: Api, state: AppState) extends Component:
         div(
           cls := "col-md-9",
           ArticleViewer(
-            homeState.signal,
+            homeState.signal.map(s =>
+              ArticleViewrState(
+                s.articleList.articlePreviews,
+                s.currentPage,
+                s.articleList.articleCount.value
+              )
+            ),
             tabObserver,
             s_tabs,
             "feed-toggle",
