@@ -44,7 +44,7 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
   private val commentSectionVar                = Var(CommentSectionState())
   private val metaSectionVar                   = Var(MetaSectionState())
   private val articleVar: Var[Option[Article]] = Var(None)
-  private val authorWriter  = articleVar.someWriterF(_.focus(_.author).optic)
+  private val authorWriter                     = articleVar.someWriterF(_.focus(_.author).optic)
 
   private val onLoad = s_page.flatMap { case Page.ArticleDetailPage(slug) =>
     api.stream(a =>
@@ -143,7 +143,7 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
     val favoritedVar = Var(article.favorited)
     val s_following  = s_article.map(_.author.following)
     val s_favorited  = s_article.map(_.favorited)
-    def onFollow(_e: MouseEvent) =
+    val onFollowObserver = Observer[MouseEvent]: _ =>
       state.authHeader.fold(JsRouter.redirectTo(Page.Register)) { case header =>
         metaSectionVar.update(_.copy(submittingFollow = true))
         api
@@ -194,7 +194,7 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
           .map((following, article) =>
             s" ${if following then "Unfollow" else "Follow"} ${article.author.username.value}"
           ),
-        onClick.preventDefault --> onFollow
+        onClick.preventDefault --> onFollowObserver
       ),
       " ",
       button(

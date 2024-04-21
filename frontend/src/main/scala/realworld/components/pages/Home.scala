@@ -31,9 +31,9 @@ final case class Home()(using api: Api, state: AppState) extends Component:
   def tags = api.stream(_.tags.listTag().map(_.tags))
 
   val homeState: Var[HomeState] = Var(HomeState())
-  val articlePageObserver       = homeState.writerF(_.focus(_.articleList).optic)
-  val articlesObserver          = homeState.writerF(_.focus(_.articleList.articles).optic)
-  val curPageObserver           = homeState.writerF(_.focus(_.currentPage).optic)
+  val articlePageWriter         = homeState.writerF(_.focus(_.articleList).optic)
+  val articlesWriter            = homeState.writerF(_.focus(_.articleList.articles).optic)
+  val curPageWriter             = homeState.writerF(_.focus(_.currentPage).optic)
 
   val tabVar = Var[Tab](GlobalFeed)
   def loadArticle(tab: Tab, skip: Skip = Skip(0)) =
@@ -66,7 +66,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
         case elem                              => elem
       }
     }
-    articlesObserver.onNext(updatedArticles)
+    articlesWriter.onNext(updatedArticles)
 
   def banner() =
     div(
@@ -102,11 +102,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
 
   override def body: HtmlElement =
     div(
-      onMountBind(el =>
-        api.stream(
-          _.articles.listArticle(authHeader = state.authHeader).map(_.toPage)
-        ) --> articlePageObserver
-      ),
+      onMountBind(el => loadArticle(tabVar.now()) --> articlePageWriter),
       cls := "home-page",
       banner(),
       ContainerPage(
@@ -124,18 +120,18 @@ final case class Home()(using api: Api, state: AppState) extends Component:
             s_tabs,
             "feed-toggle",
             tabVar.signal,
-            curPageObserver,
+            curPageWriter,
             onFavoriteObserver
           ).fragement
         ),
         div(cls := "col-md-3", homeSidebar())
       ),
-      tabVar.signal.changes.flatMap(loadArticle(_)) --> articlePageObserver,
+      tabVar.signal.changes.flatMap(loadArticle(_)) --> articlePageWriter,
       // if we don't use the distincy operator here, the event would fire indefinately as every time the articlePageObserver updates would replace the currentPage either.
       homeState.signal
         .distinctBy(_.currentPage)
         .map(_.currentPage)
         .changes
-        .flatMap(a => loadArticle(tabVar.now(), a.toArticleViewerSkip)) --> articlePageObserver
+        .flatMap(a => loadArticle(tabVar.now(), a.toArticleViewerSkip)) --> articlePageWriter
     )
 end Home

@@ -14,7 +14,7 @@ package object routes:
   val profileRoute = Route(
     encode = (stp: ProfilePage) => stp.username.value,
     decode = (arg: String) => ProfilePage(Username(arg)),
-    pattern = root / "profile" / segment[String] / endOfSegments,
+    pattern = root / "profile" / segment[String],
     Route.fragmentBasePath
   )
 
