@@ -6,15 +6,19 @@ import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import org.scalajs.dom.HTMLElement
 import realworld.components.ComponentSeq
-import realworld.spec.Slug
-import realworld.spec.TagName
-import realworld.components.pages.ArticlePreview
-import realworld.spec.Article
 import realworld.routes.JsRouter
 import realworld.routes.Page
+import realworld.spec.Article
+import realworld.spec.Slug
+import realworld.spec.TagName
+import realworld.AppState
+import realworld.api.Api
+import scala.util.Failure
+import scala.util.Success
 
+import concurrent.ExecutionContext.Implicits.global
 case class ArticleViewrState(
-    articlePreviews: Option[List[ArticlePreview]],
+    articlePreviews: Option[List[Article]],
     currentPage: Int,
     articleCount: Int
 )
@@ -36,17 +40,32 @@ final case class ArticleViewer(
     toggleClassName: String,
     selectedTab: StrictSignal[Tab],
     curPageObserver: Observer[Int],
-    onFavoriteObserver: Observer[Article] = Observer.empty
-) extends ComponentSeq:
+    onFavArticleObserver: Observer[Article]
+)(using state: AppState, api: Api)
+    extends ComponentSeq:
   import typings.dateFns.formatMod
   def articlePreview(
       s: Slug,
-      articlePreview: ArticlePreview,
-      s_articlePreview: Signal[ArticlePreview]
+      article: Article,
+      s_article: Signal[Article]
   ) =
-    val articleVar = Var(articlePreview.article)
-    val article    = articlePreview.article
-    val s_article  = s_articlePreview.map(_.article)
+    val articleVar      = Var(article)
+    val isSubmittingVar = Var(false)
+    def favObserver = Observer[Article]: a =>
+      isSubmittingVar.set(true)
+      state.authHeader.fold(JsRouter.redirectTo(Page.Login))(authHeader =>
+        if a.favorited then
+          api.future(_.articles.unfavoriteArticle(a.slug, authHeader).map(_.article))
+        else
+          api
+            .future(_.articles.favoriteArticle(a.slug, authHeader).map(_.article))
+            .onComplete {
+              case Failure(_) => JsRouter.redirectTo(Page.Login)
+              case Success(article) =>
+                isSubmittingVar.set(false)
+                onFavArticleObserver.onNext(article)
+            }
+      )
     div(
       s_article --> articleVar.writer,
       cls := "article-preview",
@@ -71,10 +90,10 @@ final case class ArticleViewer(
           cls := "btn btn-sm pull-xs-right",
           cls <-- s_article.map(a => if a.favorited then "btn-primary" else "btn-outline-primary"),
           aria.label := "Toggle Favorite",
-          disabled <-- s_articlePreview.map(_.isSubmitting),
+          disabled <-- isSubmittingVar.signal,
           i(cls := "ion-heart"),
           child.text <-- s_article.map(a => s" ${a.favoritesCount.value}"),
-          onClick.preventDefault.mapTo(articleVar.now()) --> onFavoriteObserver
+          onClick.preventDefault.mapTo(articleVar.now()) --> favObserver
         )
       ),
       a(
@@ -83,13 +102,10 @@ final case class ArticleViewer(
         h1(article.title.value),
         p(article.description.value),
         span("Read more..."),
-        TagListWidget(article.tagList),
-        test
+        TagListWidget(article.tagList)
       )
     )
   end articlePreview
-
-  def test = 1
 
   def articleDisplay() =
     // TODO is there any better way to deal with this?
@@ -100,7 +116,7 @@ final case class ArticleViewer(
         (initial, s) =>
           if initial.isEmpty then
             div(cls := "article-preview", "No articles are here... yet.").toList.toSignal
-          else s.split(_.article.slug)(articlePreview),
+          else s.split(_.slug)(articlePreview),
         ifEmpty = div(cls := "article-preview", "Loading articles...").toList.toSignal
       )
       .flatten

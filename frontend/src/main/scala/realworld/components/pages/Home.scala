@@ -5,7 +5,6 @@ import monocle.syntax.all.*
 import realworld.AppState
 import realworld.api.Api
 import realworld.components.Component
-import realworld.components.pages.ArticlePage.toPage
 import realworld.components.widgets.ArticleViewer
 import realworld.components.widgets.ArticleViewrState
 import realworld.components.widgets.ContainerPage
@@ -13,34 +12,15 @@ import realworld.components.widgets.Feed
 import realworld.components.widgets.GlobalFeed
 import realworld.components.widgets.Tab
 import realworld.components.widgets.Tag
-import realworld.routes.JsRouter
-import realworld.routes.Page
 import realworld.spec.Article
-import realworld.spec.ListArticleOutput
-import realworld.spec.ListFeedArticleOutput
 import realworld.spec.Skip
-import realworld.spec.Slug
 import realworld.spec.TagName
 import realworld.spec.Total
+import realworld.types.ArticlePage
+import realworld.types.ArticlePage.toPage
 import utils.Utils.some
-import utils.Utils.writerF
-
-import scala.util.Failure
-import scala.util.Success
-
-import concurrent.ExecutionContext.Implicits.global
 import utils.Utils.toArticleViewerSkip
-
-case class ArticlePreview(article: Article, isSubmitting: Boolean)
-case class ArticlePage(
-    articleCount: Total = Total(0),
-    articlePreviews: Option[List[ArticlePreview]] = None
-)
-object ArticlePage:
-  extension (a: ListFeedArticleOutput)
-    def toPage = ArticlePage(a.articlesCount, a.articles.map(ArticlePreview(_, false)).some)
-  extension (a: ListArticleOutput)
-    def toPage = ArticlePage(a.articlesCount, a.articles.map(ArticlePreview(_, false)).some)
+import utils.Utils.writerF
 
 case class HomeState(
     articleList: ArticlePage = ArticlePage(),
@@ -52,8 +32,10 @@ final case class Home()(using api: Api, state: AppState) extends Component:
 
   val homeState: Var[HomeState] = Var(HomeState())
   val articlePageObserver       = homeState.writerF(_.focus(_.articleList).optic)
+  val articlesObserver          = homeState.writerF(_.focus(_.articleList.articles).optic)
+  val curPageObserver           = homeState.writerF(_.focus(_.currentPage).optic)
 
-  private val tabVar = Var[Tab](GlobalFeed)
+  val tabVar = Var[Tab](GlobalFeed)
   def loadArticle(tab: Tab, skip: Skip = Skip(0)) =
     tab match
       case Tag(tag) =>
@@ -68,49 +50,23 @@ final case class Home()(using api: Api, state: AppState) extends Component:
           .map(_.toPage)
       case GlobalFeed | _ =>
         api.stream(_.articles.listArticle(skip = skip, authHeader = state.authHeader)).map(_.toPage)
-  private val tabObserver = Observer[Tab] { tab =>
+  val tabObserver = Observer[Tab] { tab =>
     tabVar.set(tab)
     homeState.set(HomeState())
   }
-  private val curPageObserver =
-    homeState.writerF(_.focus(_.currentPage).optic)
-  private val s_tabs: Signal[Seq[Tab]] = tabVar.signal.map { t =>
+  val s_tabs: Signal[Seq[Tab]] = tabVar.signal.map { t =>
     if state.authHeader.isDefined then Set(Feed, GlobalFeed, t).toSeq
     else Set(GlobalFeed, t).toSeq
   }
 
-  private val onFavoriteObserver = Observer[Article]: article =>
-    state.authHeader.fold(JsRouter.redirectTo(Page.Login))(authHeader =>
-      starSubmittingFav(article.slug, true)
-      api
-        .future(a =>
-          if article.favorited then
-            a.articles.unfavoriteArticle(article.slug, authHeader).map(_.article)
-          else a.articles.favoriteArticle(article.slug, authHeader).map(_.article)
-        )
-        .onComplete {
-          case Failure(_)   => JsRouter.redirectTo(Page.Login)
-          case Success(rsp) => endSubmittingFav(article.slug, rsp)
-        }
-    )
-
-  private def starSubmittingFav(slug: Slug, isSubmitting: Boolean) =
-    updatePreviews(slug, elem => elem.copy(isSubmitting = isSubmitting))
-
-  private def updatePreviews(slug: Slug, articleUpdater: ArticlePreview => ArticlePreview) =
-    val homeStateNow = homeState.now()
-    val len          = homeStateNow.focus(_.articleList.articlePreviews).optic
-    val updatedPreview = homeStateNow.articleList.articlePreviews.map {
-      (previews: List[ArticlePreview]) =>
-        previews.map {
-          case elem if elem.article.slug == slug => articleUpdater(elem)
-          case elem                              => elem
-        }
+  val onFavoriteObserver = Observer[Article]: article =>
+    val updatedArticles = homeState.now().articleList.articles.map { (previews: List[Article]) =>
+      previews.map {
+        case elem if elem.slug == article.slug => article
+        case elem                              => elem
+      }
     }
-    homeState.set(len.replace(updatedPreview)(homeStateNow))
-
-  private def endSubmittingFav(slug: Slug, article: Article) =
-    updatePreviews(slug, _ => ArticlePreview(article, false))
+    articlesObserver.onNext(updatedArticles)
 
   def banner() =
     div(
@@ -159,7 +115,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
           ArticleViewer(
             homeState.signal.map(s =>
               ArticleViewrState(
-                s.articleList.articlePreviews,
+                s.articleList.articles,
                 s.currentPage,
                 s.articleList.articleCount.value
               )
@@ -182,5 +138,4 @@ final case class Home()(using api: Api, state: AppState) extends Component:
         .changes
         .flatMap(a => loadArticle(tabVar.now(), a.toArticleViewerSkip)) --> articlePageObserver
     )
-
 end Home
