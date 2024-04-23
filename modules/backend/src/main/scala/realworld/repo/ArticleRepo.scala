@@ -86,10 +86,14 @@ object ArticleRepo:
       ): F[Option[ArticleView]] =
         val trx =
           for
+            article <- OptionT(A.selectBySlug(oldSlug))
             _       <- OptionT(A.update(data, newSlug, oldSlug, updatedAt, authorId))
+            _       <- OptionT(A.deleteTagByArticleId(article.id))
+            _ <- OptionT.liftF(A.insertTag().updateMany(data.tagList.map(t => Tag(article.id, t))))
             article <- OptionT(A.selectBySlug(newSlug))
           yield article
         trx.value.transact(xa)
+      end update
 
       def delete(slug: Slug, authorId: UserId): F[Option[Unit]] =
         A.deleteBySlug(slug, authorId).transact(xa)
@@ -193,6 +197,11 @@ private object ArticleSQL:
 
   def insertTag() =
     Tags.rowCol.insert
+
+  def deleteTagByArticleId(aid: ArticleId) =
+    sql"""
+    DELETE FROM $t WHERE ${t.c(_.articleId)} = $aid
+    """.update.run.map(affectedToOption)
 
   import Articles as ar
   def update(

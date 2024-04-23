@@ -136,6 +136,7 @@ structure UpdateArticleData {
     title: Title
     description: Description
     body: Body
+    tagList: TagList = []
 }
 
 structure UpdateArticleOutput {
