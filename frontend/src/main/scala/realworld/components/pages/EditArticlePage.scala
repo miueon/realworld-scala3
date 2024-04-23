@@ -36,7 +36,7 @@ final case class EditArticlePage(s_page: Signal[Page.EditArticlePage])(using
           _.articles
             .updateArticle(
               articleVar.now().get.slug,
-              UpdateArticleData(title.some, description.some, body.some),
+              UpdateArticleData(tagList, title.some, description.some, body.some),
               authHeader
             )
             .attempt
