@@ -35,7 +35,7 @@ sealed trait FormRecord
 case class LoginCredential(email: Email, password: Password) extends FormRecord
 case class RegisterCredential(username: Username, email: Email, password: Password)
     extends FormRecord
-case class ArticleForm(title: Title, description: Description, body: Body, tagList: List[TagName])
+case class ArticleForm(title: Title = Title(""), description: Description = Description(""), body: Body = Body(""), tagList: List[TagName] = List())
     extends FormRecord
 case class UserSettings(
     email: Option[Email] = None,

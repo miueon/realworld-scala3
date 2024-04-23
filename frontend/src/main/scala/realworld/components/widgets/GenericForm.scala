@@ -13,7 +13,6 @@ import realworld.types.GenericFormField
 import realworld.types.validation.GenericError
 
 import realworld.types.FormRecord
-import org.scalajs.dom.KeyboardEvent
 import realworld.spec.TagName
 import realworld.components.widgets.FromGroup.ListFormGroup
 
@@ -23,8 +22,8 @@ final case class GenericForm(
     submitButtonText: String,
     s_disabled: Signal[Boolean],
     fields: List[GenericFormField],
-    onAddItemToList: Option[Observer[Unit]] = None,
-    removedTagWriterOpt: Option[Observer[TagName]] = None
+    addItemToListObserverOpt: Option[Observer[Unit]] = None,
+    removedTagObserverOpt: Option[Observer[TagName]] = None
 ) extends ComponentSeq:
 // Use EventListener if the state is located in the parent component
 // Use Callback if the state is located in the child component
@@ -62,8 +61,8 @@ final case class GenericForm(
                   field.isLarge,
                   field.controlled,
                   field.s_tags.get,
-                  onAddItemToList.getOrElse(Observer.empty),
-                  removedTagWriterOpt.getOrElse(Observer.empty)
+                  addItemToListObserverOpt.getOrElse(Observer.empty),
+                  removedTagObserverOpt.getOrElse(Observer.empty)
                 )
           },
           button(

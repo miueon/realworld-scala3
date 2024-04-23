@@ -75,8 +75,7 @@ final case class Login()(using api: Api, state: AppState) extends Component:
             state.s_login,
             List(
               GenericFormField(
-                InputType.Text,
-                "Email",
+                placeholder = "Email",
                 controlled = controlled(
                   value <-- credential.signal.map(_.email.value),
                   onInput.mapToValue --> emailWriter
