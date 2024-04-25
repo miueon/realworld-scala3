@@ -67,6 +67,8 @@ object Utils:
         }
       )
 
+  val defaultAvatarUrl = "https://api.realworld.io/images/demo-avatar.png"
+
   extension [A, T](sv: Var[A])
     def writerF(f: A => Lens[A, T]) =
       sv.updater[T] { case (state, cur) =>

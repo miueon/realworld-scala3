@@ -17,6 +17,7 @@ import scala.util.Failure
 import scala.util.Success
 
 import concurrent.ExecutionContext.Implicits.global
+import utils.Utils
 case class ArticleViewrState(
     articlePreviews: Option[List[Article]],
     currentPage: Int,
@@ -77,7 +78,7 @@ final case class ArticleViewer(
             src <-- s_article.map(
               _.author.image
                 .map(_.value)
-                .getOrElse("https://api.realworld.io/images/demo-avatar.png")
+                .getOrElse(Utils.defaultAvatarUrl)
             )
           )
         ),
