@@ -1,7 +1,7 @@
 package realworld.components.pages
 
 import com.raquo.airstream.core.Observer
-import com.raquo.laminar.api.L.{*, given}
+import com.raquo.laminar.api.L.*
 import com.raquo.laminar.modifiers.RenderableText
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import monocle.syntax.all.*
@@ -21,7 +21,6 @@ import realworld.spec.CommentView
 import realworld.spec.CreateCommentData
 import realworld.spec.Profile
 import realworld.spec.Slug
-import realworld.spec.UnprocessableEntity
 import utils.Utils
 import utils.Utils.classTupleToClassName
 import utils.Utils.some

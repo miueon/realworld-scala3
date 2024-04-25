@@ -1,6 +1,6 @@
 package realworld.components
 
-import com.raquo.laminar.api.L.{*, given}
+import com.raquo.laminar.api.L.*
 import com.raquo.laminar.modifiers.RenderableNode
 import com.raquo.laminar.nodes.ChildNode.Base
 import com.raquo.laminar.nodes.ReactiveHtmlElement

@@ -1,14 +1,13 @@
 package utils
 
 import com.raquo.airstream.core.Observer
-import com.raquo.laminar.api.L.{*, given}
+import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import org.scalajs.dom
 
 import scala.scalajs.js
 import monocle.Lens
 import smithy4s.Newtype
-import vendor.shoelace.CommonKeys.onInput
 import realworld.spec.Token
 import realworld.spec.AuthHeader
 import realworld.spec.Skip

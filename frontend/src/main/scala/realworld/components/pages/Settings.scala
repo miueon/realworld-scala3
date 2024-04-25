@@ -16,7 +16,6 @@ import utils.Utils.some
 import utils.Utils.writerOptNTF
 import realworld.types.GenericFormField
 import realworld.types.InputType
-import vendor.shoelace.CommonKeys.onInput
 import realworld.types.FieldType
 import realworld.AuthEvent
 import realworld.routes.JsRouter

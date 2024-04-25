@@ -1,6 +1,5 @@
 package realworld.types
-import com.raquo.laminar.api.L.{*, given}
-import com.raquo.laminar.nodes.ReactiveElement
+import com.raquo.laminar.api.L.*
 import realworld.spec.Body
 import realworld.spec.Description
 import realworld.spec.Email
@@ -35,8 +34,12 @@ sealed trait FormRecord
 case class LoginCredential(email: Email, password: Password) extends FormRecord
 case class RegisterCredential(username: Username, email: Email, password: Password)
     extends FormRecord
-case class ArticleForm(title: Title = Title(""), description: Description = Description(""), body: Body = Body(""), tagList: List[TagName] = List())
-    extends FormRecord
+case class ArticleForm(
+    title: Title = Title(""),
+    description: Description = Description(""),
+    body: Body = Body(""),
+    tagList: List[TagName] = List()
+) extends FormRecord
 case class UserSettings(
     email: Option[Email] = None,
     username: Option[Username] = None,

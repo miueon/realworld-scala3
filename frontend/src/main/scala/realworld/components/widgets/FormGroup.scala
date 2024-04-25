@@ -1,6 +1,6 @@
 package realworld.components.widgets
 
-import com.raquo.laminar.api.L.{*, given}
+import com.raquo.laminar.api.L.*
 import realworld.types.InputType
 import realworld.spec.TagName
 
@@ -56,7 +56,7 @@ object FromGroup:
       controlled: Mod[Input],
       s_tags: Signal[List[TagName]],
       addTagWriter: Observer[Unit],
-      removedTagWriter: Observer[TagName] 
+      removedTagWriter: Observer[TagName]
   ) =
     fieldSet(
       input(

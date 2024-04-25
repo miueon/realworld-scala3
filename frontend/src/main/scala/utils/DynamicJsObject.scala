@@ -1,7 +1,6 @@
 package utils
 
 import scala.scalajs.js
-import scala.scalajs.js.annotation.JSName
 
 // BEGIN[wind-gradient]
 trait DynamicJsObject extends js.Object

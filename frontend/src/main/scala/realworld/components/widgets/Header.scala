@@ -1,6 +1,6 @@
 package realworld.components.widgets
 
-import com.raquo.laminar.api.L.{*, given}
+import com.raquo.laminar.api.L.*
 import realworld.routes.Page
 import realworld.routes.JsRouter.*
 import realworld.routes.JsRouter
