@@ -33,6 +33,8 @@ import scala.util.Success
 import scala.util.Try
 
 import concurrent.ExecutionContext.Implicits.global
+import utils.Utils.toSignal
+import utils.Utils.toList
 
 case class CommentSectionState(
     comments: Option[List[CommentView]] = None,
@@ -268,16 +270,14 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
           case Some(value) =>
             commentForm()
         ,
-        child <-- commentSectionVar.signal
+        children <-- commentSectionVar.signal
           .distinctBy(_.comments)
           .map(_.comments)
           .splitOption(
-            (_, s_comments) =>
-              s_comments.split(_.id)(articleComment)
-              ???
-            ,
-            ifEmpty = div("Loading comments...")
+            (_, s_comments) => s_comments.split(_.id)(articleComment),
+            ifEmpty = div("Loading comments...").toList.toSignal
           )
+          .flatten
       )
     )
 
