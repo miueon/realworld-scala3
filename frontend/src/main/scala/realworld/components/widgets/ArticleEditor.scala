@@ -30,8 +30,12 @@ final case class ArticleEditor(
   val tagListWriter = articleVar
     .writerF(_.focus(_.tagList).optic)
   val addTagObserver = Observer[Unit]: _ =>
-    val tagList = articleVar.now().tagList :+ tagBarVar.now()
-    tagListWriter.onNext(tagList)
+    val currentTag     = tagBarVar.now()
+    val currentTagList = articleVar.now().tagList
+    if !(currentTag.value.isBlank() || currentTagList.contains(currentTag)) then
+      val tagList = currentTagList :+ currentTag
+      tagListWriter.onNext(tagList)
+      tagBarVar.set(TagName(""))
 
   val removeTagObserver = Observer[TagName]: t =>
     val tagList = articleVar.now().tagList.filter(_ != t)

@@ -84,9 +84,8 @@ object UserServiceImpl:
           u <- auth.access(authHeader)
           rs <-
             auth
-              .update(u.id, user)
-              .map(_.toUser(u.user.token))
-              .map(UpdateUserOutput(_))
+              .update(u, user)
+              .map(userSession => UpdateUserOutput(userSession.user))
               .recoverWith:
                 case UserError.UserNotFound() => NotFoundError().raise
                 case UserError.EmailAlreadyExists() | UserError.UsernameAlreadyExists() =>

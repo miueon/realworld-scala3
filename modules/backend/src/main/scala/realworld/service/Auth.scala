@@ -42,7 +42,7 @@ trait Auth[F[_]: Functor]:
   def access(header: AuthHeader): F[UserSession]
   def authUserId(header: AuthHeader): F[UserId] =
     access(header).map(_.id)
-  def update(uid: UserId, updateData: UpdateUserData): F[DBUser]
+  def update(userSession: UserSession, updateData: UpdateUserData): F[UserSession]
 
 case class UserSession(id: UserId, user: User) derives Codec.AsObject
 
@@ -137,21 +137,28 @@ object Auth:
           case Left(e)  => e.raiseError[F, UserSession]
       end access
 
-      def update(uid: UserId, updateData: UpdateUserData): F[DBUser] =
+      def update(userSession: UserSession, updateData: UpdateUserData): F[UserSession] =
         // val emailCleanOpt =
         //   updateData.email.map(e => e.value.toLowerCase.trim())
         // val usernameCleanOpt =
         //   updateData.username.map(un => un.value.trim())
 
         val hasedPsw = updateData.password.map(crypto.encrypt(_))
-        val userOpt = for
-          _   <- updateData.email.traverse(emailNotUsed(_, uid))
-          _   <- updateData.username.traverse(usernameNotUsed(_, uid))
-          row <- userRepo.tx.use { _.update(uid, updateData, hasedPsw) }
-        yield row
-        userOpt.flatMap:
-          case Some(WithId(_, user)) => user.pure[F]
-          case None                  => UserError.UserNotFound().raiseError[F, DBUser]
+        val uid      = userSession.id
+        val token    = userSession.user.token.get.value
+        for
+          _ <- updateData.email.traverse(emailNotUsed(_, uid))
+          _ <- updateData.username.traverse(usernameNotUsed(_, uid))
+          row <- userRepo.tx.use {
+            _.update(uid, updateData, hasedPsw).flatMap {
+              case Some(u) => u.pure[F]
+              case None    => UserError.UserNotFound().raiseError
+            }
+          }
+          session = userSession.copy(user = row.entity.toUser(userSession.user.token))
+          _ <- redis.setEx(token, session.asJson.noSpaces, TokenExpiration)
+          _ <- redis.setEx(row.entity.email.value, token , TokenExpiration)
+        yield session
       end update
 
       val tokenPattern = "^Token (.+)".r
@@ -163,13 +170,13 @@ object Auth:
       def emailNotUsed(email: Email, userId: UserId): F[Unit] =
         userRepo
           .findByEmail(email)
-          .map(notTakenByOthers(_, userId, UserError.EmailAlreadyExists()))
+          .flatMap(notTakenByOthers(_, userId, UserError.EmailAlreadyExists()))
 
       def notTakenByOthers(
           user: Option[WithId[UserId, DBUser]],
           userId: UserId,
           error: UserError
-      ): Unit =
+      ): F[Unit] =
         user match
           case Some(WithId(id, _)) if id =!= userId => error.raiseError[F, Unit]
           case _                                    => ().pure[F]
@@ -177,5 +184,5 @@ object Auth:
       def usernameNotUsed(username: Username, userId: UserId): F[Unit] =
         userRepo
           .findByUsername(username)
-          .map(notTakenByOthers(_, userId, UserError.UsernameAlreadyExists()))
+          .flatMap(notTakenByOthers(_, userId, UserError.UsernameAlreadyExists()))
 end Auth

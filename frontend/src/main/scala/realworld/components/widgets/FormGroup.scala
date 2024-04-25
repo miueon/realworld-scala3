@@ -66,7 +66,7 @@ object FromGroup:
         disabled <-- s_disabled,
         controlled,
         onKeyDown --> { ev => if ev.key == "Enter" then ev.preventDefault() },
-        onKeyUp.preventDefault.mapToUnit --> addTagWriter
+        onKeyUp.preventDefault.filter(_.key == "Enter").mapToUnit --> addTagWriter
       ),
       div(
         cls := "tag-list",

@@ -51,9 +51,12 @@ final case class Settings()(using state: AppState, api: Api) extends Component:
               .updateUser(authHeader, UpdateUserData(email, username, password, bio, image))
               .attempt
           )
-          .onComplete(_ => isUpdating.set(false))
           .collect {
-            case Left(UnprocessableEntity(Some(e))) => errors.set(e)
+            case Left(UnprocessableEntity(Some(e))) => 
+              Var.set(
+                isUpdating -> false,
+                errors -> e
+              )
             case Right(UpdateUserOutput(u)) =>
               state.events.emit(AuthEvent.Force(AuthState.Token(u.token.toAuthHeader, u)))
               JsRouter.redirectTo(Page.Home)

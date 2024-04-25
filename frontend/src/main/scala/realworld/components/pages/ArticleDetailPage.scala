@@ -101,7 +101,8 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
               )
             ),
             hr(),
-            div(cls := "article-actions", articleMeta(article, s_article))
+            div(cls := "article-actions", articleMeta(article, s_article)),
+            commentSection()
           ),
         ifEmpty = div("Loading article...")
       )
