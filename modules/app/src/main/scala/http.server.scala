@@ -9,6 +9,7 @@ import org.http4s.server.defaults.Banner
 
 import org.typelevel.log4cats.Logger
 import realworld.config.types.HttpServerConfig
+import org.http4s.server.middleware.GZip
 
 trait MkHttpServer[F[_]]:
   def newEmber(cfg: HttpServerConfig, httpApp: HttpApp[F]): Resource[F, Server]
@@ -31,7 +32,7 @@ object MkHttpServer:
         .default[F]
         .withHost(cfg.host)
         .withPort(cfg.port)
-        .withHttpApp(httpApp)
+        .withHttpApp(GZip(httpApp))
         .build
         .evalTap(showEmberBanner)
 end MkHttpServer

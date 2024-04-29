@@ -1,7 +1,7 @@
 import org.scalajs.linker.interface.Report
 import org.scalajs.linker.interface.ModuleSplitStyle
 import smithy4s.codegen.Smithy4sCodegenPlugin
-
+import scala.sys.process.Process
 Compile / run / fork          := true
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / scalacOptions := Seq(
@@ -72,14 +72,14 @@ lazy val app = projectMatrix
       "org.flywaydb"   % "flyway-database-postgresql" % Versions.Flyway,
       "ch.qos.logback" % "logback-classic"            % Versions.logback
     ),
-    Compile / resourceGenerators += {
-      Def.task[Seq[File]] {
-        copyAll(
-          frontendBundle.value,
-          (Compile / resourceManaged).value / "assets"
-        )
-      }
-    },
+    // Compile / resourceGenerators += {
+    //   Def.task[Seq[File]] {
+    //     copyAll(
+    //       frontendModules.value._2,
+    //       (Compile / resourceManaged).value / "assets"
+    //     )
+    //   }
+    // },
     reStart / baseDirectory := (ThisBuild / baseDirectory).value,
     run / baseDirectory     := (ThisBuild / baseDirectory).value
   )
@@ -148,14 +148,14 @@ lazy val backend = projectMatrix
     testFrameworks += new TestFramework("weaver.framework.CatsEffect"),
     Test / fork          := true,
     Test / baseDirectory := (ThisBuild / baseDirectory).value,
-    Test / resourceGenerators += {
-      Def.task[Seq[File]] {
-        copyAll(
-          frontendBundle.value,
-          (Test / resourceManaged).value / "assets"
-        )
-      }
-    }
+    // Test / resourceGenerators += {
+    //   Def.task[Seq[File]] {
+    //     copyAll(
+    //       frontendBundle.value,
+    //       (Test / resourceManaged).value / "assets"
+    //     )
+    //   }
+    // }
   )
 lazy val shared = projectMatrix
   .in(file("modules/shared"))
@@ -175,18 +175,9 @@ lazy val shared = projectMatrix
 
 lazy val frontend = projectMatrix
   .in(file("frontend"))
-  .customRow(
-    Seq(Versions.Scala),
-    axisValues = Seq(VirtualAxis.js, BuildStyle.SingleFile),
-    Seq.empty
-  )
-  .customRow(
-    Seq(Versions.Scala),
-    axisValues = Seq(VirtualAxis.js, BuildStyle.Modules),
-    Seq.empty
-  )
   .defaultAxes((defaults :+ VirtualAxis.js)*)
   .dependsOn(shared)
+  .jsPlatform(Seq(Versions.Scala))
   .enablePlugins(ScalaJSPlugin, BundleMonPlugin)
   .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
   .settings(
@@ -194,16 +185,14 @@ lazy val frontend = projectMatrix
     scalaJSLinkerConfig := {
       val config = scalaJSLinkerConfig.value
       import org.scalajs.linker.interface.OutputPatterns
-      if (virtualAxes.value.contains(BuildStyle.SingleFile)) config
-      else
-        config
-          // .withModuleSplitStyle(
-          //   ModuleSplitStyle
-          //     .SmallModulesFor(List(s"${Config.BasePackage}.frontend"))
-          // )
-          .withModuleKind(ModuleKind.ESModule)
-          // .withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
-          .withSourceMap(true)
+      config
+        // .withModuleSplitStyle(
+        //   ModuleSplitStyle
+        //     .SmallModulesFor(List(s"${Config.BasePackage}.frontend"))
+        // )
+        .withModuleKind(ModuleKind.ESModule)
+        // .withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
+        .withSourceMap(true)
     },
     externalNpm := (ThisBuild / baseDirectory).value / "frontend",
     libraryDependencies ++= Seq(
@@ -242,36 +231,47 @@ lazy val frontend = projectMatrix
 lazy val defaults =
   Seq(VirtualAxis.scalaABIVersion(Versions.Scala), VirtualAxis.jvm)
 
-lazy val frontendModules = taskKey[(Report, File)]("")
-ThisBuild / frontendModules := (Def.taskIf {
-  def proj = frontend.finder(BuildStyle.Modules)(
-    Versions.Scala
-  )
+// lazy val frontendModules = taskKey[(Report, File)]("")
+// ThisBuild / frontendModules := (Def.taskIf {
+//   def proj = frontend.allProjects().head._1
 
-  if (isRelease)
-    (proj / Compile / fullLinkJS).value.data ->
-      (proj / Compile / fullLinkJS / scalaJSLinkerOutputDirectory).value
-  else
-    (proj / Compile / fastLinkJS).value.data ->
-      (proj / Compile / fastLinkJS / scalaJSLinkerOutputDirectory).value
-}).value
-
-lazy val frontendBundle = taskKey[File]("")
-ThisBuild / frontendBundle := (Def.taskIf {
-  def proj = frontend.finder(BuildStyle.Modules)(
-    Versions.Scala
-  )
-
-  if (isRelease) {
-    val res = (proj / Compile / fullLinkJS).value
-    (proj / Compile / fullLinkJS / scalaJSLinkerOutputDirectory).value
-  } else {
-    val res = (proj / Compile / fastLinkJS).value
-    (proj / Compile / fastLinkJS / scalaJSLinkerOutputDirectory).value
-  }
-}).value
+//   if (isRelease)
+//     (proj / Compile / fullLinkJS).value.data ->
+//       (proj / Compile / fullLinkJS / scalaJSLinkerOutputDirectory).value
+//   else
+//     (proj / Compile / fastLinkJS).value.data ->
+//       (proj / Compile / fastLinkJS / scalaJSLinkerOutputDirectory).value
+// }).value
 
 lazy val isRelease = sys.env.get("RELEASE").contains("yesh")
+
+val buildFrontend = taskKey[Unit]("Build frontend")
+
+buildFrontend := {
+  def frontendProj = frontend.finder(VirtualAxis.js)(Versions.Scala)
+  val frontendDirPath = frontend.base.getAbsolutePath()
+  val appDirPath = app.base.getAbsolutePath()
+  (frontendProj / Compile / fullLinkJS).value
+
+  // Install JS dependencies from package-lock.json
+  val npmCiExitCode = Process("pnpm install --frozen-lockfile", cwd = frontend.base).!
+  if (npmCiExitCode > 0) {
+    throw new IllegalStateException(s"pnpm ci failed. See above for reason")
+  }
+
+  // Build the frontend with vite
+  val buildExitCode = Process("pnpm build", cwd = frontend.base).!
+  if (buildExitCode > 0) {
+    throw new IllegalStateException(s"Building frontend failed. See above for reason")
+  }
+
+  IO.copyDirectory(
+    source = frontend.base / "dist",
+    target = app.base / "src" / "main" / "resources" / "static"
+  )
+}
+
+(app.finder(VirtualAxis.jvm)(Versions.Scala) / Docker / publishLocal) := (app.finder(VirtualAxis.jvm)(Versions.Scala) / Docker / publishLocal).dependsOn(buildFrontend).value
 
 addCommandAlias("publishDocker", "app/Docker/publishLocal")
 addCommandAlias("stubTests", "backend/testOnly jobby.tests.stub.*")
@@ -289,34 +289,6 @@ addCommandAlias(
   "backend/testOnly jobby.tests.frontend.*"
 )
 
-// lazy val buildFrontend = taskKey[Unit]("")
-
-// buildFrontend := {
-//   val (_, folder) = frontendModules.value
-//   val buildDir    = (ThisBuild / baseDirectory).value / "frontend-build"
-
-//   def copyFile(fileNames: List[String], baseDir: File, outDir: File) =
-//     fileNames.foreach(name => {
-//       val indexHtml = buildDir / name
-//       val out       = folder.getParentFile() / name
-
-//       import java.nio.file.Files
-
-//       if (!Files.exists(out.toPath) || IO.read(indexHtml) != IO.read(out)) {
-//         IO.copyFile(indexHtml, out)
-//       }
-//     })
-//   copyFile(List("index.html", "output.css", "index.js", "style.less"), buildDir, folder.getParentFile())
-
-//   // val indexHtml = buildDir / "index.html"
-//   // val out       = folder.getParentFile() / "index.html"
-
-//   // import java.nio.file.Files
-
-//   // if (!Files.exists(out.toPath) || IO.read(indexHtml) != IO.read(out)) {
-//   //   IO.copyFile(indexHtml, out)
-//   // }
-// }
 
 ThisBuild / concurrentRestrictions ++= {
   if (sys.env.contains("CI")) {

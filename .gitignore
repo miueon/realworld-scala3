@@ -22,6 +22,7 @@ target
 
 modules/backend/src/main/resources/dev.js
 modules/backend/src/main/resources/prod.js
+modules/app/src/main/resources
 .idea
 node_modules
 *.lsp.log

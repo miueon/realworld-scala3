@@ -26,7 +26,7 @@ export default defineConfig({
   plugins: [
     scalaJSPlugin({
       cwd: "..", // path to build.sbt
-      projectID: "frontend-modules" // scala.js project name in build.sbt
+      projectID: "frontend" // scala.js project name in build.sbt
     }),
     globResolverPlugin({
       // See https://github.com/raquo/vite-plugin-glob-resolver

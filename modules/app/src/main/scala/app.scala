@@ -21,7 +21,6 @@ object Main extends IOApp:
   given logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
 
   def run(args: List[String]) =
-    println("test")
     Config.load[IO].flatMap { cfg =>
       Logger[IO].info(s"Loaded config $cfg") >>
         Supervisor[IO].use { sp =>
