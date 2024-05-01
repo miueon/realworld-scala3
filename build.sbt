@@ -40,7 +40,7 @@ val Versions = new {
 }
 
 val Config = new {
-  val DockerImageName = "jobby-smithy4s"
+  val DockerImageName = "realworld-smithy4s"
   val DockerBaseImage = "eclipse-temurin:17"
   val BasePackage     = "realworld"
 }
@@ -230,18 +230,6 @@ lazy val frontend = projectMatrix
 
 lazy val defaults =
   Seq(VirtualAxis.scalaABIVersion(Versions.Scala), VirtualAxis.jvm)
-
-// lazy val frontendModules = taskKey[(Report, File)]("")
-// ThisBuild / frontendModules := (Def.taskIf {
-//   def proj = frontend.allProjects().head._1
-
-//   if (isRelease)
-//     (proj / Compile / fullLinkJS).value.data ->
-//       (proj / Compile / fullLinkJS / scalaJSLinkerOutputDirectory).value
-//   else
-//     (proj / Compile / fastLinkJS).value.data ->
-//       (proj / Compile / fastLinkJS / scalaJSLinkerOutputDirectory).value
-// }).value
 
 lazy val isRelease = sys.env.get("RELEASE").contains("yesh")
 

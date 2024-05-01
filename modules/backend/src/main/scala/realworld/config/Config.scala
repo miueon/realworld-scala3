@@ -23,12 +23,12 @@ object Config:
     env("SC_APP_ENV")
       .as[AppEnvironment]
       .flatMap {
-        case AppEnvironment.Test => default(RedisURI("redis://localhost"))
-        case AppEnvironment.Prod => default(RedisURI("redis://redis"))
+        case AppEnvironment.Test => default("jdbc:postgresql://localhost:5432/realworld", RedisURI("redis://localhost"))
+        case AppEnvironment.Prod => default("jdbc:postgresql://postgres:5432/realworld", RedisURI("redis://redis"))
       }
       .load[F]
 
-  private def default[F[_]](redisUri: RedisURI): ConfigValue[F, AppConfig] =
+  private def default[F[_]](postgressUri: NonEmptyStringR, redisUri: RedisURI): ConfigValue[F, AppConfig] =
     (
       env("SC_ACCESS_TOKEN_KEY").as[JwtAccessTokenKeyConfig].secret,
       env("SC_PASSWORD_SALT").as[PasswordSalt].secret,
@@ -39,7 +39,7 @@ object Config:
         passwordSalt,
         TokenExpiration(30.minutes),
         PostgresSQLConfig(
-          jdbcUrl = "jdbc:postgresql://localhost:5432/realworld",
+          jdbcUrl = postgressUri,
           user = "postgres",
           password = postgressPassword
         ),
