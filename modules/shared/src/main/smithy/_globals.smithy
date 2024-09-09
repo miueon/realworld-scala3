@@ -53,6 +53,14 @@ integer Limit
 @range(min: 0)
 integer Total
 
-
 timestamp CreatedAt
+
 timestamp UpdatedAt
+
+// Mixin
+@mixin
+structure AuthHeaderMixin {
+    @httpHeader("Authorization")
+    @required
+    auth: AuthHeader
+}

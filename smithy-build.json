@@ -1,6 +1,16 @@
 {
     "version": "1.0",
-    "mavenDependencies": [
-        "com.disneystreaming.smithy4s:allot-2.13:latest.stable"
-    ]
+    "sources" : [
+        "modules/shared/src/main/smithy",
+        "modules/shared/target/js-3/src_managed/main/smithy",
+        "modules/shared/target/jvm-3/src_managed/main/smithy"
+    ],
+    "maven" : {
+        "dependencies" : [
+            "com.disneystreaming.smithy4s:smithy4s-protocol:0.18.23",
+            "com.disneystreaming.alloy:alloy-core:0.3.9"
+        ],
+        "repositories" : [
+        ]
+    }
 }

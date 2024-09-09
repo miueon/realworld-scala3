@@ -13,6 +13,7 @@ use alloy.common#emailFormat
 use realworld.spec#UnauthorizedError
 use realworld.spec#UnprocessableEntity
 use realworld.spec#nonEmptyString
+use smithy4s.meta#validateNewtype
 // SERVICES
 
 @simpleRestJson
@@ -34,8 +35,11 @@ service UserService {
 @http(method: "POST", uri: "/api/users/login", code: 200)
 @auth([])
 operation LoginUser {
-    input: LoginUserInput
-    output: LoginUserOutput
+    input := {
+        @required
+        user: LoginUserInputData
+    }
+    output := with [UserOutputMixin] {}
     errors: [NotFoundError, ForbiddenError]
 }
 
@@ -43,23 +47,29 @@ operation LoginUser {
 @http(method: "PUT", uri: "/api/users", code: 200)
 @auth([])
 operation RegisterUser {
-    input: RegisterUserInput
-    output: RegisterUserOutput
+    input := {
+        @required
+        user: RegisterUserData
+    }
+    output := with [UserOutputMixin] {}
     errors: [ValidationError, UnprocessableEntity]
 }
 
 @readonly
 @http(method: "GET", uri: "/api/user", code: 200)
 operation GetUser {
-    input: GetUserInput
-    output: GetUserOutput
+    input := with [AuthHeaderMixin] {}
+    output := with [UserOutputMixin] {}
 }
 
 @idempotent
 @http(method: "PUT", uri: "/api/user", code: 200)
 operation UpdateUser {
-    input: UpdateUserInput
-    output: UpdateUserOutput
+    input := with [AuthHeaderMixin] {
+        @required
+        user: UpdateUserData
+    }
+    output := with [UserOutputMixin] {}
     errors: [UnprocessableEntity]
 }
 
@@ -67,82 +77,45 @@ operation UpdateUser {
 @http(method: "GET", uri: "/api/profiles/{username}", code: 200)
 @auth([])
 operation GetProfile {
-    input: GetProfileInput
-    output: GetProfileOutput
+    input := with [UsernameLabelMixin, AuthHeaderMixin] {}
+    output := with [ProfileMixin] {}
     errors: [NotFoundError]
 }
 
 @http(method: "POST", uri: "/api/profiles/{username}/follow", code: 200)
 operation FollowUser {
-    input: FollowUserInput
-    output: FollowUserOutput
+    input := with [UsernameLabelMixin, AuthHeaderMixin] {}
+    output := with [ProfileMixin] {}
 }
 
 @idempotent
 @http(method: "DELETE", uri: "/api/profiles/{username}/follow", code: 200)
 operation UnfollowUser {
-    input: UnfollowUserInput
-    output: UnfollowUserOutput
+    input := with [UsernameLabelMixin, AuthHeaderMixin] {}
+    output := with [ProfileMixin] {}
 }
 
-// STRUCTURES
-structure UnfollowUserInput {
-    @required
-    @httpLabel
-    username: Username
-    @required
-    @httpHeader("Authorization")
-    auth: AuthHeader
-}
-
-structure UnfollowUserOutput {
-    @required
-    profile: Profile
-}
-
-structure FollowUserInput {
-    @required
-    @httpLabel
-    username: Username
-    @required
-    @httpHeader("Authorization")
-    auth: AuthHeader
-}
-
-structure FollowUserOutput {
-    @required
-    profile: Profile
-}
-
-structure GetProfileInput {
-    @required
-    @httpLabel
-    username: Username
-    @httpHeader("Authorization")
-    auth: AuthHeader
-}
-
-structure GetProfileOutput {
-    @required
-    profile: Profile
-}
-
-structure GetUserInput {
-    @httpHeader("Authorization")
-    @required
-    auth: AuthHeader
-}
-
-structure GetUserOutput {
+// Mixins
+@mixin
+structure UserOutputMixin {
     @required
     user: User
 }
 
-structure RegisterUserInput {
+@mixin
+structure ProfileMixin {
     @required
-    user: RegisterUserData
+    profile: Profile
 }
 
+@mixin
+structure UsernameLabelMixin {
+    @required
+    @httpLabel
+    username: Username
+}
+
+// STRUCTURES
 structure RegisterUserData {
     @required
     username: Username
@@ -152,34 +125,11 @@ structure RegisterUserData {
     password: Password
 }
 
-structure RegisterUserOutput {
-    @required
-    user: User
-}
-
-structure LoginUserInput {
-    @required
-    user: LoginUserInputData
-}
-
 structure LoginUserInputData {
     @required
     email: Email
     @required
     password: Password
-}
-
-structure LoginUserOutput {
-    @required
-    user: User
-}
-
-structure UpdateUserInput {
-    @httpHeader("Authorization")
-    @required
-    auth: AuthHeader
-    @required
-    user: UpdateUserData
 }
 
 structure UpdateUserData {
@@ -188,11 +138,6 @@ structure UpdateUserData {
     password: Password
     bio: Bio
     image: ImageUrl
-}
-
-structure UpdateUserOutput {
-    @required
-    user: User
 }
 
 structure User {
@@ -214,18 +159,12 @@ structure Profile {
     following: Boolean
 }
 
-// @uuidFormat
-// string UserId
-@length(min: 8, max: 100)
 string Password
 
-@emailFormat
-@length(min: 1)
 string Email
 
 string Token
 
-@length(min: 1, max: 25)
 string Username
 
 string Bio

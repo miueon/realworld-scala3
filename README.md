@@ -7,8 +7,7 @@ In .jvmopts is used for dimise the error: `Unable to make field private static f
 
 
 - Target stream line dev
-- Back-end 
-- Front-end
+- finetue validation 
 - Itegration 
 - Unit test
 - Prod env setup

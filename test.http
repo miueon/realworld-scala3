@@ -1,7 +1,7 @@
 @port = 8080
 @baseURL = http://127.0.0.1:{{port}}
 
-@failedU = {"user": { "username": "test2" ,  "email": "com", "password": "12345678"}}
+@failedU = {"user": { "username": "" ,  "email": "", "password": ""}}
 ###
 # REGISTER  
 PUT {{baseURL}}/api/users
