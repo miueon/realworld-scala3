@@ -44,13 +44,10 @@ string AuthHeader
 
 string ImageUrl
 
-@range(min: 0)
 integer Skip
 
-@range(min: 1)
 integer Limit
 
-@range(min: 0)
 integer Total
 
 timestamp CreatedAt
@@ -63,4 +60,18 @@ structure AuthHeaderMixin {
     @httpHeader("Authorization")
     @required
     auth: AuthHeader
+}
+
+@mixin
+structure AuthHeaderOptMixin {
+    @httpHeader("Authorization")
+    auth: AuthHeader
+}
+
+@mixin
+structure PaginatedInputMixin {
+    @httpQuery("limit")
+    limit: Limit = 10
+    @httpQuery("skip")
+    skip: Skip = 0
 }

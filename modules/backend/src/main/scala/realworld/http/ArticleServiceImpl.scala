@@ -34,10 +34,10 @@ object ArticleServiceImpl:
       def listArticle(
           limit: Limit,
           skip: Skip,
+          authHeaderOpt: Option[AuthHeader],
           tag: Option[TagName],
           author: Option[Username],
-          favorited: Option[Username],
-          authHeaderOpt: Option[AuthHeader]
+          favorited: Option[Username]
       ): F[ListArticleOutput] =
         val query = ListArticleQuery(tag, author, favorited)
         val result =
@@ -75,8 +75,8 @@ object ArticleServiceImpl:
             case ArticleError.NotFound(slug) => NotFoundError(s"Slug=$slug".some).raise
 
       def createArticle(
-          createArticleData: CreateArticleData,
-          authHeader: AuthHeader
+          authHeader: AuthHeader,
+          createArticleData: CreateArticleData
       ): F[CreateArticleOutput] =
         for
           uid     <- auth.authUserId(authHeader)
@@ -84,9 +84,9 @@ object ArticleServiceImpl:
         yield CreateArticleOutput(article)
 
       def updateArticle(
+          authHeader: AuthHeader,
           slug: Slug,
-          updateArticleData: UpdateArticleData,
-          authHeader: AuthHeader
+          updateArticleData: UpdateArticleData
       ): F[UpdateArticleOutput] =
         val result = for
           uid     <- auth.authUserId(authHeader)
@@ -99,7 +99,7 @@ object ArticleServiceImpl:
             case ArticleError.NotFound(slug) => NotFoundError(s"Slug=$slug".some).raise
       end updateArticle
 
-      def deleteArticle(slug: Slug, authHeader: AuthHeader): F[Unit] =
+      def deleteArticle(authHeader: AuthHeader, slug: Slug): F[Unit] =
         val result = for
           uid <- auth.authUserId(authHeader)
           _   <- articles.delete(slug, uid)
@@ -107,7 +107,7 @@ object ArticleServiceImpl:
         result.recoverWith:
           case ArticleError.NotFound(slug) => NotFoundError(s"Slug=$slug".some).raise
 
-      def favoriteArticle(slug: Slug, authHeader: AuthHeader): F[FavoriteArticleOutput] =
+      def favoriteArticle(authHeader: AuthHeader, slug: Slug): F[FavoriteArticleOutput] =
         val result = for
           uid     <- auth.authUserId(authHeader)
           article <- articles.favoriteArticle(slug, uid)
@@ -115,7 +115,7 @@ object ArticleServiceImpl:
         result.recoverWith:
           case ArticleError.NotFound(slug) => NotFoundError().raise
 
-      def unfavoriteArticle(slug: Slug, authHeader: AuthHeader): F[UnfavoriteArticleOutput] =
+      def unfavoriteArticle(authHeader: AuthHeader, slug: Slug): F[UnfavoriteArticleOutput] =
         val result = for
           uid     <- auth.authUserId(authHeader)
           article <- articles.unfavoriteArticle(slug, uid)

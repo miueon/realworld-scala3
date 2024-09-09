@@ -33,37 +33,66 @@ service ArticleService {
 @http(method: "GET", uri: "/api/articles", code: 200)
 @auth([])
 operation ListArticle {
-    input: ListArticleInput
-    output: ListArticleOutput
+    input := with [PaginatedInputMixin, AuthHeaderOptMixin] {
+        @httpQuery("tag")
+        tag: TagName
+        @httpQuery("author")
+        author: Username
+        @httpQuery("favorited")
+        favorited: Username
+    }
+    output := with [ListArticleOutputMixin] {}
 }
 
 @readonly
 @http(method: "GET", uri: "/api/articles/feed", code: 200)
 operation ListFeedArticle {
-    input: ListFeedArticleInput
-    output: ListFeedArticleOutput
+    input := with [PaginatedInputMixin, AuthHeaderMixin] {}
+    output := with [ListArticleOutputMixin] {}
     errors: [UnauthorizedError]
 }
 
 @readonly
 @http(method: "GET", uri: "/api/article/{slug}", code: 200)
 operation GetArticle {
-    input: GetArticleInput
-    output: GetArticleOutput
+    input := with [AuthHeaderOptMixin] {
+        @required
+        @httpLabel
+        slug: Slug
+    }
+    output := {
+        @required
+        article: Article
+    }
     errors: [NotFoundError]
 }
 
 @http(method: "POST", uri: "/api/articles", code: 200)
 operation CreateArticle {
-    input: CreateArticleInput
-    output: CreateArticleOutput
+    input := with [AuthHeaderMixin] {
+        @required
+        article: CreateArticleData
+    }
+    output := {
+        @required
+        article: Article
+    }
     errors: [UnauthorizedError, UnprocessableEntity]
 }
 
 @http(method: "PUT", uri: "/api/articles/{slug}", code: 200)
 operation UpdateArticle {
-    input: UpdateArticleInput
-    output: UpdateArticleOutput
+    input := with [AuthHeaderMixin] {
+        @required
+        @httpLabel
+        slug: Slug
+        @required
+        article: UpdateArticleData
+    }
+    output := {
+        @required
+        article: Article
+    }
     errors: [
         UnauthorizedError
         UnprocessableEntity
@@ -74,19 +103,20 @@ operation UpdateArticle {
 @idempotent
 @http(method: "DELETE", uri: "/api/articles/{slug}", code: 204)
 operation DeleteArticle {
-    input: DeleteArticleInput
+    input := with [AuthHeaderMixin] {
+        @required
+        @httpLabel
+        slug: Slug
+    }
     errors: [NotFoundError]
 }
 
 @http(method: "POST", uri: "/api/articles/{slug}/favorite", code: 200)
 operation FavoriteArticle {
-    input := {
+    input := with [AuthHeaderMixin] {
         @required
         @httpLabel
         slug: Slug
-        @required
-        @httpHeader("Authorization")
-        authHeader: AuthHeader
     }
     output := {
         @required
@@ -97,13 +127,10 @@ operation FavoriteArticle {
 
 @http(method: "DELETE", uri: "/api/articles/{slug}/favorite", code: 200)
 operation UnfavoriteArticle {
-    input := {
+    input := with [AuthHeaderMixin] {
         @required
         @httpLabel
         slug: Slug
-        @required
-        @httpHeader("Authorization")
-        authHeader: AuthHeader
     }
     output := {
         @required
@@ -111,50 +138,21 @@ operation UnfavoriteArticle {
     }
 }
 
+// MIXINS
+@mixin
+structure ListArticleOutputMixin {
+    @required
+    articlesCount: Total
+    @required
+    articles: ArticleList
+}
+
 // STRUCTURES
-structure DeleteArticleInput {
-    @required
-    @httpLabel
-    slug: Slug
-    @required
-    @httpHeader("Authorization")
-    authHeader: AuthHeader
-}
-
-structure UpdateArticleInput {
-    @required
-    @httpLabel
-    slug: Slug
-    @required
-    article: UpdateArticleData
-    @required
-    @httpHeader("Authorization")
-    authHeader: AuthHeader
-}
-
 structure UpdateArticleData {
     title: Title
     description: Description
     body: Body
     tagList: TagList = []
-}
-
-structure UpdateArticleOutput {
-    @required
-    article: Article
-}
-
-structure CreateArticleInput {
-    @required
-    article: CreateArticleData
-    @required
-    @httpHeader("Authorization")
-    authHeader: AuthHeader
-}
-
-structure CreateArticleOutput {
-    @required
-    article: Article
 }
 
 structure CreateArticleData {
@@ -165,58 +163,6 @@ structure CreateArticleData {
     @required
     body: Body
     tagList: TagList = []
-}
-
-structure GetArticleInput {
-    @required
-    @httpLabel
-    slug: Slug
-    @httpHeader("Authorization")
-    authHeader: AuthHeader
-}
-
-structure GetArticleOutput {
-    @required
-    article: Article
-}
-
-structure ListFeedArticleInput {
-    @httpQuery("limit")
-    limit: Limit = 10
-    @httpQuery("skip")
-    skip: Skip = 0
-    @required
-    @httpHeader("Authorization")
-    authHeader: AuthHeader
-}
-
-structure ListFeedArticleOutput {
-    @required
-    articlesCount: Total
-    @required
-    articles: ArticleList
-}
-
-structure ListArticleInput {
-    @httpQuery("tag")
-    tag: TagName
-    @httpQuery("author")
-    author: Username
-    @httpQuery("favorited")
-    favorited: Username
-    @httpQuery("limit")
-    limit: Limit = 10
-    @httpQuery("skip")
-    skip: Skip = 0
-    @httpHeader("Authorization")
-    authHeader: AuthHeader
-}
-
-structure ListArticleOutput {
-    @required
-    articlesCount: Total
-    @required
-    articles: ArticleList
 }
 
 list ArticleList {
@@ -247,22 +193,16 @@ structure Article {
 }
 
 // NEW TYPE
-@length(min: 1)
 string TagName
 
-@length(min: 1)
 string Slug
 
-@length(min: 1)
 string Title
 
-@length(min: 1)
 string Description
 
-@length(min: 1)
 string Body
 
-@range(min: 0)
 integer FavoritesCount
 
 list TagList {

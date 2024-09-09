@@ -77,7 +77,10 @@ operation UpdateUser {
 @http(method: "GET", uri: "/api/profiles/{username}", code: 200)
 @auth([])
 operation GetProfile {
-    input := with [UsernameLabelMixin, AuthHeaderMixin] {}
+    input := with [UsernameLabelMixin] {
+        @httpHeader("Authorization")
+        auth: AuthHeader
+    }
     output := with [ProfileMixin] {}
     errors: [NotFoundError]
 }
