@@ -2,12 +2,12 @@ package realworld.routes
 
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.api.L
-import io.circe.*
 import realworld.spec.Username
 import realworld.codec.given
 import realworld.spec.Slug
 
-sealed trait Page derives Codec.AsObject
+import upickle.default.*
+sealed trait Page derives ReadWriter
 object Page:
   case object Home                           extends Page
   case object Login                          extends Page

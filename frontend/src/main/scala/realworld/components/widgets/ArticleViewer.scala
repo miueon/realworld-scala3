@@ -5,19 +5,20 @@ import com.raquo.airstream.state.StrictSignal
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import org.scalajs.dom.HTMLElement
+import realworld.AppState
+import realworld.api.*
 import realworld.components.ComponentSeq
 import realworld.routes.JsRouter
 import realworld.routes.Page
 import realworld.spec.Article
 import realworld.spec.Slug
 import realworld.spec.TagName
-import realworld.AppState
-import realworld.api.Api
+import utils.Utils
+
 import scala.util.Failure
 import scala.util.Success
 
 import concurrent.ExecutionContext.Implicits.global
-import utils.Utils
 case class ArticleViewrState(
     articlePreviews: Option[List[Article]],
     currentPage: Int,
@@ -56,10 +57,10 @@ final case class ArticleViewer(
       isSubmittingVar.set(true)
       state.authHeader.fold(JsRouter.redirectTo(Page.Login))(authHeader =>
         if a.favorited then
-          api.future(_.articles.unfavoriteArticle(a.slug, authHeader).map(_.article))
+          api.promise(_.articlePromise.unfavoriteArticle(authHeader, a.slug).map(_.article))
         else
           api
-            .future(_.articles.favoriteArticle(a.slug, authHeader).map(_.article))
+            .promise(_.articlePromise.favoriteArticle(authHeader, a.slug).map(_.article))
             .onComplete {
               case Failure(_) => JsRouter.redirectTo(Page.Login)
               case Success(article) =>

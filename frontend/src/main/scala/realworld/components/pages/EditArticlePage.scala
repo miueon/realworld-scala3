@@ -3,7 +3,7 @@ package realworld.components.pages
 import com.raquo.airstream.core.Signal
 import com.raquo.laminar.api.L.*
 import realworld.AppState
-import realworld.api.Api
+import realworld.api.*
 import realworld.components.Component
 import realworld.components.widgets.ArticleEditor
 import realworld.routes.JsRouter
@@ -14,7 +14,7 @@ import realworld.spec.UpdateArticleData
 import realworld.spec.UpdateArticleOutput
 import realworld.types.ArticleForm
 import realworld.types.validation.GenericError
-import utils.Utils.some
+import utils.Utils.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Failure
@@ -32,21 +32,20 @@ final case class EditArticlePage(s_page: Signal[Page.EditArticlePage])(using
     state.authHeader.fold(JsRouter.redirectTo(Page.Login))(authHeader =>
       isSubmittingVar.set(true)
       api
-        .future(
-          _.articles
+        .promise(
+          _.articlePromise
             .updateArticle(
+              authHeader,
               articleVar.now().get.slug,
-              UpdateArticleData(tagList, title.some, description.some, body.some),
-              authHeader
-            )
-            .attempt
+              UpdateArticleData(tagList, title.some, description.some, body.some)
+            ).attempt
         )
         .collect {
           case Left(UnprocessableEntity(Some(e))) =>
-            Var.set(
-              isSubmittingVar -> false,
-              errors          -> e
-            )
+              Var.set(
+                isSubmittingVar -> false,
+                errors          -> e
+              )
           case Right(UpdateArticleOutput(article)) =>
             JsRouter.redirectTo(Page.ArticleDetailPage(article.slug))
         }
@@ -54,8 +53,8 @@ final case class EditArticlePage(s_page: Signal[Page.EditArticlePage])(using
   }
 
   val onLoad = s_page.flatMap { case Page.EditArticlePage(slug) =>
-    api.stream(
-      _.articles.getArticle(slug).map(_.article)
+    api.promiseStream(
+      _.articlePromise.getArticle(slug).map(_.article)
     )
   }.recoverToTry --> Observer[Try[Article]]:
     case Failure(exception) => JsRouter.redirectTo(Page.Home)

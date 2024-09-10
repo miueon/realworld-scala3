@@ -3,32 +3,31 @@ package realworld.components.pages
 import com.raquo.laminar.api.L.*
 import monocle.syntax.all.*
 import realworld.AppState
+import realworld.AuthEvent
+import realworld.AuthState
+import realworld.api.*
+import realworld.authenticatedOnly
 import realworld.components.Component
 import realworld.components.widgets.ContainerPage
 import realworld.components.widgets.GenericForm
+import realworld.routes.JsRouter
+import realworld.routes.Page
 import realworld.spec.Bio
 import realworld.spec.Email
 import realworld.spec.ImageUrl
+import realworld.spec.UnprocessableEntity
+import realworld.spec.UpdateUserData
+import realworld.spec.UpdateUserOutput
 import realworld.spec.Username
-import realworld.types.UserSettings
-import realworld.types.validation.GenericError
-import utils.Utils.some
-import utils.Utils.writerOptNTF
+import realworld.types.FieldType
 import realworld.types.GenericFormField
 import realworld.types.InputType
-import realworld.types.FieldType
-import realworld.AuthEvent
-import realworld.routes.JsRouter
-import realworld.routes.Page
-import realworld.api.Api
-import realworld.spec.UpdateUserData
-import realworld.spec.UnprocessableEntity
-import realworld.spec.UpdateUserOutput
+import realworld.types.UserSettings
+import realworld.types.validation.GenericError
+import utils.Utils.*
+import utils.Utils.toAuthHeader
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import realworld.authenticatedOnly
-import realworld.AuthState
-import utils.Utils.toAuthHeader
 final case class Settings()(using state: AppState, api: Api) extends Component:
   val userSettings =
     Var(
@@ -46,8 +45,8 @@ final case class Settings()(using state: AppState, api: Api) extends Component:
       isUpdating.set(true)
       state.authHeader.fold(JsRouter.redirectTo(Page.Home))(authHeader =>
         api
-          .future(
-            _.users
+          .promise(
+            _.userPromise
               .updateUser(authHeader, UpdateUserData(email, username, password, bio, image))
               .attempt
           )

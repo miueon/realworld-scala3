@@ -3,14 +3,18 @@ package utils
 import com.raquo.airstream.core.Observer
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import org.scalajs.dom
-
-import scala.scalajs.js
 import monocle.Lens
-import smithy4s.Newtype
-import realworld.spec.Token
+import org.scalajs.dom
 import realworld.spec.AuthHeader
 import realworld.spec.Skip
+import realworld.spec.Token
+import smithy4s.Newtype
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.Future
+import scala.scalajs.js
+import scala.util.Failure
+import scala.util.Success
 
 object Utils:
 
@@ -29,6 +33,12 @@ object Utils:
   extension [A](a: A)
     def some: Some[A] = Some(a)
     def toSignal      = Signal.fromValue(a)
+
+  extension [A](fa: Future[A])
+    def attempt(using ec: ExecutionContext) = fa.transform{
+      case Success(result) => Success(Right(result))
+      case Failure(exception) => Success(Left(exception))
+    }
 
   extension (a: HtmlElement) def toList = List(a)
 

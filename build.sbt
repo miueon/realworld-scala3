@@ -37,6 +37,8 @@ val Versions = new {
   val macroTaskExecutor = "1.1.1"
   val cats              = "2.10.0"
   val password4j        = "1.7.3"
+  val borer             = "1.14.0"
+  val upickle           = "4.0.1"
 }
 
 val Config = new {
@@ -134,7 +136,8 @@ lazy val backend = projectMatrix
     libraryDependencies ++= iron,
     libraryDependencies ++=
       Seq(
-        "com.dimafeng" %% "testcontainers-scala-postgresql" % Versions.TestContainers,
+        "org.typelevel" %% "cats-core"                       % Versions.cats,
+        "com.dimafeng"  %% "testcontainers-scala-postgresql" % Versions.TestContainers,
         "com.indoorvivants.playwright" %% "weaver"              % Versions.WeaverPlaywright,
         "com.disneystreaming"          %% "weaver-cats"         % Versions.Weaver,
         "com.disneystreaming"          %% "weaver-scalacheck"   % Versions.Weaver,
@@ -147,7 +150,7 @@ lazy val backend = projectMatrix
       ).map(_ % Test),
     testFrameworks += new TestFramework("weaver.framework.CatsEffect"),
     Test / fork          := true,
-    Test / baseDirectory := (ThisBuild / baseDirectory).value,
+    Test / baseDirectory := (ThisBuild / baseDirectory).value
     // Test / resourceGenerators += {
     //   Def.task[Seq[File]] {
     //     copyAll(
@@ -165,10 +168,7 @@ lazy val shared = projectMatrix
   .enablePlugins(Smithy4sCodegenPlugin)
   .settings(
     libraryDependencies ++= Seq(
-      "com.disneystreaming.smithy4s" %%% "smithy4s-http4s" % smithy4sVersion.value,
-      "org.typelevel"                %%% "cats-core"       % Versions.cats,
-      "io.circe"                     %%% "circe-core"      % Versions.circe,
-      "io.circe"                     %%% "circe-parser"    % Versions.circe
+      "com.disneystreaming.smithy4s" %%% "smithy4s-core" % smithy4sVersion.value
     ),
     Compile / doc / sources := Seq.empty
   )
@@ -198,13 +198,13 @@ lazy val frontend = projectMatrix
     libraryDependencies ++= Seq(
       ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
         .cross(CrossVersion.for3Use2_13),
-      "dev.optics" %%% "monocle-core" % Versions.monocle,
-      "com.raquo"  %%% "waypoint"     % Versions.waypoint,
-      // "com.github.japgolly.scalacss" %%% "core"                        % Versions.scalacss,
+      "dev.optics"   %%% "monocle-core"                % Versions.monocle,
+      "com.raquo"    %%% "waypoint"                    % Versions.waypoint,
       "com.raquo"    %%% "laminar"                     % Versions.Laminar,
-      "org.http4s"   %%% "http4s-dom"                  % Versions.http4sDom,
       "org.scala-js" %%% "scala-js-macrotask-executor" % Versions.macroTaskExecutor,
-      "io.laminext"  %%% "validation-cats"             % "0.15.0"
+      "io.laminext"  %%% "validation-cats"             % "0.15.0",
+      "tech.neander" %%% "smithy4s-fetch"              % "0.0.4",
+      "com.lihaoyi"  %%% "upickle"                     % Versions.upickle
     ),
     watchSources := watchSources.value.filterNot { source =>
       source.base.getName.endsWith(".less") || source.base.getName.endsWith(".css")
@@ -236,9 +236,9 @@ lazy val isRelease = sys.env.get("RELEASE").contains("yesh")
 val buildFrontend = taskKey[Unit]("Build frontend")
 
 buildFrontend := {
-  def frontendProj = frontend.finder(VirtualAxis.js)(Versions.Scala)
+  def frontendProj    = frontend.finder(VirtualAxis.js)(Versions.Scala)
   val frontendDirPath = frontend.base.getAbsolutePath()
-  val appDirPath = app.base.getAbsolutePath()
+  val appDirPath      = app.base.getAbsolutePath()
   (frontendProj / Compile / fullLinkJS).value
 
   // Install JS dependencies from package-lock.json
@@ -259,7 +259,9 @@ buildFrontend := {
   )
 }
 
-(app.finder(VirtualAxis.jvm)(Versions.Scala) / Docker / publishLocal) := (app.finder(VirtualAxis.jvm)(Versions.Scala) / Docker / publishLocal).dependsOn(buildFrontend).value
+(app.finder(VirtualAxis.jvm)(Versions.Scala) / Docker / publishLocal) := (app.finder(
+  VirtualAxis.jvm
+)(Versions.Scala) / Docker / publishLocal).dependsOn(buildFrontend).value
 
 addCommandAlias("publishDocker", "app/Docker/publishLocal")
 addCommandAlias("stubTests", "backend/testOnly jobby.tests.stub.*")
@@ -276,7 +278,6 @@ addCommandAlias(
   "frontendTests",
   "backend/testOnly jobby.tests.frontend.*"
 )
-
 
 ThisBuild / concurrentRestrictions ++= {
   if (sys.env.contains("CI")) {

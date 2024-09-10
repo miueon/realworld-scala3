@@ -3,21 +3,18 @@ package realworld.routes
 import com.raquo.laminar.api.L.*
 import com.raquo.waypoint
 import com.raquo.waypoint.*
-import io.circe.*
-import io.circe.syntax.*
 import org.scalajs.dom
 
-import scala.scalajs.js.JSON
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
+import upickle.default.*
 object JsRouter
     extends waypoint.Router[Page](
       routes = routes,
       getPageTitle = { case _ => "Conduit" },
-      serializePage = pg => pg.asJson.noSpaces,
-      deserializePage = str =>
-        io.circe.scalajs.decodeJs[Page](JSON.parse(str)).fold(throw _, identity)
+      serializePage = pg => write(pg),
+      deserializePage = str => read[Page](str)
     )(popStateEvents = windowEvents(_.onPopState), owner = unsafeWindowOwner):
   export Page.*
 

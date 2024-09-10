@@ -2,7 +2,7 @@ package realworld.components.pages
 
 import com.raquo.laminar.api.L.*
 import realworld.AppState
-import realworld.api.Api
+import realworld.api.*
 import realworld.components.Component
 import realworld.components.widgets.ArticleEditor
 import realworld.routes.JsRouter
@@ -12,6 +12,7 @@ import realworld.spec.CreateArticleOutput
 import realworld.spec.UnprocessableEntity
 import realworld.types.ArticleForm
 import realworld.types.validation.GenericError
+import utils.Utils.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
 final case class NewArticle()(using state: AppState, api: Api) extends Component:
@@ -21,9 +22,9 @@ final case class NewArticle()(using state: AppState, api: Api) extends Component
     state.authHeader.fold(JsRouter.redirectTo(Page.Login))(authHeader =>
       isSubmittingVar.set(true)
       api
-        .future(
-          _.articles
-            .createArticle(CreateArticleData(title, desc, body, tagList), authHeader)
+        .promise(
+          _.articlePromise
+            .createArticle(authHeader, CreateArticleData(title, desc, body, tagList))
             .attempt
         )
         .collect {

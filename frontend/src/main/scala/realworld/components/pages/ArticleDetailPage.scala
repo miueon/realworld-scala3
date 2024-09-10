@@ -9,7 +9,7 @@ import org.scalajs.dom.HTMLButtonElement
 import org.scalajs.dom.HTMLElement
 import org.scalajs.dom.MouseEvent
 import realworld.AppState
-import realworld.api.Api
+import realworld.api.*
 import realworld.components.Component
 import realworld.components.widgets.TagListWidget
 import realworld.routes.JsRouter
@@ -25,6 +25,8 @@ import utils.Utils
 import utils.Utils.classTupleToClassName
 import utils.Utils.some
 import utils.Utils.someWriterF
+import utils.Utils.toList
+import utils.Utils.toSignal
 import utils.Utils.writerF
 
 import scala.util.Failure
@@ -32,8 +34,6 @@ import scala.util.Success
 import scala.util.Try
 
 import concurrent.ExecutionContext.Implicits.global
-import utils.Utils.toSignal
-import utils.Utils.toList
 
 case class CommentSectionState(
     comments: Option[List[CommentView]] = None,
@@ -61,20 +61,20 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
 
   private val deleteCommentObserver = Observer[(Slug, CommentId)]: (slug, cid) =>
     api
-      .future(a =>
+      .promise(a =>
         for
-          _ <- a.comments.deleteComment(slug, cid, state.authHeader.get)
-          listCommentResult <- a.comments
+          _ <- a.commentPromise.deleteComment(slug, cid, state.authHeader.get)
+          listCommentResult <- a.commentPromise
             .listComments(slug, state.authHeader.get.some)
         yield listCommentResult.comments
       )
       .collect { case comments => commentsWriter.onNext(comments.some) }
 
   private val onLoad = s_page.flatMap { case Page.ArticleDetailPage(slug) =>
-    api.stream(a =>
+    api.promiseStream(a =>
       for
-        articleOutput  <- a.articles.getArticle(slug, state.authHeader)
-        commentsOutput <- a.comments.listComments(slug, state.authHeader)
+        articleOutput  <- a.articlePromise.getArticle(slug, state.authHeader)
+        commentsOutput <- a.commentPromise.listComments(slug, state.authHeader)
       yield (articleOutput.article, commentsOutput.comments)
     )
   }.recoverToTry --> Observer[Try[(Article, List[CommentView])]]:
@@ -150,7 +150,7 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
           metaSectionVar.update(_.copy(deletingArticle = true))
           state.authHeader.collect { case header =>
             api
-              .future(_.articles.deleteArticle(slug = article.slug, authHeader = header))
+              .promise(_.articlePromise.deleteArticle(auth = header, slug = article.slug))
               .onComplete {
                 case Failure(exception) => JsRouter.redirectTo(Page.Login)
                 case Success(value)     => JsRouter.redirectTo(Page.Home)
@@ -172,10 +172,10 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
       state.authHeader.fold(JsRouter.redirectTo(Page.Register)) { case header =>
         metaSectionVar.update(_.copy(submittingFollow = true))
         api
-          .future(a =>
+          .promise(a =>
             if followingVar.now() then
-              a.users.unfollowUser(article.author.username, header).map(_.profile)
-            else a.users.followUser(article.author.username, header).map(_.profile)
+              a.userPromise.unfollowUser(article.author.username, header).map(_.profile)
+            else a.userPromise.followUser(article.author.username, header).map(_.profile)
           )
           .onComplete {
             case Failure(exception) => JsRouter.redirectTo(Page.Login)
@@ -189,10 +189,10 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
       state.authHeader.fold(JsRouter.redirectTo(Page.Register)) { case header =>
         metaSectionVar.update(_.copy(submittingFavorite = true))
         api
-          .future(a =>
+          .promise(a =>
             if favoritedVar.now() then
-              a.articles.unfavoriteArticle(article.slug, header).map(_.article)
-            else a.articles.favoriteArticle(article.slug, header).map(_.article)
+              a.articlePromise.unfavoriteArticle(header, article.slug).map(_.article)
+            else a.articlePromise.favoriteArticle(header, article.slug).map(_.article)
           )
           .onComplete {
             case Failure(exception) => JsRouter.redirectTo(Page.Login)
@@ -350,16 +350,16 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
           commentSubmittingWriter.onNext(true)
           state.authHeader.fold(JsRouter.redirectTo(Page.Login))(authHeader =>
             api
-              .future(a =>
+              .promise(a =>
                 val slug = articleVar.now().get.slug
                 for
-                  _ <- a.comments
+                  _ <- a.commentPromise
                     .createComment(
                       slug,
                       CreateCommentData(CommentBody(comment)),
                       authHeader
                     )
-                  listCommentsResult <- a.comments.listComments(slug, authHeader.some)
+                  listCommentsResult <- a.commentPromise.listComments(slug, authHeader.some)
                 yield listCommentsResult.comments
               )
               .collect { comments =>

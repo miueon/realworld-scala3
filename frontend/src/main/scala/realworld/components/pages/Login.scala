@@ -9,6 +9,7 @@ import realworld.api.Api
 import realworld.components.Component
 import realworld.components.widgets.ContainerPage
 import realworld.components.widgets.GenericForm
+import realworld.guestOnly
 import realworld.routes.JsRouter.*
 import realworld.routes.Page
 import realworld.spec.Email
@@ -21,11 +22,12 @@ import realworld.types.GenericFormField
 import realworld.types.InputType
 import realworld.types.LoginCredential
 import realworld.types.validation.GenericError
+import utils.Utils.attempt
+import utils.Utils.toAuthHeader
 import utils.Utils.writerNTF
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import realworld.guestOnly
-import utils.Utils.toAuthHeader
+import scala.scalajs.js.Thenable.Implicits.thenable2future
 
 final case class Login()(using api: Api, state: AppState) extends Component:
   val credential: Var[LoginCredential] = Var(LoginCredential(Email(""), Password("")))
@@ -34,8 +36,8 @@ final case class Login()(using api: Api, state: AppState) extends Component:
   val errors: Var[GenericError]        = Var(Map())
   val handler = Observer[LoginCredential] { case LoginCredential(email, password) =>
     api
-      .future(
-        _.users
+      .promise(
+        _.userPromise
           .loginUser(
             LoginUserInputData(
               email,

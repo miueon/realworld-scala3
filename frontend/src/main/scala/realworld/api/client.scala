@@ -1,51 +1,47 @@
 package realworld.api
 
-import cats.effect.IO
-import cats.effect.unsafe.implicits.global
 import com.raquo.airstream.core.EventStream as LaminarStream
-import org.http4s.Uri
-import org.http4s.dom.FetchClientBuilder
 import org.scalajs.dom
 import realworld.spec.ArticleService
 import realworld.spec.CommentService
 import realworld.spec.TagService
 import realworld.spec.UserService
 import smithy4s.Service
-import smithy4s.http4s.*
 
 import scala.concurrent.Future
+import smithy4s_fetch.*
+import scala.scalajs.js.Promise
+
+export scala.scalajs.js.Thenable.Implicits.thenable2future
+
 class Api private (
-    val articles: ArticleService[IO],
-    val tags: TagService[IO],
-    val users: UserService[IO],
-    val comments: CommentService[IO]
+    val articlePromise: ArticleService[Promise],
+    val tagPromise: TagService[Promise],
+    val userPromise: UserService[Promise],
+    val commentPromise: CommentService[Promise]
 ):
   import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits.*
-  def future[A](a: Api => IO[A]): Future[A] =
-    a(this).unsafeToFuture()
+  def promise[A](a: Api => Future[A]): Future[A] =
+    a(this)
 
-  def stream[A](a: Api => IO[A]): LaminarStream[A] =
-    LaminarStream.fromFuture(future(a))
+  def promiseStream[A](a: Api => Future[A]): LaminarStream[A] =
+    LaminarStream.fromFuture(a(this))
 end Api
 
 object Api:
-  def create(location: String = dom.window.location.origin.get) =
-    val uri = Uri.unsafeFromString(location)
+  def create(location: String = dom.window.location.origin) =
 
-    val client = FetchClientBuilder[IO].create
+    def simpleRestJsonFetchGen[Alg[_[_, _, _, _, _]]](service: Service[Alg]) =
+      SimpleRestJsonFetchClient(
+        service,
+        location
+      ).make
 
-    def simpleServiceGen[Alg[_[_, _, _, _, _]]](service: Service[Alg]) =
-      SimpleRestJsonBuilder(service)
-        .client(client)
-        .uri(uri)
-        .make
-        .fold(throw _, identity)
+    val articlePromise = simpleRestJsonFetchGen(ArticleService)
+    val tagPromise     = simpleRestJsonFetchGen(TagService)
+    val userPromise    = simpleRestJsonFetchGen(UserService)
+    val commentPromise = simpleRestJsonFetchGen(CommentService)
 
-    val articles = simpleServiceGen(ArticleService)
-    val tags     = simpleServiceGen(TagService)
-    val users    = simpleServiceGen(UserService)
-    val comments = simpleServiceGen(CommentService)
-
-    Api(articles, tags, users, comments)
+    Api(articlePromise, tagPromise, userPromise, commentPromise)
   end create
 end Api

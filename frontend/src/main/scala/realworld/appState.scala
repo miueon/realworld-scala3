@@ -1,13 +1,15 @@
 package realworld
 
-import cats.effect.*
 import com.raquo.laminar.api.L.*
 import org.scalajs.dom
-import realworld.api.Api
+import realworld.api.*
 import realworld.spec.AuthHeader
 import realworld.spec.Token
 import realworld.spec.User
-import utils.Utils.some
+import utils.Utils.*
+
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 
 enum AuthState:
   case Unauthenticated
@@ -51,9 +53,9 @@ class AuthStateWatcher(bus: EventBus[AuthEvent])(using state: AppState, api: Api
       .flatMap {
         case (AuthEvent.Load, None) =>
           val header = loadAuthHeader
-          api.stream(_.users.getUser(header).attempt.flatMap {
-            case Left(_)      => IO.pure(AuthState.Unauthenticated.some)
-            case Right(value) => IO.pure(AuthState.Token(header, value.user).some)
+          api.promiseStream(_.userPromise.getUser(header).attempt.flatMap {
+            case Left(_)      => Future.successful(AuthState.Unauthenticated.some)
+            case Right(value) => Future.successful(AuthState.Token(header, value.user).some)
           })
         case (AuthEvent.Load, s) => EventStream.fromValue(s)
         case (AuthEvent.Force(s), _) =>

@@ -5,10 +5,11 @@ import monocle.syntax.all.*
 import realworld.AppState
 import realworld.AuthEvent
 import realworld.AuthState
-import realworld.api.Api
+import realworld.api.*
 import realworld.components.Component
 import realworld.components.widgets.ContainerPage
 import realworld.components.widgets.GenericForm
+import realworld.guestOnly
 import realworld.routes.JsRouter.*
 import realworld.routes.Page
 import realworld.spec.Email
@@ -21,11 +22,10 @@ import realworld.types.GenericFormField
 import realworld.types.InputType
 import realworld.types.RegisterCredential
 import realworld.types.validation.GenericError
-import utils.Utils.writerNTF
+import utils.Utils.*
+import utils.Utils.toAuthHeader
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import realworld.guestOnly
-import utils.Utils.toAuthHeader
 final case class Register()(using api: Api, state: AppState) extends Component:
   val credential                = Var(RegisterCredential(Username(""), Email(""), Password("")))
   val usernameWriter            = credential.writerNTF(Username, _.focus(_.username).optic)
@@ -36,8 +36,8 @@ final case class Register()(using api: Api, state: AppState) extends Component:
   val handler = Observer[RegisterCredential] { case RegisterCredential(username, email, password) =>
     signingUp.set(true)
     api
-      .future(
-        _.users
+      .promise(
+        _.userPromise
           .registerUser(
             RegisterUserData(
               username,

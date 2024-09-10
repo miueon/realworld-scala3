@@ -3,7 +3,7 @@ import com.raquo.airstream.core.Signal
 import com.raquo.laminar.api.L.*
 import monocle.syntax.all.*
 import realworld.AppState
-import realworld.api.Api
+import realworld.api.*
 import realworld.components.Component
 import realworld.components.widgets.ArticleViewer
 import realworld.components.widgets.ArticleViewrState
@@ -22,13 +22,14 @@ import utils.Utils.some
 import utils.Utils.toArticleViewerSkip
 import utils.Utils.writerF
 
+import scala.concurrent.ExecutionContext.Implicits.global
 case class HomeState(
     articleList: ArticlePage = ArticlePage(),
     currentPage: Int = 1
 )
 
 final case class Home()(using api: Api, state: AppState) extends Component:
-  def tags = api.stream(_.tags.listTag().map(_.tags))
+  def tags = api.promiseStream(_.tagPromise.listTag().map(_.tags))
 
   val homeState: Var[HomeState] = Var(HomeState())
   val articlePageWriter         = homeState.writerF(_.focus(_.articleList).optic)
@@ -40,16 +41,16 @@ final case class Home()(using api: Api, state: AppState) extends Component:
     tab match
       case Tag(tag) =>
         api
-          .stream(
-            _.articles.listArticle(tag = tag.some, skip = skip, authHeader = state.authHeader)
+          .promiseStream(
+            _.articlePromise.listArticle(tag = tag.some, skip = skip, auth = state.authHeader)
           )
           .map(_.toPage)
       case Feed =>
         api
-          .stream(_.articles.listFeedArticle(state.authHeader.get, skip = skip))
+          .promiseStream(_.articlePromise.listFeedArticle(state.authHeader.get, skip = skip))
           .map(_.toPage)
       case GlobalFeed | _ =>
-        api.stream(_.articles.listArticle(skip = skip, authHeader = state.authHeader)).map(_.toPage)
+        api.promiseStream(_.articlePromise.listArticle(skip = skip, auth = state.authHeader)).map(_.toPage)
   val tabObserver = Observer[Tab] { tab =>
     tabVar.set(tab)
     homeState.set(HomeState())

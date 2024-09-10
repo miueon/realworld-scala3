@@ -2,31 +2,33 @@ package realworld.components.pages
 
 import com.raquo.airstream.core.Signal
 import com.raquo.laminar.api.L.*
+import com.raquo.laminar.nodes.ReactiveHtmlElement
 import monocle.syntax.all.*
 import org.scalajs.dom
 import realworld.AppState
-import realworld.api.Api
+import realworld.api.*
 import realworld.components.Component
 import realworld.components.widgets.ArticleViewer
 import realworld.components.widgets.ArticleViewrState
 import realworld.components.widgets.Favorited
 import realworld.components.widgets.MyArticle
 import realworld.components.widgets.Tab
+import realworld.components.widgets.UserInfo
+import realworld.routes.JsRouter
 import realworld.routes.Page
 import realworld.spec.Article
 import realworld.spec.Profile
 import realworld.spec.Skip
 import realworld.types.ArticlePage
+import realworld.types.ArticlePage.toPage
+import utils.Utils.some
 import utils.Utils.writerF
 
-import realworld.components.widgets.UserInfo
-import com.raquo.laminar.nodes.ReactiveHtmlElement
-import scala.util.Try
 import scala.util.Failure
 import scala.util.Success
-import realworld.routes.JsRouter
-import utils.Utils.some
-import realworld.types.ArticlePage.toPage
+import scala.util.Try
+
+import concurrent.ExecutionContext.Implicits.global
 case class ProfileArticlePage(
     articleList: ArticlePage = ArticlePage(),
     currentPage: Int = 1
@@ -53,22 +55,22 @@ final case class ProfilePage(s_profile: Signal[Page.ProfilePage])(using state: A
           case MyArticle =>
             setUrl(false)
             api
-              .stream(
-                _.articles.listArticle(
+              .promiseStream(
+                _.articlePromise.listArticle(
                   skip = skip,
+                  auth = state.authHeader,
                   author = profile.username.some,
-                  authHeader = state.authHeader
                 )
               )
               .map(_.toPage)
           case Favorited | _ =>
             setUrl(true)
             api
-              .stream(
-                _.articles.listArticle(
+              .promiseStream(
+                _.articlePromise.listArticle(
                   skip = skip,
+                  auth = state.authHeader,
                   favorited = profile.username.some,
-                  authHeader = state.authHeader
                 )
               )
               .map(_.toPage)
@@ -96,7 +98,7 @@ final case class ProfilePage(s_profile: Signal[Page.ProfilePage])(using state: A
       )
 
   val onLoad = s_profile.flatMap { case Page.ProfilePage(username) =>
-    api.stream(_.users.getProfile(username, state.authHeader).map(_.profile))
+    api.promiseStream(_.userPromise.getProfile(username, state.authHeader).map(_.profile))
   }.recoverToTry --> Observer[Try[Profile]]:
     case Failure(exception) => JsRouter.redirectTo(Page.Home)
     case Success(profile)   => profileVar.set(profile.some)

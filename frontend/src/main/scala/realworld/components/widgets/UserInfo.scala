@@ -1,20 +1,21 @@
 package realworld.components.widgets
 
 import com.raquo.laminar.api.L.*
+import monocle.syntax.all.*
+import org.scalajs.dom.MouseEvent
 import realworld.AppState
-import realworld.api.Api
+import realworld.api.*
 import realworld.components.Component
 import realworld.routes.JsRouter
 import realworld.routes.Page
 import realworld.spec.Profile
 import realworld.spec.Username
 import utils.Utils.writerF
-import monocle.syntax.all.*
-import org.scalajs.dom.MouseEvent
 
-import concurrent.ExecutionContext.Implicits.global
 import scala.util.Failure
 import scala.util.Success
+
+import concurrent.ExecutionContext.Implicits.global
 case class UserInfoState(
     isSubmitting: Boolean = false,
     isFollowing: Boolean = false,
@@ -43,10 +44,10 @@ final case class UserInfo(s_profile: Signal[Profile], profileObserver: Observer[
         isSubmittingWriter.onNext(true)
         val userInfoState = userInfoStateVar.now()
         if userInfoState.isFollowing then
-          api.future(_.users.unfollowUser(userInfoState.username, header).map(_.profile))
+          api.promise(_.userPromise.unfollowUser(userInfoState.username, header).map(_.profile))
         else
           api
-            .future(_.users.followUser(userInfoState.username, header).map(_.profile))
+            .promise(_.userPromise.followUser(userInfoState.username, header).map(_.profile))
         .onComplete {
           case Failure(exception) => JsRouter.redirectTo(Page.Login)
           case Success(profile) =>
