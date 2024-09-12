@@ -23,7 +23,6 @@ import realworld.spec.TagName
 import realworld.spec.Title
 import realworld.spec.UpdateArticleData
 import realworld.spec.UpdatedAt
-import realworld.spec.Username
 
 trait ArticleRepo[F[_]]:
   def list(

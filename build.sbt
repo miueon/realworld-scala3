@@ -167,7 +167,9 @@ lazy val shared = projectMatrix
   .jsPlatform(Seq(Versions.Scala))
   .enablePlugins(Smithy4sCodegenPlugin)
   .settings(
+    smithy4sWildcardArgument := "?",
     libraryDependencies ++= Seq(
+      "io.github.iltotore"           %%% "iron"          % Versions.iron,
       "com.disneystreaming.smithy4s" %%% "smithy4s-core" % smithy4sVersion.value
     ),
     Compile / doc / sources := Seq.empty

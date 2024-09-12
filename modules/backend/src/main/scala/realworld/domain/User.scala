@@ -2,8 +2,8 @@ package realworld.domain.user
 
 import cats.syntax.all.*
 import doobie.*
-import io.circe.Codec
-import realworld.domain.WithId
+import io.circe.*
+import realworld.domain.*
 import realworld.domain.metaOf
 import realworld.domain.types.IdNewtype
 import realworld.domain.types.Newtype
@@ -13,11 +13,14 @@ import realworld.spec.ImageUrl
 import realworld.spec.Profile
 import realworld.spec.Token
 import realworld.spec.User
-import realworld.spec.Username
 import realworld.codec.given
-
 import javax.crypto.Cipher
 import scala.util.control.NoStackTrace
+import realworld.types.Username
+import realworld.types.UsernameConstraint
+
+import io.github.iltotore.iron.*
+import io.github.iltotore.iron.constraint.all.*
 
 type UserId = UserId.Type
 object UserId extends IdNewtype
@@ -29,11 +32,12 @@ case class EncryptCipher(value: Cipher)
 case class DecryptCipher(value: Cipher)
 
 given Meta[Email]             = metaOf(Email)
-given Meta[Username]          = metaOf(Username)
+given Meta[Username]          = Meta[String].refined[UsernameConstraint].imap(Username(_))(_.value)
 given Meta[EncryptedPassword] = EncryptedPassword.derive
 given Meta[Bio]               = metaOf(Bio)
 given Meta[ImageUrl]          = metaOf(ImageUrl)
 
+given Codec[Username] = Codec.from(Decoder[String], Encoder[String]).refined[UsernameConstraint].imap(Username(_))(_.value)
 case class DBUser(
     email: Email,
     username: Username,

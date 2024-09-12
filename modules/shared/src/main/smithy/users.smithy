@@ -14,6 +14,8 @@ use realworld.spec#UnauthorizedError
 use realworld.spec#UnprocessableEntity
 use realworld.spec#nonEmptyString
 use smithy4s.meta#validateNewtype
+use smithy4s.meta#unwrap
+use smithy4s.meta#scalaImports
 // SERVICES
 
 @simpleRestJson
@@ -119,11 +121,13 @@ structure UsernameLabelMixin {
 }
 
 // STRUCTURES
+@scalaImports(["realworld.types.providers.given"])
 structure RegisterUserData {
     @required
     username: Username
     @required
     email: Email
+    @length(min: 1, max: 50)
     @required
     password: Password
 }
@@ -162,12 +166,15 @@ structure Profile {
     following: Boolean
 }
 
+@nonEmptyStringFormat
 string Password
 
 string Email
 
 string Token
 
+@UsernameFormat
+@unwrap
 string Username
 
 string Bio

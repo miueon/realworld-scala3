@@ -18,8 +18,8 @@ import realworld.domain.user.Users.password
 import realworld.spec.Email
 import realworld.spec.RegisterUserData
 import realworld.spec.UpdateUserData
-import realworld.spec.Username
 import doobie.free.connection.ConnectionIO
+import realworld.types.Username
 
 trait UserRepo[F[_]]:
   def findById(id: UserId): F[Option[WithId[UserId, DBUser]]]

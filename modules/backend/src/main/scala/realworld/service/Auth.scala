@@ -29,12 +29,12 @@ import realworld.domain.user.UserError
 import realworld.domain.WithId
 import realworld.spec.UpdateUserData
 import realworld.spec.Email
-import realworld.spec.Username
 
 import realworld.db.DoobieTx
 import realworld.repo.UserRepo
 import realworld.spec.CredentialsError
 import cats.data.EitherT
+import realworld.types.Username
 
 trait Auth[F[_]: Functor]:
   def login(user: LoginUserInputData): F[User]

@@ -246,7 +246,8 @@ object Articles:
             a.createdAt,
             a.updatedAt,
             Profile(
-              a.authorName,
+              // a.authorName.value,
+              ???,
               following,
               a.authorBio,
               a.authorImage

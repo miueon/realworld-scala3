@@ -23,7 +23,7 @@ import realworld.spec.TagName
 import realworld.spec.UnfavoriteArticleOutput
 import realworld.spec.UpdateArticleData
 import realworld.spec.UpdateArticleOutput
-import realworld.spec.Username
+import realworld.types.Username
 
 object ArticleServiceImpl:
   def make[F[_]: MonadCancelThrow: Logger](

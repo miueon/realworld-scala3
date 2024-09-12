@@ -9,8 +9,8 @@ import realworld.domain.user.UserId
 import realworld.repo.FollowerRepo
 import realworld.repo.UserRepo
 import realworld.spec.Profile
-import realworld.spec.Username
 import cats.data.EitherT
+import realworld.types.Username
 
 trait Profiles[F[_]]:
   def get(username: Username, uid: Option[UserId]): F[Profile]
