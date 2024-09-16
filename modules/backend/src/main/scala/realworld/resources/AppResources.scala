@@ -6,7 +6,6 @@ import cats.effect.kernel.Async
 import cats.effect.kernel.Resource
 import cats.effect.std.Console
 import cats.syntax.all.*
-
 import com.zaxxer.hikari.HikariConfig
 import dev.profunktor.redis4cats.Redis
 import dev.profunktor.redis4cats.RedisCommands
@@ -14,14 +13,13 @@ import dev.profunktor.redis4cats.effect.MkRedis
 import doobie.*
 import doobie.hikari.HikariTransactor
 import doobie.implicits.*
+import doobie.util.log.*
 import doobie.util.transactor.Transactor
 import org.flywaydb.core.Flyway
 import org.typelevel.log4cats.Logger
 import realworld.config.types.AppConfig
 import realworld.config.types.PostgresSQLConfig
 import realworld.config.types.RedisConfig
-import doobie.util.log.LogEvent
-import doobie.util.log.*
 
 sealed abstract class AppResources[F[_]](
     val redis: RedisCommands[F, String, String],

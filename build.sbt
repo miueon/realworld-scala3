@@ -21,7 +21,7 @@ val Versions = new {
   val log4cats          = "2.6.0"
   val http4sBlaze       = "0.23.14"
   val http4s            = "0.23.18"
-  val Scala             = "3.4.1"
+  val Scala             = "3.5.0"
   val http4sDom         = "0.2.7"
   val jwt               = "9.1.2"
   val Flyway            = "10.7.2"
@@ -170,6 +170,7 @@ lazy val shared = projectMatrix
     smithy4sWildcardArgument := "?",
     libraryDependencies ++= Seq(
       "io.github.iltotore"           %%% "iron"          % Versions.iron,
+      "io.github.iltotore"           %%% "iron-cats"     % Versions.iron,
       "com.disneystreaming.smithy4s" %%% "smithy4s-core" % smithy4sVersion.value
     ),
     Compile / doc / sources := Seq.empty
@@ -200,13 +201,14 @@ lazy val frontend = projectMatrix
     libraryDependencies ++= Seq(
       ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
         .cross(CrossVersion.for3Use2_13),
-      "dev.optics"   %%% "monocle-core"                % Versions.monocle,
-      "com.raquo"    %%% "waypoint"                    % Versions.waypoint,
-      "com.raquo"    %%% "laminar"                     % Versions.Laminar,
-      "org.scala-js" %%% "scala-js-macrotask-executor" % Versions.macroTaskExecutor,
-      "io.laminext"  %%% "validation-cats"             % "0.15.0",
-      "tech.neander" %%% "smithy4s-fetch"              % "0.0.4",
-      "com.lihaoyi"  %%% "upickle"                     % Versions.upickle
+      "dev.optics"         %%% "monocle-core"                % Versions.monocle,
+      "com.raquo"          %%% "waypoint"                    % Versions.waypoint,
+      "com.raquo"          %%% "laminar"                     % Versions.Laminar,
+      "org.scala-js"       %%% "scala-js-macrotask-executor" % Versions.macroTaskExecutor,
+      "io.laminext"        %%% "validation-cats"             % "0.15.0",
+      "tech.neander"       %%% "smithy4s-fetch"              % "0.0.4",
+      "com.lihaoyi"        %%% "upickle"                     % Versions.upickle,
+      "io.github.iltotore" %%% "iron-upickle"                % Versions.iron
     ),
     watchSources := watchSources.value.filterNot { source =>
       source.base.getName.endsWith(".less") || source.base.getName.endsWith(".css")

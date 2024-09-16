@@ -9,17 +9,17 @@ import realworld.components.Component
 import realworld.routes.JsRouter
 import realworld.routes.Page
 import realworld.spec.Profile
-import realworld.spec.Username
 import utils.Utils.writerF
 
 import scala.util.Failure
 import scala.util.Success
 
 import concurrent.ExecutionContext.Implicits.global
+import io.github.iltotore.iron.*
 case class UserInfoState(
     isSubmitting: Boolean = false,
     isFollowing: Boolean = false,
-    username: Username = Username("")
+    username: String = ""
 )
 final case class UserInfo(s_profile: Signal[Profile], profileObserver: Observer[Profile])(using
     state: AppState,
@@ -44,10 +44,10 @@ final case class UserInfo(s_profile: Signal[Profile], profileObserver: Observer[
         isSubmittingWriter.onNext(true)
         val userInfoState = userInfoStateVar.now()
         if userInfoState.isFollowing then
-          api.promise(_.userPromise.unfollowUser(userInfoState.username, header).map(_.profile))
+          api.promise(_.userPromise.unfollowUser(userInfoState.username.assume, header).map(_.profile))
         else
           api
-            .promise(_.userPromise.followUser(userInfoState.username, header).map(_.profile))
+            .promise(_.userPromise.followUser(userInfoState.username.assume, header).map(_.profile))
         .onComplete {
           case Failure(exception) => JsRouter.redirectTo(Page.Login)
           case Success(profile) =>
@@ -60,7 +60,7 @@ final case class UserInfo(s_profile: Signal[Profile], profileObserver: Observer[
       disabled <-- userInfoStateVar.signal.map(_.isSubmitting),
       i(
         cls := "ion-plus-round",
-        s" ${if userInfoStateVar.now().isFollowing then "Unfollow" else "Follow"} ${userInfoStateVar.now().username.value}"
+        s" ${if userInfoStateVar.now().isFollowing then "Unfollow" else "Follow"} ${userInfoStateVar.now().username}"
       ),
       onClick.preventDefault --> onFollowObserver
     )
@@ -77,7 +77,7 @@ final case class UserInfo(s_profile: Signal[Profile], profileObserver: Observer[
           div(
             cls := "col-xs-12 col-md-10 offset-md-1",
             img(cls := "user-img"),
-            h4(child.text <-- s_profile.map(_.username.value)),
+            h4(child.text <-- s_profile.map(_.username)),
             p(child.maybe <-- s_profile.map(_.bio.map(_.value))),
             child <-- s_profile.splitOne(_.username)((username, _, _) => {
               if state.user.map(_.username == username).getOrElse(false) then

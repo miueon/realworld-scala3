@@ -16,6 +16,12 @@ import scala.scalajs.js
 import scala.util.Failure
 import scala.util.Success
 
+import cats.data.EitherNec
+import cats.syntax.all.*
+import realworld.spec.UnprocessableEntity
+import realworld.validation.InvalidField
+import io.github.iltotore.iron.*
+import io.github.iltotore.iron.Constraint
 object Utils:
 
   /** Marks the otherwise-unused import as "used" in Scala.js, preventing dead code elimination.
@@ -35,10 +41,20 @@ object Utils:
     def toSignal      = Signal.fromValue(a)
 
   extension [A](fa: Future[A])
-    def attempt(using ec: ExecutionContext) = fa.transform{
-      case Success(result) => Success(Right(result))
+    def attempt(using ec: ExecutionContext) = fa.transform {
+      case Success(result)    => Success(Right(result))
       case Failure(exception) => Success(Left(exception))
     }
+
+  extension [A](ev: EitherNec[InvalidField, A])
+    def toUnprocessable =
+      ev.leftMap(es => UnprocessableEntity(es.map(e => e.field -> List(e.error)).toList.toMap.some))
+
+  extension [A](v: A)
+    inline def refineEntity[C](mkInvalidField: String => InvalidField)(using
+        inline constraint: Constraint[A, C]
+    ): EitherNec[InvalidField, A :| C] =
+      v.refineEither[C].toEitherNec.leftMap(e => e.map(mkInvalidField(_)))
 
   extension (a: HtmlElement) def toList = List(a)
 
@@ -97,6 +113,12 @@ object Utils:
         val lens = f(state)
         val v    = nt.apply(cur)
         lens.replace(v.some)(state)
+      }
+
+    def writerOptF(f: A => Lens[A, Option[T]]) =
+      sv.updater[T] { case (state, cur) =>
+        val lens = f(state)
+        lens.replace(cur.some)(state)
       }
 
     def controlledNTF(nt: Newtype[String], f: A => Lens[A, nt.Type]) =

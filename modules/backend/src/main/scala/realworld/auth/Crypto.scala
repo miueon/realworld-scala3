@@ -3,13 +3,11 @@ package realworld.auth
 
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
-
-import realworld.config.types.PasswordSalt
-import realworld.domain.user.EncryptedPassword
-import realworld.spec.Password
 import com.password4j.Argon2Function
 import com.password4j.Password as pswd
-import realworld.spec
+import realworld.config.types.PasswordSalt
+import realworld.domain.user.EncryptedPassword
+import realworld.types.Password
 
 trait Crypto:
   def encrypt(value: Password): EncryptedPassword
@@ -38,13 +36,13 @@ object Crypto:
     Sync[F].delay {
       new Crypto:
         def encrypt(value: Password): EncryptedPassword =
-          EncryptedPassword(pswd.hash(value.value).`with`(Argon2).getResult())
+          EncryptedPassword(pswd.hash(value).`with`(Argon2).getResult())
 
         def verifyPassword(
-            password: realworld.spec.Password,
+            password: Password,
             encryptedPassword: EncryptedPassword
         ): Boolean =
-          pswd.check(password.value, encryptedPassword.value) `with` Argon2
+          pswd.check(password, encryptedPassword.value) `with` Argon2
     }
 
 end Crypto

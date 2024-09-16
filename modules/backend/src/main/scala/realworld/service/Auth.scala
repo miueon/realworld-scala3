@@ -28,13 +28,13 @@ import realworld.spec.User
 import realworld.domain.user.UserError
 import realworld.domain.WithId
 import realworld.spec.UpdateUserData
-import realworld.spec.Email
 
 import realworld.db.DoobieTx
 import realworld.repo.UserRepo
 import realworld.spec.CredentialsError
 import cats.data.EitherT
 import realworld.types.Username
+import realworld.types.Email
 
 trait Auth[F[_]: Functor]:
   def login(user: LoginUserInputData): F[User]
@@ -66,7 +66,7 @@ object Auth:
               UserError.UserPasswordNotMatched().raiseError[F, User]
             case Some(WithId(uid, dbUser)) =>
               redis
-                .get(user.email.value)
+                .get(user.email)
                 .flatMap:
                   case Some(t) =>
                     dbUser.toUser(Token(t).some).pure[F]
@@ -82,7 +82,7 @@ object Auth:
                           TokenExpiration
                         ) *>
                           redis.setEx(
-                            user.email.value,
+                            user.email,
                             token,
                             TokenExpiration
                           )
@@ -108,7 +108,7 @@ object Auth:
                   ).asJson.noSpaces,
                   TokenExpiration
                 )
-                _ <- redis.setEx(user.email.value, jwt.value, TokenExpiration)
+                _ <- redis.setEx(user.email, jwt.value, TokenExpiration)
               yield User(
                 email = user.email,
                 username = user.username,
@@ -157,7 +157,7 @@ object Auth:
           }
           session = userSession.copy(user = row.entity.toUser(userSession.user.token))
           _ <- redis.setEx(token, session.asJson.noSpaces, TokenExpiration)
-          _ <- redis.setEx(row.entity.email.value, token , TokenExpiration)
+          _ <- redis.setEx(row.entity.email, token , TokenExpiration)
         yield session
       end update
 

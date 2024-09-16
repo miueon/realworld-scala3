@@ -4,12 +4,10 @@ import cats.Functor
 import cats.data.NonEmptyList
 import cats.effect.*
 import cats.syntax.all.*
-
 import doobie.*
 import doobie.implicits.*
 import doobie.util.transactor.Transactor
 import realworld.domain.follower.Follower
-import realworld.domain.follower.Followers.followerId
 import realworld.domain.user.UserId
 
 trait FollowerRepo[F[_]: Functor]:

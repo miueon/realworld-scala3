@@ -9,10 +9,8 @@ namespace realworld.spec
 
 use alloy#simpleRestJson
 use alloy#uuidFormat
-use alloy.common#emailFormat
 use realworld.spec#UnauthorizedError
 use realworld.spec#UnprocessableEntity
-use realworld.spec#nonEmptyString
 use smithy4s.meta#validateNewtype
 use smithy4s.meta#unwrap
 use smithy4s.meta#scalaImports
@@ -121,13 +119,11 @@ structure UsernameLabelMixin {
 }
 
 // STRUCTURES
-@scalaImports(["realworld.types.providers.given"])
 structure RegisterUserData {
     @required
     username: Username
     @required
     email: Email
-    @length(min: 1, max: 50)
     @required
     password: Password
 }
@@ -166,9 +162,12 @@ structure Profile {
     following: Boolean
 }
 
-@nonEmptyStringFormat
+@PasswordFormat
+@unwrap
 string Password
 
+@EmailFormat
+@unwrap
 string Email
 
 string Token

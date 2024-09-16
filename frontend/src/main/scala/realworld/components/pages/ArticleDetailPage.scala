@@ -217,7 +217,7 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
         child.text <-- s_following
           .combineWith(s_article)
           .map((following, article) =>
-            s" ${if following then "Unfollow" else "Follow"} ${article.author.username.value}"
+            s" ${if following then "Unfollow" else "Follow"} ${article.author.username}"
           ),
         onClick.preventDefault --> onFollowObserver
       ),
@@ -303,7 +303,7 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
         a(
           cls := "comment-author",
           JsRouter.navigateTo(Page.ProfilePage(comment.author.username)),
-          comment.author.username.value
+          comment.author.username
         ),
         span(cls := "date-posted", formatMod.format(comment.createdAt.value.toDate, "PP")),
         state.user match

@@ -20,6 +20,8 @@ import realworld.http.UserServiceImpl
 import realworld.service.Auth
 import smithy4s.http4s.SimpleRestJsonBuilder
 import java.nio.file.Paths
+import realworld.spec.UnprocessableEntity
+import smithy4s.http.HttpPayloadError
 
 def HttpApi[F[_]: Async: Logger](
     config: AppConfig,
@@ -46,14 +48,30 @@ def HttpApi[F[_]: Async: Logger](
 
     articleR <- SimpleRestJsonBuilder
       .routes(ArticleServiceImpl.make(services.articles, auth))
+      .mapPayloadErrorToUnprocessableEntity
       .resource
     commentR <- SimpleRestJsonBuilder
       .routes(CommentServiceImpl.make(services.comments, auth))
+      .mapPayloadErrorToUnprocessableEntity
       .resource
-    tagR <- SimpleRestJsonBuilder.routes(realworld.http.TagServiceImpl.make(services.tags)).resource
-    userR <- SimpleRestJsonBuilder.routes(UserServiceImpl.make(auth, services.profiles)).resource
+    tagR <- SimpleRestJsonBuilder
+      .routes(realworld.http.TagServiceImpl.make(services.tags))
+      .mapPayloadErrorToUnprocessableEntity
+      .resource
+    userR <- SimpleRestJsonBuilder
+      .routes(UserServiceImpl.make(auth, services.profiles))
+      .mapPayloadErrorToUnprocessableEntity
+      .resource
   yield handleErrors(articleR <+> commentR <+> tagR <+> userR <+> Static().routes)
+  end for
 end HttpApi
+
+extension [F[_]: Async](r: SimpleRestJsonBuilder.RouterBuilder[?, F])
+  def mapPayloadErrorToUnprocessableEntity =
+    r.mapErrors { case HttpPayloadError(p, exp, msg) =>
+      UnprocessableEntity(errors = Map(p.toString -> List(exp, msg)).some)
+    }
+
 final case class Static[F[_]: Async: Logger]() extends Http4sDsl[F]:
   def routes =
     val indexHtml = StaticFile

@@ -12,12 +12,8 @@ import realworld.components.widgets.GenericForm
 import realworld.guestOnly
 import realworld.routes.JsRouter.*
 import realworld.routes.Page
-import realworld.spec.Email
-import realworld.spec.Password
-import realworld.spec.RegisterUserData
 import realworld.spec.RegisterUserOutput
 import realworld.spec.UnprocessableEntity
-import realworld.spec.Username
 import realworld.types.GenericFormField
 import realworld.types.InputType
 import realworld.types.RegisterCredential
@@ -26,26 +22,27 @@ import utils.Utils.*
 import utils.Utils.toAuthHeader
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 final case class Register()(using api: Api, state: AppState) extends Component:
-  val credential                = Var(RegisterCredential(Username(""), Email(""), Password("")))
-  val usernameWriter            = credential.writerNTF(Username, _.focus(_.username).optic)
-  val emailWriter               = credential.writerNTF(Email, _.focus(_.email).optic)
-  val passwordWriter            = credential.writerNTF(Password, _.focus(_.password).optic)
+  val credential                = Var(RegisterCredential())
+  val usernameWriter            = credential.writerF(_.focus(_.username).optic)
+  val emailWriter               = credential.writerF(_.focus(_.email).optic)
+  val passwordWriter            = credential.writerF(_.focus(_.password).optic)
   val signingUp                 = Var(false)
   val errors: Var[GenericError] = Var(Map())
-  val handler = Observer[RegisterCredential] { case RegisterCredential(username, email, password) =>
+  val handler = Observer[RegisterCredential] { rc =>
     signingUp.set(true)
     api
-      .promise(
-        _.userPromise
-          .registerUser(
-            RegisterUserData(
-              username,
-              email,
-              password
-            )
+      .promise(a =>
+        rc.validatedToReqData
+          .fold(
+            e => Future.successful(Left(e)),
+            a.userPromise
+              .registerUser(
+                _
+              )
+              .attempt
           )
-          .attempt
       )
       .collect {
         case Left(UnprocessableEntity(Some(e))) =>
@@ -84,7 +81,7 @@ final case class Register()(using api: Api, state: AppState) extends Component:
                 InputType.Text,
                 "Username",
                 controlled = controlled(
-                  value <-- credential.signal.map(_.username.value),
+                  value <-- credential.signal.map(_.username),
                   onInput.mapToValue --> usernameWriter
                 )
               ),
@@ -92,7 +89,7 @@ final case class Register()(using api: Api, state: AppState) extends Component:
                 InputType.Text,
                 "Email",
                 controlled = controlled(
-                  value <-- credential.signal.map(_.email.value),
+                  value <-- credential.signal.map(_.email),
                   onInput.mapToValue --> emailWriter
                 )
               ),
@@ -100,7 +97,7 @@ final case class Register()(using api: Api, state: AppState) extends Component:
                 InputType.Password,
                 "Password",
                 controlled = controlled(
-                  value <-- credential.signal.map(_.password.value),
+                  value <-- credential.signal.map(_.password),
                   onInput.mapToValue --> passwordWriter
                 )
               )

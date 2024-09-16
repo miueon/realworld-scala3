@@ -4,17 +4,17 @@ import com.raquo.waypoint.*
 import urldsl.language.PathSegment
 import urldsl.errors.DummyError
 import realworld.routes.Page.ProfilePage
-import realworld.spec.Username
 import realworld.routes.Page.ArticleDetailPage
 import realworld.spec.Slug
 import realworld.routes.Page.EditArticlePage
+import io.github.iltotore.iron.*
 package object routes:
   def fragmentStatic[Page](staticPage: Page, pattern: PathSegment[Unit, DummyError]) =
     Route.static(staticPage, pattern, Route.fragmentBasePath)
 
   val profileRoute = Route(
-    encode = (stp: ProfilePage) => stp.username.value,
-    decode = (arg: String) => ProfilePage(Username(arg)),
+    encode = (stp: ProfilePage) => stp.username,
+    decode = (arg: String) => ProfilePage(arg.assume),
     pattern = root / "profile" / segment[String],
     Route.fragmentBasePath
   )

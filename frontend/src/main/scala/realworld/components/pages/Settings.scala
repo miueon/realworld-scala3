@@ -13,21 +13,20 @@ import realworld.components.widgets.GenericForm
 import realworld.routes.JsRouter
 import realworld.routes.Page
 import realworld.spec.Bio
-import realworld.spec.Email
 import realworld.spec.ImageUrl
 import realworld.spec.UnprocessableEntity
-import realworld.spec.UpdateUserData
 import realworld.spec.UpdateUserOutput
-import realworld.spec.Username
 import realworld.types.FieldType
 import realworld.types.GenericFormField
 import realworld.types.InputType
 import realworld.types.UserSettings
+import realworld.types.Username
 import realworld.types.validation.GenericError
 import utils.Utils.*
 import utils.Utils.toAuthHeader
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 final case class Settings()(using state: AppState, api: Api) extends Component:
   val userSettings =
     Var(
@@ -35,32 +34,38 @@ final case class Settings()(using state: AppState, api: Api) extends Component:
         .map(u => UserSettings(u.email.some, u.username.some, bio = u.bio, image = u.image))
         .getOrElse(UserSettings())
     )
-  val emailWriter    = userSettings.writerOptNTF(Email, _.focus(_.email).optic)
-  val usernameWriter = userSettings.writerOptNTF(Username, _.focus(_.username).optic)
+  val emailWriter    = userSettings.writerOptF(_.focus(_.email).optic)
+  val usernameWriter = userSettings.writerOptF(_.focus(_.username).optic)
   val bioWriter      = userSettings.writerOptNTF(Bio, _.focus(_.bio).optic)
   val imageWriter    = userSettings.writerOptNTF(ImageUrl, _.focus(_.image).optic)
-  val passwordWriter = userSettings.writerOptNTF(Email, _.focus(_.email).optic)
-  val handler = Observer[UserSettings]:
-    case UserSettings(email, username, password, bio, image) =>
-      isUpdating.set(true)
-      state.authHeader.fold(JsRouter.redirectTo(Page.Home))(authHeader =>
-        api
-          .promise(
-            _.userPromise
-              .updateUser(authHeader, UpdateUserData(email, username, password, bio, image))
+  val passwordWriter = userSettings.writerOptF(_.focus(_.password).optic)
+  val handler = Observer[UserSettings] { us =>
+    isUpdating.set(true)
+    state.authHeader.fold(JsRouter.redirectTo(Page.Home))(authHeader =>
+      api
+        .promise(a =>
+          us.validatedToReqData.fold(
+            e => Future.successful(Left(e)),
+            a.userPromise
+              .updateUser(
+                authHeader,
+                _
+              )
               .attempt
           )
-          .collect {
-            case Left(UnprocessableEntity(Some(e))) => 
-              Var.set(
-                isUpdating -> false,
-                errors -> e
-              )
-            case Right(UpdateUserOutput(u)) =>
-              state.events.emit(AuthEvent.Force(AuthState.Token(u.token.toAuthHeader, u)))
-              JsRouter.redirectTo(Page.Home)
-          }
-      )
+        )
+        .collect {
+          case Left(UnprocessableEntity(Some(e))) =>
+            Var.set(
+              isUpdating -> false,
+              errors     -> e
+            )
+          case Right(UpdateUserOutput(u)) =>
+            state.events.emit(AuthEvent.Force(AuthState.Token(u.token.toAuthHeader, u)))
+            JsRouter.redirectTo(Page.Home)
+        }
+    )
+  }
 
   val logoutHandler = Observer[Unit] { _ =>
     state.events.emit(AuthEvent.Reset)
@@ -93,7 +98,7 @@ final case class Settings()(using state: AppState, api: Api) extends Component:
               GenericFormField(
                 placeholder = "Your Name",
                 controlled = controlled(
-                  value <-- userSettings.signal.map(_.username.map(_.value).getOrElse("")),
+                  value <-- userSettings.signal.map(_.username.getOrElse("")),
                   onInput.mapToValue --> usernameWriter
                 )
               ),
@@ -109,7 +114,7 @@ final case class Settings()(using state: AppState, api: Api) extends Component:
               GenericFormField(
                 placeholder = "Email",
                 controlled = controlled(
-                  value <-- userSettings.signal.map(_.email.map(_.value).getOrElse("")),
+                  value <-- userSettings.signal.map(_.email.getOrElse("")),
                   onInput.mapToValue --> emailWriter
                 )
               ),
@@ -117,7 +122,7 @@ final case class Settings()(using state: AppState, api: Api) extends Component:
                 tpe = InputType.Password,
                 placeholder = "Password",
                 controlled = controlled(
-                  value <-- userSettings.signal.map(_.password.map(_.value).getOrElse("")),
+                  value <-- userSettings.signal.map(_.password.getOrElse("")),
                   onInput.mapToValue --> passwordWriter
                 )
               )

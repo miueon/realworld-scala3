@@ -1,21 +1,18 @@
 package realworld
 
+import doobie.postgres.JavaTimeInstances
 import doobie.util.meta.Meta
+import doobie.util.meta.MetaConstructors
+import io.github.iltotore.iron.*
+import realworld.spec.CommentId
 import realworld.spec.CreatedAt
-import realworld.spec.UpdatedAt
-import java.time.Instant
-import smithy4s.Timestamp
 import realworld.spec.Limit
 import realworld.spec.Skip
-import realworld.spec.CommentId
-import doobie.util.meta.MetaConstructors
-import doobie.postgres.JavaTimeInstances
+import realworld.spec.UpdatedAt
 import smithy4s.Newtype
-import io.github.iltotore.iron.*
-import io.github.iltotore.iron.constraint.all.*
-import io.github.iltotore.iron.circe
-import io.circe.Codec
-import io.circe.*
+import smithy4s.Timestamp
+
+import java.time.Instant
 
 
 package object domain:
@@ -27,10 +24,6 @@ package object domain:
   extension [A](meta: Meta[A])
     inline def refined[C](using inline constraint: Constraint[A, C]): Meta[A :| C] =
       meta.imap[A :| C](_.refine[C])(_.asInstanceOf[A])
-
-  extension [A](c: Codec[A])
-    inline def refined[C](using inline constraint: Constraint[A, C]): Codec[A :| C] =
-      c.iemap[A :| C](_.refineEither[C])(_.asInstanceOf[A])
 
   inline given [A, C](using
       inline meta: Meta[A],

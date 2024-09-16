@@ -12,10 +12,7 @@ import realworld.components.widgets.GenericForm
 import realworld.guestOnly
 import realworld.routes.JsRouter.*
 import realworld.routes.Page
-import realworld.spec.Email
-import realworld.spec.LoginUserInputData
 import realworld.spec.LoginUserOutput
-import realworld.spec.Password
 import realworld.spec.UnprocessableEntity
 import realworld.types.FieldType
 import realworld.types.GenericFormField
@@ -24,27 +21,29 @@ import realworld.types.LoginCredential
 import realworld.types.validation.GenericError
 import utils.Utils.attempt
 import utils.Utils.toAuthHeader
-import utils.Utils.writerNTF
+import utils.Utils.writerF
 
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.scalajs.js.Thenable.Implicits.thenable2future
 
 final case class Login()(using api: Api, state: AppState) extends Component:
-  val credential: Var[LoginCredential] = Var(LoginCredential(Email(""), Password("")))
-  val emailWriter: Observer[String]    = credential.writerNTF(Email, _.focus(_.email).optic)
-  val passwordWriter: Observer[String] = credential.writerNTF(Password, _.focus(_.password).optic)
+  val credential: Var[LoginCredential] = Var(LoginCredential())
+  val emailWriter: Observer[String]    = credential.writerF(_.focus(_.email).optic)
+  val passwordWriter: Observer[String] = credential.writerF(_.focus(_.password).optic)
   val errors: Var[GenericError]        = Var(Map())
-  val handler = Observer[LoginCredential] { case LoginCredential(email, password) =>
+  val handler = Observer[LoginCredential] { l =>
     api
-      .promise(
-        _.userPromise
-          .loginUser(
-            LoginUserInputData(
-              email,
-              password
-            )
+      .promise(a =>
+        l.validatedToReqData
+          .fold(
+            e => Future.successful(Left(e)),
+            a.userPromise
+              .loginUser(
+                _
+              )
+              .attempt
           )
-          .attempt
       )
       .collect {
         case Left(UnprocessableEntity(Some(e))) => errors.set(e)
@@ -79,7 +78,7 @@ final case class Login()(using api: Api, state: AppState) extends Component:
               GenericFormField(
                 placeholder = "Email",
                 controlled = controlled(
-                  value <-- credential.signal.map(_.email.value),
+                  value <-- credential.signal.map(_.email),
                   onInput.mapToValue --> emailWriter
                 )
               ),
@@ -87,7 +86,7 @@ final case class Login()(using api: Api, state: AppState) extends Component:
                 InputType.Password,
                 "Password",
                 controlled = controlled(
-                  value <-- credential.signal.map(_.password.value),
+                  value <-- credential.signal.map(_.password),
                   onInput.mapToValue --> passwordWriter
                 )
               )

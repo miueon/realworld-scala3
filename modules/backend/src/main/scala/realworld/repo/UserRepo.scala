@@ -1,12 +1,11 @@
 package realworld.repo
 
-import cats.data.NonEmptyVector
 import cats.data.*
 import cats.effect.*
 import cats.syntax.all.*
 import cats.~>
-
 import doobie.*
+import doobie.free.connection.ConnectionIO
 import doobie.implicits.*
 import realworld.db.DoobieTx
 import realworld.db.transaction
@@ -14,11 +13,9 @@ import realworld.domain.WithId
 import realworld.domain.user.DBUser
 import realworld.domain.user.EncryptedPassword
 import realworld.domain.user.UserId
-import realworld.domain.user.Users.password
-import realworld.spec.Email
 import realworld.spec.RegisterUserData
 import realworld.spec.UpdateUserData
-import doobie.free.connection.ConnectionIO
+import realworld.types.Email
 import realworld.types.Username
 
 trait UserRepo[F[_]]:

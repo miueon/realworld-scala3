@@ -85,7 +85,7 @@ final case class ArticleViewer(
         ),
         div(
           cls := "info",
-          a(cls    := "author", href := "/", article.author.username.value),
+          a(cls    := "author", href := "/", article.author.username),
           span(cls := "date", formatMod.format(article.createdAt.value.toDate, "PP"))
         ),
         button(

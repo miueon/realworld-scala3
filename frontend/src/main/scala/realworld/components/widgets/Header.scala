@@ -4,9 +4,9 @@ import com.raquo.laminar.api.L.*
 import realworld.routes.Page
 import realworld.routes.JsRouter.*
 import realworld.routes.JsRouter
-import realworld.spec.Username
 import realworld.AppState
 import realworld.AuthState
+import realworld.types.Username
 
 def Header()(using state: AppState) =
   navTag(
@@ -35,7 +35,7 @@ private def authenticatedLinks(username: Username) =
   List(
     navItem("New Article", Page.NewArticle, "ion-compose"),
     navItem("Settings", Page.Setting, "ion-gear-a"),
-    navItem(username.value, Page.ProfilePage(username))
+    navItem(username, Page.ProfilePage(username))
   )
 
 def navItem(text: String, page: Page, icon: String = "") =

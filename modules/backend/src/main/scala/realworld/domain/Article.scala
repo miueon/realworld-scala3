@@ -14,13 +14,13 @@ import doobie.TableDefinition
 import doobie.Column
 import doobie.WithSQLDefinition
 import doobie.Composite
-import realworld.spec.Username
 import realworld.domain.given
 import realworld.domain.*
 import realworld.spec.TagName
 import realworld.spec.Bio
 import realworld.spec.ImageUrl
 import scala.util.control.NoStackTrace
+import realworld.types.Username
 
 type ArticleId = ArticleId.Type
 object ArticleId extends IdNewtype

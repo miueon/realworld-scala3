@@ -1,26 +1,28 @@
 package realworld.domain.user
 
-import cats.syntax.all.*
 import doobie.*
 import io.circe.*
+import io.circe.Decoder.Result
+import io.github.iltotore.iron.*
+import io.github.iltotore.iron.circe.given
+import io.github.iltotore.iron.constraint.all.*
+import realworld.codec.given
 import realworld.domain.*
 import realworld.domain.metaOf
 import realworld.domain.types.IdNewtype
 import realworld.domain.types.Newtype
 import realworld.spec.Bio
-import realworld.spec.Email
 import realworld.spec.ImageUrl
 import realworld.spec.Profile
 import realworld.spec.Token
 import realworld.spec.User
-import realworld.codec.given
-import javax.crypto.Cipher
-import scala.util.control.NoStackTrace
+import realworld.types.Email
+import realworld.types.EmailConstraint
 import realworld.types.Username
 import realworld.types.UsernameConstraint
 
-import io.github.iltotore.iron.*
-import io.github.iltotore.iron.constraint.all.*
+import javax.crypto.Cipher
+import scala.util.control.NoStackTrace
 
 type UserId = UserId.Type
 object UserId extends IdNewtype
@@ -31,13 +33,12 @@ object EncryptedPassword extends Newtype[String]
 case class EncryptCipher(value: Cipher)
 case class DecryptCipher(value: Cipher)
 
-given Meta[Email]             = metaOf(Email)
-given Meta[Username]          = Meta[String].refined[UsernameConstraint].imap(Username(_))(_.value)
+given Meta[Email]             = Meta[String].refined[EmailConstraint]
+given Meta[Username]          = Meta[String].refined[UsernameConstraint]
 given Meta[EncryptedPassword] = EncryptedPassword.derive
 given Meta[Bio]               = metaOf(Bio)
 given Meta[ImageUrl]          = metaOf(ImageUrl)
 
-given Codec[Username] = Codec.from(Decoder[String], Encoder[String]).refined[UsernameConstraint].imap(Username(_))(_.value)
 case class DBUser(
     email: Email,
     username: Username,

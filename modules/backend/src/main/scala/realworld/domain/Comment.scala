@@ -10,12 +10,12 @@ import doobie.TableDefinition
 import doobie.Column
 import doobie.WithSQLDefinition
 import doobie.Composite
-import realworld.spec.Username
 import realworld.spec.Bio
 import realworld.spec.ImageUrl
 import doobie.TableDefinition.RowHelpers
 import realworld.spec.CommentId
 import scala.util.control.NoStackTrace
+import realworld.types.Username
 
 given Meta[CommentBody] = metaOf(CommentBody)
 

@@ -1,9 +1,6 @@
 package realworld.repo
 
 import cats.effect.*
-
-import doobie.Composite
-import doobie.WithSQLDefinition
 import doobie.*
 import doobie.implicits.*
 import doobie.util.transactor.Transactor
