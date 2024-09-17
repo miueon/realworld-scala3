@@ -1,19 +1,16 @@
 package realworld
 
-import realworld.spec.User
-import smithy4s.Document
-import realworld.spec.Email
-import realworld.spec.Username
-import realworld.spec.Token
 import realworld.spec.Bio
+import realworld.spec.Email
 import realworld.spec.ImageUrl
 import realworld.spec.Slug
+import realworld.spec.Token
+import realworld.spec.User
+import realworld.spec.Username
+import smithy4s.Document
+import ujson.Arr
 import upickle.core.*
 import upickle.default.*
-
-import ujson.Arr
-import ujson.False
-import ujson.True
 package object codec:
   def documentToJson(doc: Document): ujson.Value = doc match
     case Document.DNumber(value)  => ujson.Num(value.toDouble)

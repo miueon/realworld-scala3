@@ -12,13 +12,13 @@ import realworld.routes.JsRouter
 import realworld.routes.Page
 import realworld.spec.Article
 import realworld.spec.Slug
-import realworld.spec.TagName
 import utils.Utils
 
 import scala.util.Failure
 import scala.util.Success
 
 import concurrent.ExecutionContext.Implicits.global
+import realworld.types.TagName
 case class ArticleViewrState(
     articlePreviews: Option[List[Article]],
     currentPage: Int,
@@ -26,7 +26,7 @@ case class ArticleViewrState(
 )
 sealed trait Tab
 case class Tag(tag: TagName) extends Tab:
-  override def toString(): String = s"# ${tag.value}"
+  override def toString(): String = s"# $tag"
 case object Feed extends Tab:
   override def toString(): String = "Your Feed"
 case object GlobalFeed extends Tab:
@@ -78,7 +78,6 @@ final case class ArticleViewer(
           img(
             src <-- s_article.map(
               _.author.image
-                .map(_.value)
                 .getOrElse(Utils.defaultAvatarUrl)
             )
           )
@@ -101,8 +100,8 @@ final case class ArticleViewer(
       a(
         JsRouter.navigateTo(Page.ArticleDetailPage(article.slug)),
         cls := "preview-link",
-        h1(article.title.value),
-        p(article.description.value),
+        h1(article.title),
+        p(article.description),
         span("Read more..."),
         TagListWidget(article.tagList)
       )
@@ -167,7 +166,7 @@ def TagListWidget(tagList: List[TagName]) =
     tagList.map(tag =>
       li(
         cls := "tag-default tag-pill tag-outline",
-        tag.value
+        tag
       )
     )
   )

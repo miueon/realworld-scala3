@@ -1,20 +1,16 @@
 package realworld.components.widgets
 
-import realworld.components.Component
 import com.raquo.laminar.api.L.*
-import realworld.spec.Title
-import realworld.spec.Description
-import realworld.spec.Body
-import realworld.spec.TagName
-import utils.Utils.writerF
 import monocle.syntax.all.*
-import realworld.types.validation.GenericError
+import realworld.components.Component
 import realworld.types.ArticleForm
+import realworld.types.FieldType
 import realworld.types.GenericFormField
 import realworld.types.InputType
-import utils.Utils.writerNTF
-import realworld.types.FieldType
+import realworld.types.validation.GenericError
 import utils.Utils.some
+import utils.Utils.writerF
+import utils.Utils.writerOptF
 
 final case class ArticleEditor(
     article: ArticleForm,
@@ -23,21 +19,21 @@ final case class ArticleEditor(
     s_submitting: Signal[Boolean]
 ) extends Component:
   val articleVar        = Var(article)
-  val tagBarVar         = Var(TagName(""))
-  val titleWriter       = articleVar.writerNTF(Title, _.focus(_.title).optic)
-  val descriptionWriter = articleVar.writerNTF(Description, _.focus(_.description).optic)
-  val bodyWriter        = articleVar.writerNTF(Body, _.focus(_.body).optic)
+  val tagBarVar         = Var("")
+  val titleWriter       = articleVar.writerOptF(_.focus(_.title).optic)
+  val descriptionWriter = articleVar.writerOptF(_.focus(_.description).optic)
+  val bodyWriter        = articleVar.writerOptF(_.focus(_.body).optic)
   val tagListWriter = articleVar
     .writerF(_.focus(_.tagList).optic)
   val addTagObserver = Observer[Unit]: _ =>
     val currentTag     = tagBarVar.now()
     val currentTagList = articleVar.now().tagList
-    if !(currentTag.value.isBlank() || currentTagList.contains(currentTag)) then
+    if !(currentTag.isBlank() || currentTagList.contains(currentTag)) then
       val tagList = currentTagList :+ currentTag
       tagListWriter.onNext(tagList)
-      tagBarVar.set(TagName(""))
+      tagBarVar.set("")
 
-  val removeTagObserver = Observer[TagName]: t =>
+  val removeTagObserver = Observer[String]: t =>
     val tagList = articleVar.now().tagList.filter(_ != t)
     tagListWriter.onNext(tagList)
 
@@ -56,14 +52,14 @@ final case class ArticleEditor(
               GenericFormField(
                 placeholder = "Article Title",
                 controlled = controlled(
-                  value <-- articleVar.signal.map(_.title.value),
+                  value <-- articleVar.signal.map(_.title.getOrElse("")),
                   onInput.mapToValue --> titleWriter
                 )
               ),
               GenericFormField(
                 placeholder = "What's this article about?",
                 controlled = controlled(
-                  value <-- articleVar.signal.map(_.description.value),
+                  value <-- articleVar.signal.map(_.description.getOrElse("")),
                   onInput.mapToValue --> descriptionWriter
                 )
               ),
@@ -71,7 +67,7 @@ final case class ArticleEditor(
                 placeholder = "Write your article (in markdown)",
                 fieldType = FieldType.Textarea,
                 controlled = controlled(
-                  value <-- articleVar.signal.map(_.body.value),
+                  value <-- articleVar.signal.map(_.body.getOrElse("")),
                   onInput.mapToValue --> bodyWriter
                 ),
                 rows = 8.some
@@ -80,8 +76,8 @@ final case class ArticleEditor(
                 placeholder = "Enter tags",
                 fieldType = FieldType.Lst,
                 controlled = controlled(
-                  value <-- tagBarVar.signal.map(_.value),
-                  onInput.mapToValue --> tagBarVar.writer.contramap(TagName(_))
+                  value <-- tagBarVar.signal,
+                  onInput.mapToValue --> tagBarVar.writer
                 ),
                 s_tags = articleVar.signal.map(_.tagList).some
               )

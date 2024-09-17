@@ -4,8 +4,8 @@ import cats.data.NonEmptyList
 import cats.data.OptionT
 import cats.effect.*
 import cats.syntax.all.*
-import doobie.Fragments.*
 import doobie.*
+import doobie.Fragments.*
 import doobie.implicits.*
 import realworld.domain.Tag
 import realworld.domain.WithId
@@ -14,15 +14,11 @@ import realworld.domain.article.*
 import realworld.domain.user.UserId
 import realworld.http.Pagination
 import realworld.spec.Bio
-import realworld.spec.Body
 import realworld.spec.CreatedAt
-import realworld.spec.Description
-import realworld.spec.ImageUrl
 import realworld.spec.Slug
-import realworld.spec.TagName
-import realworld.spec.Title
 import realworld.spec.UpdateArticleData
 import realworld.spec.UpdatedAt
+import realworld.types.TagName
 
 trait ArticleRepo[F[_]]:
   def list(

@@ -14,7 +14,6 @@ import realworld.components.widgets.Tab
 import realworld.components.widgets.Tag
 import realworld.spec.Article
 import realworld.spec.Skip
-import realworld.spec.TagName
 import realworld.spec.Total
 import realworld.types.ArticlePage
 import realworld.types.ArticlePage.toPage
@@ -92,7 +91,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
                 a(
                   cls  := "tag-pill tag-default",
                   href := "#",
-                  tag.value,
+                  tag,
                   onClick.mapTo(Tag(tag)) --> tabObserver
                 )
               }

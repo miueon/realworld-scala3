@@ -10,9 +10,9 @@ import realworld.routes.JsRouter
 import realworld.routes.Page
 import realworld.spec.Article
 import realworld.spec.UnprocessableEntity
-import realworld.spec.UpdateArticleData
 import realworld.spec.UpdateArticleOutput
 import realworld.types.ArticleForm
+import realworld.types.ArticleForm.u
 import realworld.types.validation.GenericError
 import utils.Utils.*
 
@@ -20,6 +20,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
+
 final case class EditArticlePage(s_page: Signal[Page.EditArticlePage])(using
     state: AppState,
     api: Api
@@ -28,28 +29,24 @@ final case class EditArticlePage(s_page: Signal[Page.EditArticlePage])(using
   val errors: Var[GenericError]        = Var(Map())
   val isSubmittingVar                  = Var(false)
 
-  val handler = Observer[ArticleForm] { case ArticleForm(title, description, body, tagList) =>
-    state.authHeader.fold(JsRouter.redirectTo(Page.Login))(authHeader =>
-      isSubmittingVar.set(true)
-      api
-        .promise(
-          _.articlePromise
-            .updateArticle(
-              authHeader,
-              articleVar.now().get.slug,
-              UpdateArticleData(tagList, title.some, description.some, body.some)
-            ).attempt
-        )
-        .collect {
-          case Left(UnprocessableEntity(Some(e))) =>
+  val handler = Observer[ArticleForm] { it =>
+    state.authHeader
+      .fold(JsRouter.redirectTo(Page.Login))(authHeader =>
+        isSubmittingVar.set(true)
+        it.validatedToReqData
+          .foldError(
+            api.articlePromise.updateArticle(authHeader, articleVar.now().get.slug, _).attempt
+          )
+          .collect {
+            case Left(UnprocessableEntity(Some(e))) =>
               Var.set(
                 isSubmittingVar -> false,
                 errors          -> e
               )
-          case Right(UpdateArticleOutput(article)) =>
-            JsRouter.redirectTo(Page.ArticleDetailPage(article.slug))
-        }
-    )
+            case Right(UpdateArticleOutput(article)) =>
+              JsRouter.redirectTo(Page.ArticleDetailPage(article.slug))
+          }
+      )
   }
 
   val onLoad = s_page.flatMap { case Page.EditArticlePage(slug) =>
@@ -68,7 +65,12 @@ final case class EditArticlePage(s_page: Signal[Page.EditArticlePage])(using
     articleVar.signal.splitOption(
       (article, _) =>
         ArticleEditor(
-          article = ArticleForm(article.title, article.description, article.body, article.tagList),
+          article = ArticleForm(
+            article.title.some,
+            article.description.some,
+            article.body.some,
+            article.tagList
+          ),
           articleSubmitObserver = handler,
           errors.signal,
           isSubmittingVar.signal

@@ -10,6 +10,7 @@ namespace realworld.spec
 use alloy#simpleRestJson
 use alloy#uuidFormat
 use alloy.common#emailFormat
+use smithy4s.meta#unwrap
 // SERVICES
 
 @simpleRestJson
@@ -193,14 +194,22 @@ structure Article {
 }
 
 // NEW TYPE
+@TagNameFormat
+@unwrap
 string TagName
 
 string Slug
 
+@TitleFormat
+@unwrap
 string Title
 
+@DescriptionFormat
+@unwrap
 string Description
 
+@BodyFormat
+@unwrap
 string Body
 
 integer FavoritesCount

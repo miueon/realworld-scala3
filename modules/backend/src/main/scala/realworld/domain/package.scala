@@ -39,4 +39,5 @@ package object domain:
   given Meta[Limit]     = metaOf(Limit)
   given Meta[Skip]      = metaOf(Skip)
   given Meta[CommentId] = metaOf(CommentId)
+  // given Meta[String].refined[Not[Blank]]
 end domain

@@ -7,14 +7,12 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import org.scalajs.dom.Event
 import realworld.components.ComponentSeq
 import realworld.components.widgets.FromGroup.Input
+import realworld.components.widgets.FromGroup.ListFormGroup
 import realworld.components.widgets.FromGroup.TextArea
 import realworld.types.FieldType
+import realworld.types.FormRecord
 import realworld.types.GenericFormField
 import realworld.types.validation.GenericError
-
-import realworld.types.FormRecord
-import realworld.spec.TagName
-import realworld.components.widgets.FromGroup.ListFormGroup
 
 final case class GenericForm(
     esg: Signal[GenericError],
@@ -23,7 +21,7 @@ final case class GenericForm(
     s_disabled: Signal[Boolean],
     fields: List[GenericFormField],
     addItemToListObserverOpt: Option[Observer[Unit]] = None,
-    removedTagObserverOpt: Option[Observer[TagName]] = None
+    removedTagObserverOpt: Option[Observer[String]] = None
 ) extends ComponentSeq:
 // Use EventListener if the state is located in the parent component
 // Use Callback if the state is located in the child component

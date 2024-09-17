@@ -22,9 +22,9 @@ import realworld.types.validation.GenericError
 import utils.Utils.attempt
 import utils.Utils.toAuthHeader
 import utils.Utils.writerF
+import utils.Utils.foldError
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 import scala.scalajs.js.Thenable.Implicits.thenable2future
 
 final case class Login()(using api: Api, state: AppState) extends Component:
@@ -32,19 +32,9 @@ final case class Login()(using api: Api, state: AppState) extends Component:
   val emailWriter: Observer[String]    = credential.writerF(_.focus(_.email).optic)
   val passwordWriter: Observer[String] = credential.writerF(_.focus(_.password).optic)
   val errors: Var[GenericError]        = Var(Map())
-  val handler = Observer[LoginCredential] { l =>
-    api
-      .promise(a =>
-        l.validatedToReqData
-          .fold(
-            e => Future.successful(Left(e)),
-            a.userPromise
-              .loginUser(
-                _
-              )
-              .attempt
-          )
-      )
+  val handler = Observer[LoginCredential] { it =>
+    it.validatedToReqData
+      .foldError(api.userPromise.loginUser(_).attempt)
       .collect {
         case Left(UnprocessableEntity(Some(e))) => errors.set(e)
         case Right(LoginUserOutput(usr)) =>

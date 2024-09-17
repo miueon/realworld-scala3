@@ -1,34 +1,35 @@
 package realworld.domain.article
 
-import realworld.domain.types.IdNewtype
-import realworld.spec.Slug
-import realworld.spec.Title
-import realworld.spec.Description
-import realworld.spec.Body
-import realworld.spec.CreatedAt
-import realworld.spec.UpdatedAt
-import realworld.domain.user.UserId
-import doobie.util.meta.Meta
-import doobie.implicits.*
-import doobie.TableDefinition
 import doobie.Column
-import doobie.WithSQLDefinition
 import doobie.Composite
-import realworld.domain.given
+import doobie.TableDefinition
+import doobie.WithSQLDefinition
+import doobie.util.meta.Meta
+import io.github.iltotore.iron.constraint.all.*
+import io.github.iltotore.iron.doobie.given
 import realworld.domain.*
-import realworld.spec.TagName
+import realworld.domain.given
+import realworld.domain.types.IdNewtype
+import realworld.domain.user.UserId
 import realworld.spec.Bio
-import realworld.spec.ImageUrl
-import scala.util.control.NoStackTrace
+import realworld.spec.CreatedAt
+import realworld.spec.Slug
+import realworld.spec.UpdatedAt
+import realworld.types.Body
+import realworld.types.Description
+import realworld.types.ImageUrl
+import realworld.types.TagName
+import realworld.types.Title
 import realworld.types.Username
 
+import scala.util.control.NoStackTrace
 type ArticleId = ArticleId.Type
 object ArticleId extends IdNewtype
 
 given Meta[Slug]        = metaOf(Slug)
-given Meta[Title]       = metaOf(Title)
-given Meta[Description] = metaOf(Description)
-given Meta[Body]        = metaOf(Body)
+// given Meta[Title]       = Meta[String].refined[Not[Blank]]
+// given Meta[Description] = Meta[String].refined[Not[Blank]]
+// given Meta[Body]        = Meta[String].refined[Not[Blank]]
 
 case class Article(
     slug: Slug,

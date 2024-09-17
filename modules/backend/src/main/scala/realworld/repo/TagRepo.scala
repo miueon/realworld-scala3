@@ -3,13 +3,12 @@ package realworld.repo
 import cats.data.NonEmptyList
 import cats.effect.*
 import cats.syntax.all.*
-
 import doobie.*
 import doobie.implicits.*
 import doobie.util.transactor.Transactor
 import realworld.domain.Tag
 import realworld.domain.article.ArticleId
-import realworld.spec.TagName
+import realworld.types.TagName
 
 trait TagRepo[F[_]]:
   def listTagNameByPopular(): F[List[TagName]]

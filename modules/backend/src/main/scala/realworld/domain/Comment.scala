@@ -1,21 +1,22 @@
 package realworld.domain
 
+import doobie.Column
+import doobie.Composite
+import doobie.TableDefinition
+import doobie.TableDefinition.RowHelpers
+import doobie.WithSQLDefinition
+import doobie.util.meta.Meta
 import realworld.domain.article.ArticleId
+import realworld.domain.user.UserId
+import realworld.spec.Bio
+import realworld.spec.CommentBody
+import realworld.spec.CommentId
 import realworld.spec.CreatedAt
 import realworld.spec.UpdatedAt
-import realworld.domain.user.UserId
-import realworld.spec.CommentBody
-import doobie.util.meta.Meta
-import doobie.TableDefinition
-import doobie.Column
-import doobie.WithSQLDefinition
-import doobie.Composite
-import realworld.spec.Bio
-import realworld.spec.ImageUrl
-import doobie.TableDefinition.RowHelpers
-import realworld.spec.CommentId
-import scala.util.control.NoStackTrace
+import realworld.types.ImageUrl
 import realworld.types.Username
+
+import scala.util.control.NoStackTrace
 
 given Meta[CommentBody] = metaOf(CommentBody)
 

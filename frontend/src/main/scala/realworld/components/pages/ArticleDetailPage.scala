@@ -96,7 +96,7 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
               cls := "container page",
               div(
                 cls := "row article-content",
-                div(cls := "col-md-12", article.body.value),
+                div(cls := "col-md-12", article.body),
                 TagListWidget(article.tagList)
               )
             ),
@@ -118,7 +118,7 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
       cls := "banner",
       div(
         cls := "container",
-        h1(article.title.value),
+        h1(article.title),
         articleMeta(article, s_article)
       )
     )

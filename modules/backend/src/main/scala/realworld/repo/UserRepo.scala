@@ -7,6 +7,7 @@ import cats.~>
 import doobie.*
 import doobie.free.connection.ConnectionIO
 import doobie.implicits.*
+import io.github.iltotore.iron.doobie.given
 import realworld.db.DoobieTx
 import realworld.db.transaction
 import realworld.domain.WithId

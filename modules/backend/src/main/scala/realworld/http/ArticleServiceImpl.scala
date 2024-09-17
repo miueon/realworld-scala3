@@ -19,10 +19,10 @@ import realworld.spec.ListFeedArticleOutput
 import realworld.spec.NotFoundError
 import realworld.spec.Skip
 import realworld.spec.Slug
-import realworld.spec.TagName
 import realworld.spec.UnfavoriteArticleOutput
 import realworld.spec.UpdateArticleData
 import realworld.spec.UpdateArticleOutput
+import realworld.types.TagName
 import realworld.types.Username
 
 object ArticleServiceImpl:

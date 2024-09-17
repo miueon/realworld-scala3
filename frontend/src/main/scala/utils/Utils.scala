@@ -56,6 +56,13 @@ object Utils:
     ): EitherNec[InvalidField, A :| C] =
       v.refineEither[C].toEitherNec.leftMap(e => e.map(mkInvalidField(_)))
 
+  extension [A](ev: Either[UnprocessableEntity, A])
+    def foldError[B](onSuccess: A => Future[Either[Throwable, B]]): Future[Either[Throwable, B]] =
+      ev.fold(
+        e => Future.successful(Left(e)),
+        onSuccess(_)
+      )
+
   extension (a: HtmlElement) def toList = List(a)
 
   // Eh maybe I should add something like it to Laminar

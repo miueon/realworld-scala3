@@ -1,11 +1,9 @@
 package realworld.routes
 
-import com.raquo.laminar.api.L.*
-import com.raquo.laminar.api.L
+import io.github.iltotore.iron.upickle.given
 import realworld.codec.given
 import realworld.spec.Slug
 import realworld.types.*
-import io.github.iltotore.iron.upickle.given
 import upickle.default.*
 sealed trait Page derives ReadWriter
 object Page:

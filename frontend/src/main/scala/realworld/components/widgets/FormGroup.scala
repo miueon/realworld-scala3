@@ -2,7 +2,6 @@ package realworld.components.widgets
 
 import com.raquo.laminar.api.L.*
 import realworld.types.InputType
-import realworld.spec.TagName
 
 object FromGroup:
   def Input(
@@ -12,10 +11,6 @@ object FromGroup:
       isLarge: Boolean,
       controlled: Mod[Input]
   ) =
-    //   // def test(): Mod[ReactiveHtmlElement[HTMLInputElement]] = Binder { el =>
-    //   //   val sing = Var("")
-    //   //   (onInput.mapToValue --> sing.writer).bind(el)
-    //   // }
     fieldSet(
       cls := "form-group",
       input(
@@ -54,9 +49,9 @@ object FromGroup:
       s_disabled: Signal[Boolean],
       isLarge: Boolean,
       controlled: Mod[Input],
-      s_tags: Signal[List[TagName]],
+      s_tags: Signal[List[String]],
       addTagWriter: Observer[Unit],
-      removedTagWriter: Observer[TagName]
+      removedTagWriter: Observer[String]
   ) =
     fieldSet(
       input(
@@ -70,9 +65,7 @@ object FromGroup:
       ),
       div(
         cls := "tag-list",
-        children <-- s_tags.split(
-          _.value
-        )((tagValue, tag, _) =>
+        children <-- s_tags.split(identity)((tagValue, tag, _) =>
           span(
             cls := "tag-default tag-pill",
             onClick.preventDefault.mapTo(tag) --> removedTagWriter,

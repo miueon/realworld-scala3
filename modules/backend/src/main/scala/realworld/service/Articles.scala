@@ -3,9 +3,11 @@ package realworld.service
 import cats.data.OptionT
 import cats.effect.*
 import cats.syntax.all.*
-
+import org.typelevel.log4cats.Logger
 import realworld.domain.Favorite
+import realworld.domain.ID
 import realworld.domain.Tag
+import realworld.domain.WithId
 import realworld.domain.WithTotal
 import realworld.domain.article.ArticleError
 import realworld.domain.article.ArticleId
@@ -13,6 +15,7 @@ import realworld.domain.article.ArticleView
 import realworld.domain.article.ListArticleQuery
 import realworld.domain.follower.Follower
 import realworld.domain.user.UserId
+import realworld.effects.GenUUID
 import realworld.http.Pagination
 import realworld.repo.ArticleRepo
 import realworld.repo.FavoriteRepo
@@ -20,22 +23,19 @@ import realworld.repo.FollowerRepo
 import realworld.repo.TagRepo
 import realworld.spec.Article
 import realworld.spec.ArticleList
+import realworld.spec.CreateArticleData
 import realworld.spec.CreatedAt
 import realworld.spec.FavoritesCount
 import realworld.spec.Profile
 import realworld.spec.Slug
-import realworld.spec.TagName
-import realworld.spec.CreateArticleData
-import realworld.effects.GenUUID
-import realworld.domain.ID
-import realworld.domain.WithId
-import realworld.spec.Title
-import java.time.Instant
-import realworld.spec.UpdatedAt
 import realworld.spec.UpdateArticleData
+import realworld.spec.UpdatedAt
+import realworld.types.TagName
+import realworld.types.Title
+
 import java.text.Normalizer
 import java.text.Normalizer.Form
-import org.typelevel.log4cats.Logger
+import java.time.Instant
 
 trait Articles[F[_]]:
   def list(
@@ -179,7 +179,7 @@ object Articles:
         val wordsOnly = notWordsRs.replaceAllIn(cleaned, " ").trim
         spacesRe.replaceAllIn(wordsOnly, "-").toLowerCase
       private def mkSlug(title: Title, authorId: UserId, nowTime: Instant): Slug =
-        Slug(s"${slugify(title.value)}-${authorId.value}-${nowTime.toEpochMilli()}")
+        Slug(s"${slugify(title)}-${authorId.value}-${nowTime.toEpochMilli()}")
 
       private def articlesExtras(
           uidOpt: Option[UserId],

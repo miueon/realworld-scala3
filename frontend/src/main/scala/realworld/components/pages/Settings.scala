@@ -13,7 +13,6 @@ import realworld.components.widgets.GenericForm
 import realworld.routes.JsRouter
 import realworld.routes.Page
 import realworld.spec.Bio
-import realworld.spec.ImageUrl
 import realworld.spec.UnprocessableEntity
 import realworld.spec.UpdateUserOutput
 import realworld.types.FieldType
@@ -26,7 +25,6 @@ import utils.Utils.*
 import utils.Utils.toAuthHeader
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 final case class Settings()(using state: AppState, api: Api) extends Component:
   val userSettings =
     Var(
@@ -37,23 +35,13 @@ final case class Settings()(using state: AppState, api: Api) extends Component:
   val emailWriter    = userSettings.writerOptF(_.focus(_.email).optic)
   val usernameWriter = userSettings.writerOptF(_.focus(_.username).optic)
   val bioWriter      = userSettings.writerOptNTF(Bio, _.focus(_.bio).optic)
-  val imageWriter    = userSettings.writerOptNTF(ImageUrl, _.focus(_.image).optic)
+  val imageWriter    = userSettings.writerOptF(_.focus(_.image).optic)
   val passwordWriter = userSettings.writerOptF(_.focus(_.password).optic)
   val handler = Observer[UserSettings] { us =>
     isUpdating.set(true)
     state.authHeader.fold(JsRouter.redirectTo(Page.Home))(authHeader =>
-      api
-        .promise(a =>
-          us.validatedToReqData.fold(
-            e => Future.successful(Left(e)),
-            a.userPromise
-              .updateUser(
-                authHeader,
-                _
-              )
-              .attempt
-          )
-        )
+      us.validatedToReqData
+        .foldError(api.userPromise.updateUser(authHeader, _).attempt)
         .collect {
           case Left(UnprocessableEntity(Some(e))) =>
             Var.set(
@@ -91,7 +79,7 @@ final case class Settings()(using state: AppState, api: Api) extends Component:
               GenericFormField(
                 placeholder = "URL of profile picture",
                 controlled = controlled(
-                  value <-- userSettings.signal.map(_.image.map(_.value).getOrElse("")),
+                  value <-- userSettings.signal.map(_.image.getOrElse("")),
                   onInput.mapToValue --> imageWriter
                 )
               ),

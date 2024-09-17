@@ -1,6 +1,7 @@
 $version: "2.0"
 
 namespace realworld.spec
+use smithy4s.meta#unwrap
 
 @error("client")
 @httpError(400)
@@ -42,6 +43,8 @@ list StringList {
 
 string AuthHeader
 
+@ImageUrlFormat
+@unwrap
 string ImageUrl
 
 integer Skip

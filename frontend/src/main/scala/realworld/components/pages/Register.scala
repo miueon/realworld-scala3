@@ -22,7 +22,6 @@ import utils.Utils.*
 import utils.Utils.toAuthHeader
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
 final case class Register()(using api: Api, state: AppState) extends Component:
   val credential                = Var(RegisterCredential())
   val usernameWriter            = credential.writerF(_.focus(_.username).optic)
@@ -32,18 +31,8 @@ final case class Register()(using api: Api, state: AppState) extends Component:
   val errors: Var[GenericError] = Var(Map())
   val handler = Observer[RegisterCredential] { rc =>
     signingUp.set(true)
-    api
-      .promise(a =>
-        rc.validatedToReqData
-          .fold(
-            e => Future.successful(Left(e)),
-            a.userPromise
-              .registerUser(
-                _
-              )
-              .attempt
-          )
-      )
+    rc.validatedToReqData
+      .foldError(api.userPromise.registerUser(_).attempt)
       .collect {
         case Left(UnprocessableEntity(Some(e))) =>
           signingUp.set(false)
