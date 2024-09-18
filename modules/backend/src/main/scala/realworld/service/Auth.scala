@@ -35,6 +35,7 @@ import realworld.spec.CredentialsError
 import cats.data.EitherT
 import realworld.types.Username
 import realworld.types.Email
+import org.typelevel.log4cats.Logger
 
 trait Auth[F[_]: Functor]:
   def login(user: LoginUserInputData): F[User]
@@ -47,7 +48,7 @@ trait Auth[F[_]: Functor]:
 case class UserSession(id: UserId, user: User) derives Codec.AsObject
 
 object Auth:
-  def make[F[_]: MonadCancelThrow: GenUUID: DoobieTx](
+  def make[F[_]: MonadCancelThrow: GenUUID: DoobieTx: Logger](
       tokenExpiration: TokenExpiration,
       jwt: JWT[F],
       userRepo: UserRepo[F],
@@ -98,7 +99,9 @@ object Auth:
               val encryptedPassword = crypto.encrypt(user.password)
               for
                 uid <- ID.make[F, UserId]
-                _   <- userRepo.tx.use { _.create(uid, user, encryptedPassword) }
+                _ <- userRepo.tx.use { tx =>
+                  tx.create(uid, user, encryptedPassword) *> Logger[F].info("")
+                }
                 jwt <- jwt.create
                 _ <- redis.setEx(
                   jwt.value,
@@ -157,7 +160,7 @@ object Auth:
           }
           session = userSession.copy(user = row.entity.toUser(userSession.user.token))
           _ <- redis.setEx(token, session.asJson.noSpaces, TokenExpiration)
-          _ <- redis.setEx(row.entity.email, token , TokenExpiration)
+          _ <- redis.setEx(row.entity.email, token, TokenExpiration)
         yield session
       end update
 

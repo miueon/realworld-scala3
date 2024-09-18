@@ -10,9 +10,10 @@ import realworld.repo.FavoriteRepo
 import realworld.repo.FollowerRepo
 import realworld.repo.TagRepo
 import realworld.repo.UserRepo
+import org.typelevel.log4cats.Logger
 
 object Repos:
-  def make[F[_]: MonadCancelThrow: DoobieTx](
+  def make[F[_]: MonadCancelThrow: DoobieTx: Logger](
       redis: RedisCommands[F, String, String],
       xa: Transactor[F]
   ): Repos[F] =

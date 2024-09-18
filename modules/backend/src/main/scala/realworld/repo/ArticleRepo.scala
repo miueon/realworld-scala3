@@ -19,6 +19,8 @@ import realworld.spec.Slug
 import realworld.spec.UpdateArticleData
 import realworld.spec.UpdatedAt
 import realworld.types.TagName
+import realworld.db.*
+import org.typelevel.log4cats.Logger
 
 trait ArticleRepo[F[_]]:
   def list(
@@ -40,7 +42,7 @@ end ArticleRepo
 
 object ArticleRepo:
   import ArticleSQL as A
-  def make[F[_]: MonadCancelThrow](xa: Transactor[F]): ArticleRepo[F] =
+  def make[F[_]: MonadCancelThrow: DoobieTx: Logger](xa: Transactor[F]): ArticleRepo[F] =
     new:
       def list(
           query: ListArticleQuery,
@@ -79,15 +81,19 @@ object ArticleRepo:
           updatedAt: UpdatedAt,
           authorId: UserId
       ): F[Option[ArticleView]] =
-        val trx =
-          for
-            article <- OptionT(A.selectBySlug(oldSlug))
-            _       <- OptionT(A.update(data, newSlug, oldSlug, updatedAt, authorId))
-            _       <- OptionT(A.deleteTagByArticleId(article.id))
-            _ <- OptionT.liftF(A.insertTag().updateMany(data.tagList.map(t => Tag(article.id, t))))
-            article <- OptionT(A.selectBySlug(newSlug))
-          yield article
-        trx.value.transact(xa)
+        xa.transaction.use { implicit f =>
+          val r =
+            for
+              article <- OptionT[F, ArticleView](A.selectBySlug(oldSlug))
+              _ <- OptionT.liftF[F, Int](A.update(data, newSlug, article.id, updatedAt, authorId))
+              _ <- OptionT.liftF[F, Int](A.deleteTagByArticleId(article.id))
+              _ <- OptionT.liftF[F, Int](
+                A.insertTag().updateMany(data.tagList.map(t => Tag(article.id, t)))
+              )
+              article <- OptionT[F, ArticleView](A.selectById(article.id).map(_.some))
+            yield article
+          r.value
+        }
       end update
 
       def delete(slug: Slug, authorId: UserId): F[Option[Unit]] =
@@ -196,28 +202,28 @@ private object ArticleSQL:
   def deleteTagByArticleId(aid: ArticleId) =
     sql"""
     DELETE FROM $t WHERE ${t.c(_.articleId)} = $aid
-    """.update.run.map(affectedToOption)
+    """.update.run
 
   import Articles as ar
   def update(
       data: UpdateArticleData,
       newSlug: Slug,
-      oldSlug: Slug,
+      articleId: ArticleId,
       updatedAt: UpdatedAt,
       authorId: UserId
-  ): ConnectionIO[Option[Unit]] =
+  ): ConnectionIO[Int] =
     val titleOpt       = data.title.map(t => ar.title --> t)
     val descriptionOpt = data.description.map(d => ar.description --> d)
     val bodyOpt        = data.body.map(b => ar.body --> b)
 
     val fields      = List(titleOpt, descriptionOpt, bodyOpt).flatten
-    val otherFields = List(ar.updatedAt --> updatedAt, ar.slug --> newSlug)
-    NonEmptyList
-      .fromList(fields)
-      .fold(none.pure[ConnectionIO])(fields => sql"""
-          ${updateTable[NonEmptyList](ar, fields ++ otherFields)} 
-          WHERE ${ar.authorId === authorId} AND ${ar.slug === oldSlug}
-          """.update.run.map(affectedToOption))
+    val otherFields = NonEmptyList(ar.updatedAt --> updatedAt, List(ar.slug --> newSlug))
+
+    if fields.isEmpty then 0.pure[ConnectionIO]
+    else sql"""
+          ${updateTable[NonEmptyList](ar, otherFields ++ fields)} 
+          WHERE ${ar.authorId === authorId} AND ${ar.id === articleId}
+          """.update.run
   end update
 
   def deleteBySlug(slug: Slug, authorId: UserId): ConnectionIO[Option[Unit]] =

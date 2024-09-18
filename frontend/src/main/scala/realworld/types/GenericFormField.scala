@@ -40,13 +40,7 @@ sealed trait FormRecord
 trait ValidatedToReqData[V, A: ClassTag]:
   extension (v: V) def validatedToReqData: Either[UnprocessableEntity, A]
 
-def process[L, R](optEither: Option[EitherNec[L, R]]): EitherNec[L, Option[R]] =
-  optEither match
-    case None         => Right(None)
-    case Some(either) => either.map(Some(_))
-
 case class LoginCredential(email: String = "", password: String = "") extends FormRecord
-// ValidatedToReqData[LoginUserInputData]:
 object LoginCredential:
   given ValidatedToReqData[LoginCredential, LoginUserInputData] with
     extension (v: LoginCredential)
@@ -90,9 +84,9 @@ object ArticleForm:
       def validatedToReqData: Either[UnprocessableEntity, UpdateArticleData] =
         (
           v.tagList.map(_.refineEntity[TagNameConstraint](InvalidTag(_))).sequence,
-          process(v.title.map(_.refineEntity[TitleConstraint](InvalidTitle(_)))),
-          process(v.description.map(_.refineEntity[DescriptionConstraint](InvalidDescription(_)))),
-          process(v.body.map(_.refineEntity[BodyConstraint](InvalidBody(_))))
+          v.title.map(_.refineEntity[TitleConstraint](InvalidTitle(_))).sequence,
+          v.description.map(_.refineEntity[DescriptionConstraint](InvalidDescription(_))).sequence,
+          v.body.map(_.refineEntity[BodyConstraint](InvalidBody(_))).sequence
         ).parMapN(UpdateArticleData.apply).toUnprocessable
 
 end ArticleForm
@@ -108,11 +102,11 @@ object UserSettings:
     extension (v: UserSettings)
       def validatedToReqData: Either[UnprocessableEntity, UpdateUserData] =
         (
-          process(v.email.map(_.refineEntity[EmailConstraint](InvalidEmail(_)))),
-          process(v.username.map(_.refineEntity[UsernameConstraint](InvalidUsername(_)))),
-          process(v.password.map(_.refineEntity[PasswordConstriant](InvalidPassword(_)))),
+          v.email.map(_.refineEntity[EmailConstraint](InvalidEmail(_))).sequence,
+          v.username.map(_.refineEntity[UsernameConstraint](InvalidUsername(_))).sequence,
+          v.password.map(_.refineEntity[PasswordConstriant](InvalidPassword(_))).sequence,
           v.bio.rightNec,
-          process(v.image.map(_.refineEntity[ImageUrlConstraint](InvalidImageUrl(_))))
+          v.image.map(_.refineEntity[ImageUrlConstraint](InvalidImageUrl(_))).sequence
         )
           .parMapN(UpdateUserData.apply)
           .toUnprocessable

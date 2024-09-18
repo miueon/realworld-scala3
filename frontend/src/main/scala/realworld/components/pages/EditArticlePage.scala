@@ -20,6 +20,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
+import realworld.spec.NotFoundError
 
 final case class EditArticlePage(s_page: Signal[Page.EditArticlePage])(using
     state: AppState,
@@ -42,6 +43,16 @@ final case class EditArticlePage(s_page: Signal[Page.EditArticlePage])(using
               Var.set(
                 isSubmittingVar -> false,
                 errors          -> e
+              )
+            case Left(NotFoundError(msgOpt)) => 
+              Var.set(
+                isSubmittingVar -> false,
+                errors -> Map("Not found article, " -> List(msgOpt.getOrElse("Article not found")))
+              )
+            case Left(e) =>
+              Var.set(
+                isSubmittingVar -> false,
+                errors          -> Map("error" -> List(e.getMessage()))
               )
             case Right(UpdateArticleOutput(article)) =>
               JsRouter.redirectTo(Page.ArticleDetailPage(article.slug))

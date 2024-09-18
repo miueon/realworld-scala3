@@ -12,3 +12,6 @@ extension [F[_]: DoobieTx](xa: Transactor[F])
 extension [F[_]: DoobieTx: MonadCancelThrow](xa: Transactor[F])
   def transactK[A](ops: ConnectionIO[A]): F[A] =
     DoobieTx[F].transaction(xa).use { fk => fk { ops } }
+
+implicit def connectionIOToF[A, F[_]](c: ConnectionIO[A])(using K: ConnectionIO ~> F): F[A] =
+  K(c)
