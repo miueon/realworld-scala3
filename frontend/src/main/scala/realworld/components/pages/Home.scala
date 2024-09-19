@@ -59,7 +59,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
     else Set(GlobalFeed, t).toSeq
   }
 
-  val onFavoriteObserver = Observer[Article]: article =>
+  val onFavoriteObserver = Observer[Article]{ article =>
     val updatedArticles = homeState.now().articleList.articles.map { (previews: List[Article]) =>
       previews.map {
         case elem if elem.slug == article.slug => article
@@ -67,6 +67,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
       }
     }
     articlesWriter.onNext(updatedArticles)
+  }
 
   def banner() =
     div(

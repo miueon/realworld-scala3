@@ -100,6 +100,7 @@ object Articles:
         }
 
         // TODO Add Conflict Error output
+      end getBySlug
       def create(uid: UserId, data: CreateArticleData): F[Article] =
         def articleWithId(
             id: ArticleId,
@@ -108,7 +109,7 @@ object Articles:
           WithId(
             id,
             realworld.domain.article.Article(
-              mkSlug(data.title, uid, nowTime),
+              mkSlug(data.title, nowTime),
               data.title,
               data.description,
               data.body,
@@ -127,11 +128,13 @@ object Articles:
 
       def update(slug: Slug, uid: UserId, data: UpdateArticleData): F[Article] =
         val now     = Instant.now()
-        val newSlug = data.title.map(mkSlug(_, uid, now)).getOrElse(slug)
+        val newSlug = data.title.map(mkSlug(_, now)).getOrElse(slug)
 
         val result = for
-          article <- OptionT(articleRepo.update(data, newSlug, slug, UpdatedAt(now.toTimestamp), uid))
-          extra   <- OptionT.liftF(articleExtra(uid.some, article.id))
+          article <- OptionT(
+            articleRepo.update(data, newSlug, slug, UpdatedAt(now.toTimestamp), uid)
+          )
+          extra <- OptionT.liftF(articleExtra(uid.some, article.id))
         yield article.toArticleOutput(false, extra)
 
         result.value.flatMap:
@@ -178,8 +181,8 @@ object Articles:
 
         val wordsOnly = notWordsRs.replaceAllIn(cleaned, " ").trim
         spacesRe.replaceAllIn(wordsOnly, "-").toLowerCase
-      private def mkSlug(title: Title, authorId: UserId, nowTime: Instant): Slug =
-        Slug(s"${slugify(title)}-${authorId.value}-${nowTime.toEpochMilli()}")
+      private def mkSlug(title: Title, nowTime: Instant): Slug =
+        Slug(s"${slugify(title)}-${nowTime.toEpochMilli()}")
 
       private def articlesExtras(
           uidOpt: Option[UserId],

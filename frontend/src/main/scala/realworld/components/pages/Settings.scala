@@ -48,6 +48,11 @@ final case class Settings()(using state: AppState, api: Api) extends Component:
               isUpdating -> false,
               errors     -> e
             )
+          case Left(e) =>
+            Var.set(
+              isUpdating -> false,
+              errors     -> Map("error" -> List(e.getMessage()))
+            )
           case Right(UpdateUserOutput(u)) =>
             state.events.emit(AuthEvent.Force(AuthState.Token(u.token.toAuthHeader, u)))
             JsRouter.redirectTo(Page.Home)

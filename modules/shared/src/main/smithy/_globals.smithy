@@ -18,7 +18,9 @@ structure UnauthorizedError {
 
 @error("client")
 @httpError(403)
-structure ForbiddenError {}
+structure ForbiddenError {
+    message: String
+}
 
 @error("client")
 @httpError(404)

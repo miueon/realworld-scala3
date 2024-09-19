@@ -40,7 +40,7 @@ object UserServiceImpl:
         result
           .onError(e => Logger[F].warn(e)(s"Failed to get profile for user: $username"))
           .recoverWith:
-            case UserError.ProfileNotFound() => NotFoundError().raise
+            case UserError.ProfileNotFound(msg) => NotFoundError(msg.some).raise
 
       def unfollowUser(
           username: Username,
@@ -51,7 +51,7 @@ object UserServiceImpl:
           profile     <- profiles.unfollow(username, userSession.id)
         yield UnfollowUserOutput(profile)
         result.recoverWith:
-          case UserError.ProfileNotFound() => NotFoundError().raise
+          case UserError.ProfileNotFound(msg) => NotFoundError(msg.some).raise
 
       def followUser(
           username: Username,
@@ -62,7 +62,7 @@ object UserServiceImpl:
           profile     <- profiles.follow(username, userSession.id)
         yield FollowUserOutput(profile)
         result.recoverWith:
-          case UserError.ProfileNotFound() => NotFoundError().raise
+          case UserError.ProfileNotFound(msg) => NotFoundError(msg.some).raise
 
       def loginUser(user: LoginUserInputData): F[LoginUserOutput] =
         auth
@@ -70,8 +70,8 @@ object UserServiceImpl:
           .map(LoginUserOutput(_))
           .onError(e => Logger[F].warn(e)(s"Failed to login user: $user"))
           .recoverWith:
-            case UserError.UserNotFound()           => NotFoundError().raise
-            case UserError.UserPasswordNotMatched() => ForbiddenError().raise
+            case UserError.UserNotFound(msg)           => NotFoundError(msg.some).raise
+            case UserError.UserPasswordNotMatched(msg) => ForbiddenError(msg.some).raise
 
       def getUser(authHeader: AuthHeader): F[GetUserOutput] =
         auth.access(authHeader).map(u => GetUserOutput(u.user))
@@ -87,9 +87,11 @@ object UserServiceImpl:
               .update(u, user)
               .map(userSession => UpdateUserOutput(userSession.user))
               .recoverWith:
-                case UserError.UserNotFound() => NotFoundError().raise
-                case UserError.EmailAlreadyExists() | UserError.UsernameAlreadyExists() =>
-                  UnprocessableEntity().raise
+                case UserError.UserNotFound(msg) => NotFoundError(msg.some).raise
+                case UserError.EmailAlreadyExists(_) =>
+                  UnprocessableEntity(Map("Email" -> List("already existed")).some).raise
+                case UserError.UsernameAlreadyExists(_) =>
+                  UnprocessableEntity(Map("Username" -> List("already existed")).some).raise
         yield rs
 
       def registerUser(user: RegisterUserData): F[RegisterUserOutput] =
@@ -101,7 +103,7 @@ object UserServiceImpl:
               .warn(s"Failed to register user: $user, error: ${e.getMessage()}")
           )
           .recoverWith:
-            case UserError.EmailAlreadyExists() =>
+            case UserError.EmailAlreadyExists(_) =>
               UnprocessableEntity(Map("Email" -> List("already exisits")).some).raise
 
 end UserServiceImpl

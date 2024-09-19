@@ -84,10 +84,13 @@ object Users extends TableDefinition("users"):
 end Users
 
 enum UserError extends NoStackTrace:
-  case UserNotFound()
-  case UserPasswordNotMatched()
-  case ProfileNotFound()
-  case EmailAlreadyExists()
-  case UsernameAlreadyExists()
-  case UserFollowingHimself(profile: Profile)
-  case UserUnfollowingHimself(profile: Profile)
+  def msg: String
+  case UserNotFound(msg: String = "User not found")                   extends UserError
+  case UserPasswordNotMatched(msg: String = "Password not matched")   extends UserError
+  case ProfileNotFound(msg: String = "Profile not found")             extends UserError
+  case EmailAlreadyExists(msg: String = "Email already exists")       extends UserError
+  case UsernameAlreadyExists(msg: String = "Username already exists") extends UserError
+  case UserFollowingHimself(msg: String = "User should not follow himself", profile: Profile)
+      extends UserError
+  case UserUnfollowingHimself(msg: String = "User is unfollowing himself", profile: Profile)
+      extends UserError

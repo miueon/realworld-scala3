@@ -37,6 +37,9 @@ final case class Register()(using api: Api, state: AppState) extends Component:
         case Left(UnprocessableEntity(Some(e))) =>
           signingUp.set(false)
           errors.set(e)
+        case Left(e) => 
+          signingUp.set(false)
+          errors.set(Map("error" -> List(e.getMessage()))) 
         case Right(RegisterUserOutput(usr)) =>
           errors.set(Map())
           state.events.emit(

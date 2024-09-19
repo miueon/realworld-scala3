@@ -49,7 +49,7 @@ object Profiles:
           _ <- EitherT.cond(
             user.id =!= uid,
             (),
-            UserError.UserUnfollowingHimself(user.entity.toProfiile(false))
+            UserError.UserUnfollowingHimself(profile = user.entity.toProfiile(false))
           )
           _ <- EitherT.liftF(followerRepo.deleteFollower(user.id, uid))
         yield user.entity.toProfiile(false)
@@ -57,7 +57,7 @@ object Profiles:
         profile.value.flatMap(
           _.fold(
             {
-              case UserError.UserUnfollowingHimself(profile) => profile.pure
+              case UserError.UserUnfollowingHimself(_, profile) => profile.pure
               case e                                         => e.raiseError[F, Profile]
             },
             _.pure[F]
@@ -74,7 +74,7 @@ object Profiles:
           _ <- EitherT.cond(
             user.id =!= uid,
             (),
-            UserError.UserFollowingHimself(user.entity.toProfiile(false))
+            UserError.UserFollowingHimself(profile =user.entity.toProfiile(false))
           )
           _ <- EitherT.liftF(
             followerRepo.createFollower(user.id, uid)
@@ -83,7 +83,7 @@ object Profiles:
         profile.value.flatMap:
           _.fold(
             {
-              case UserError.UserFollowingHimself(profile) => profile.pure
+              case UserError.UserFollowingHimself(_, profile) => profile.pure
               case e                                       => e.raiseError
             },
             _.pure

@@ -53,21 +53,23 @@ final case class ArticleViewer(
   ) =
     val articleVar      = Var(article)
     val isSubmittingVar = Var(false)
-    def favObserver = Observer[Article]: a =>
+    def favObserver = Observer[Article] { article =>
       isSubmittingVar.set(true)
       state.authHeader.fold(JsRouter.redirectTo(Page.Login))(authHeader =>
-        if a.favorited then
-          api.promise(_.articlePromise.unfavoriteArticle(authHeader, a.slug).map(_.article))
-        else
-          api
-            .promise(_.articlePromise.favoriteArticle(authHeader, a.slug).map(_.article))
-            .onComplete {
-              case Failure(_) => JsRouter.redirectTo(Page.Login)
-              case Success(article) =>
-                isSubmittingVar.set(false)
-                onFavArticleObserver.onNext(article)
-            }
+        api
+          .promise(
+            if article.favorited then
+              _.articlePromise.unfavoriteArticle(authHeader, article.slug).map(_.article)
+            else _.articlePromise.favoriteArticle(authHeader, article.slug).map(_.article)
+          )
+          .onComplete {
+            case Failure(_) => JsRouter.redirectTo(Page.Login)
+            case Success(article) =>
+              isSubmittingVar.set(false)
+              onFavArticleObserver.onNext(article)
+          }
       )
+    }
     div(
       s_article --> articleVar.writer,
       cls := "article-preview",

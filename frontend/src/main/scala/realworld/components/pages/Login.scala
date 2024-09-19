@@ -37,6 +37,7 @@ final case class Login()(using api: Api, state: AppState) extends Component:
       .foldError(api.userPromise.loginUser(_).attempt)
       .collect {
         case Left(UnprocessableEntity(Some(e))) => errors.set(e)
+        case Left(e) => errors.set(Map("error" -> List(e.getMessage())))
         case Right(LoginUserOutput(usr)) =>
           errors.set(Map())
           state.events.emit(

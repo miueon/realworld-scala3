@@ -96,7 +96,7 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
               cls := "container page",
               div(
                 cls := "row article-content",
-                div(cls := "col-md-12", article.body),
+                div(cls := "col-md-12", article.body, whiteSpace.preWrap),
                 TagListWidget(article.tagList)
               )
             ),
