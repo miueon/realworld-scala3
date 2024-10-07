@@ -65,7 +65,7 @@ export default defineConfig({
       plugins: [rollupPluginSourcemaps()],
     },
     minify: "terser",
-    sourcemap: true
+    sourcemap: false
   },
   server: {
     proxy: {
@@ -74,8 +74,6 @@ export default defineConfig({
         changeOrigin: true,
       }
     }
-   
   },
-
 }
 )

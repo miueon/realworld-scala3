@@ -2,6 +2,9 @@ import org.scalajs.linker.interface.Report
 import org.scalajs.linker.interface.ModuleSplitStyle
 import smithy4s.codegen.Smithy4sCodegenPlugin
 import scala.sys.process.Process
+import java.nio.file._
+import java.nio.charset.StandardCharsets
+
 Compile / run / fork          := true
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / scalacOptions := Seq(
@@ -257,10 +260,24 @@ buildFrontend := {
     throw new IllegalStateException(s"Building frontend failed. See above for reason")
   }
 
+  IO.delete(app.base / "src" / "main" / "resources" / "static")
   IO.copyDirectory(
     source = frontend.base / "dist",
     target = app.base / "src" / "main" / "resources" / "static"
   )
+
+  val log = streams.value.log
+  def processFile(file: Path): Unit = {
+    val content = new String(Files.readAllBytes(file), StandardCharsets.UTF_8)
+    val updatedContent = content.replaceAll(
+      """(<script[^>]*\s+src=")([^"]+)""",
+      s"""$$1/static$$2"""
+    )
+    Files.write(file, updatedContent.getBytes(StandardCharsets.UTF_8))
+    log.info(s"Updated ${file.getFileName}")
+  }
+
+  processFile(Paths.get(appDirPath, "src", "main", "resources", "static", "index.html"))
 }
 
 (app.finder(VirtualAxis.jvm)(Versions.Scala) / Docker / publishLocal) := (app.finder(

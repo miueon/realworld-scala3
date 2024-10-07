@@ -98,9 +98,8 @@ object Articles:
           case None        => ArticleError.NotFound(slug).raiseError
           case Some(value) => value.pure
         }
-
-        // TODO Add Conflict Error output
       end getBySlug
+
       def create(uid: UserId, data: CreateArticleData): F[Article] =
         def articleWithId(
             id: ArticleId,
