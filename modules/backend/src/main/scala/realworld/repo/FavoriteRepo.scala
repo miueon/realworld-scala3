@@ -1,9 +1,9 @@
 package realworld.repo
 
+import cats.Functor
 import cats.data.NonEmptyList
 import cats.effect.*
 import cats.syntax.all.*
-
 import doobie.*
 import doobie.implicits.*
 import doobie.util.transactor.Transactor
@@ -11,7 +11,6 @@ import realworld.domain.Favorite
 import realworld.domain.article.ArticleId
 import realworld.domain.user.UserId
 import realworld.spec.FavoritesCount
-import cats.Functor
 
 trait FavoriteRepo[F[_]: Functor]:
   def listFavorite(articleIds: List[ArticleId], userId: UserId): F[List[Favorite]]

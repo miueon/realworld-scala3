@@ -9,18 +9,9 @@ import io.github.iltotore.iron.constraint.all.*
 import io.github.iltotore.iron.doobie.given
 import realworld.codec.given
 import realworld.domain.*
-import realworld.domain.metaOf
-import realworld.domain.types.IdNewtype
-import realworld.domain.types.Newtype
-import realworld.spec.Bio
-import realworld.spec.Profile
-import realworld.spec.Token
-import realworld.spec.User
-import realworld.types.Email
-import realworld.types.EmailConstraint
-import realworld.types.ImageUrl
-import realworld.types.Username
-import realworld.types.UsernameConstraint
+import realworld.domain.types.{IdNewtype, Newtype}
+import realworld.spec.{Bio, Profile, Token, User}
+import realworld.types.{Email, EmailConstraint, ImageUrl, Username, UsernameConstraint}
 
 import javax.crypto.Cipher
 import scala.util.control.NoStackTrace

@@ -1,21 +1,10 @@
 package realworld
 
 import cats.syntax.all.*
-
-import io.circe.Codec
-import io.circe.Decoder
-import io.circe.DecodingFailure
-import io.circe.Encoder
-import io.circe.Json
 import io.circe.syntax.*
-import realworld.spec.User
+import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json}
+import realworld.spec.{Bio, Email, ImageUrl, Slug, Token, User, Username}
 import smithy4s.Document
-import realworld.spec.Email
-import realworld.spec.Username
-import realworld.spec.Token
-import realworld.spec.Bio
-import realworld.spec.ImageUrl
-import realworld.spec.Slug
 
 package object codec:
   def documentToJson(doc: Document): Json = doc match
@@ -63,5 +52,5 @@ package object codec:
   given Codec[Token]    = documentCodec
   given Codec[Bio]      = documentCodec
   given Codec[ImageUrl] = documentCodec
-  given Codec[Slug] = documentCodec
+  given Codec[Slug]     = documentCodec
 end codec

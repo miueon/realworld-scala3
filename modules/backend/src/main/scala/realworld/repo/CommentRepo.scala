@@ -4,10 +4,9 @@ import cats.effect.*
 import doobie.*
 import doobie.implicits.*
 import doobie.util.transactor.Transactor
-import realworld.domain.Comment
-import realworld.domain.CommentDBView
 import realworld.domain.article.ArticleId
 import realworld.domain.user.UserId
+import realworld.domain.{Comment, CommentDBView}
 import realworld.spec.CommentId
 
 trait CommentRepo[F[_]]:

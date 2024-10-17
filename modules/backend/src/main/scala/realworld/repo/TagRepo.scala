@@ -26,7 +26,7 @@ object TagRepo:
           case Some(ids) => TagRepoSQL.selectTags(ids).transact(xa)
           case None      => List.empty[Tag].pure[F]
 
-      def listTagNameByPopular(): F[List[TagName]] = 
+      def listTagNameByPopular(): F[List[TagName]] =
         TagRepoSQL.selectTagOrderByPopular().transact(xa)
 
 object TagRepoSQL:

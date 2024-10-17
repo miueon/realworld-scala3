@@ -1,15 +1,11 @@
 package realworld.service
 
-import cats.data.OptionT
+import cats.data.{EitherT, OptionT}
 import cats.effect.*
 import cats.syntax.all.*
-
-import realworld.domain.user.UserError
-import realworld.domain.user.UserId
-import realworld.repo.FollowerRepo
-import realworld.repo.UserRepo
+import realworld.domain.user.{UserError, UserId}
+import realworld.repo.{FollowerRepo, UserRepo}
 import realworld.spec.Profile
-import cats.data.EitherT
 import realworld.types.Username
 
 trait Profiles[F[_]]:
@@ -58,7 +54,7 @@ object Profiles:
           _.fold(
             {
               case UserError.UserUnfollowingHimself(_, profile) => profile.pure
-              case e                                         => e.raiseError[F, Profile]
+              case e                                            => e.raiseError[F, Profile]
             },
             _.pure[F]
           )
@@ -74,7 +70,7 @@ object Profiles:
           _ <- EitherT.cond(
             user.id =!= uid,
             (),
-            UserError.UserFollowingHimself(profile =user.entity.toProfiile(false))
+            UserError.UserFollowingHimself(profile = user.entity.toProfiile(false))
           )
           _ <- EitherT.liftF(
             followerRepo.createFollower(user.id, uid)
@@ -84,7 +80,7 @@ object Profiles:
           _.fold(
             {
               case UserError.UserFollowingHimself(_, profile) => profile.pure
-              case e                                       => e.raiseError
+              case e                                          => e.raiseError
             },
             _.pure
           )

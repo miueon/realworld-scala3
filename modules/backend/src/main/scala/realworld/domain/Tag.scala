@@ -1,11 +1,8 @@
 package realworld.domain
 
-import doobie.Column
-import doobie.Composite
-import doobie.TableDefinition
 import doobie.TableDefinition.RowHelpers
-import doobie.WithSQLDefinition
 import doobie.util.meta.Meta
+import doobie.{Column, Composite, TableDefinition, WithSQLDefinition}
 import io.github.iltotore.iron.constraint.all.*
 import realworld.domain.article.ArticleId
 import realworld.types.TagName

@@ -1,14 +1,12 @@
 package realworld.config
 
+import cats.syntax.all.*
+import ciris.ConfigDecoder
+import com.comcast.ip4s.{Host, Port}
+import realworld.domain.types.Wrapper
+
 import java.time.Instant
 import java.util.UUID
-
-import cats.syntax.all.*
-
-import ciris.ConfigDecoder
-import com.comcast.ip4s.Host
-import com.comcast.ip4s.Port
-import realworld.domain.types.Wrapper
 
 export CirisOrphan.given
 

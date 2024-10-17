@@ -8,17 +8,14 @@ import org.scalajs.dom.HTMLElement
 import realworld.AppState
 import realworld.api.*
 import realworld.components.ComponentSeq
-import realworld.routes.JsRouter
-import realworld.routes.Page
-import realworld.spec.Article
-import realworld.spec.Slug
+import realworld.routes.{JsRouter, Page}
+import realworld.spec.{Article, Slug}
+import realworld.types.TagName
 import utils.Utils
 
-import scala.util.Failure
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 import concurrent.ExecutionContext.Implicits.global
-import realworld.types.TagName
 case class ArticleViewrState(
     articlePreviews: Option[List[Article]],
     currentPage: Int,

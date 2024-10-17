@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: realworld
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: realworld
+  template:
+    metadata:
+      labels:
+        app: realworld
+    spec:
+      containers:
+      - name: realworld
+        image: miueon/realworld-smithy4s:0.1.0-SNAPSHOT
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: app-config
+        - secretRef:
+            name: app-secrets
+        env:
+        - name: _JAVA_OPTIONS
+          value: "-Djava.net.preferIPv4Stack=true"

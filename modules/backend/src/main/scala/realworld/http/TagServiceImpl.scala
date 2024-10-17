@@ -2,11 +2,9 @@ package realworld.http
 
 import cats.effect.*
 import cats.syntax.all.*
-
 import org.typelevel.log4cats.Logger
-import realworld.spec.ListTagOutput
-import realworld.spec.TagService
 import realworld.service.Tags
+import realworld.spec.{ListTagOutput, TagService}
 
 object TagServiceImpl:
   def make[F[_]: MonadCancelThrow: Logger](tags: Tags[F]): TagService[F] =

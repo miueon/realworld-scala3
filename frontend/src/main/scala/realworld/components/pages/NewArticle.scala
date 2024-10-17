@@ -5,10 +5,8 @@ import realworld.AppState
 import realworld.api.*
 import realworld.components.Component
 import realworld.components.widgets.ArticleEditor
-import realworld.routes.JsRouter
-import realworld.routes.Page
-import realworld.spec.CreateArticleOutput
-import realworld.spec.UnprocessableEntity
+import realworld.routes.{JsRouter, Page}
+import realworld.spec.{CreateArticleOutput, UnprocessableEntity}
 import realworld.types.ArticleForm
 import realworld.types.ArticleForm.c
 import realworld.types.validation.GenericError
@@ -33,7 +31,7 @@ final case class NewArticle()(using state: AppState, api: Api) extends Component
               isSubmittingVar -> false,
               errors          -> e
             )
-          case Left(e) => errors.set(Map("error" -> List(e.getMessage()))) 
+          case Left(e) => errors.set(Map("error" -> List(e.getMessage())))
           case Right(CreateArticleOutput(article)) =>
             JsRouter.redirectTo(Page.ArticleDetailPage(article.slug))
         }

@@ -4,11 +4,9 @@ import com.raquo.laminar.api.L.*
 import com.raquo.waypoint
 import com.raquo.waypoint.*
 import org.scalajs.dom
-
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
 import upickle.default.*
+
+import scala.util.{Failure, Success, Try}
 object JsRouter
     extends waypoint.Router[Page](
       routes = routes,
@@ -42,7 +40,7 @@ object JsRouter
     }).bind(el)
   }
 
-  def redirectTo(page: Page) = 
+  def redirectTo(page: Page) =
     pushState(page)
 
   // Add this to h1..h6 to lmake title clickable, id would appear in the URL

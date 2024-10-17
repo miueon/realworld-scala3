@@ -1,26 +1,19 @@
 package realworld.repo
 
-import cats.data.NonEmptyList
-import cats.data.OptionT
+import cats.data.{NonEmptyList, OptionT}
 import cats.effect.*
 import cats.syntax.all.*
 import doobie.*
 import doobie.Fragments.*
 import doobie.implicits.*
-import realworld.domain.Tag
-import realworld.domain.WithId
-import realworld.domain.WithTotal
+import org.typelevel.log4cats.Logger
+import realworld.db.*
 import realworld.domain.article.*
 import realworld.domain.user.UserId
+import realworld.domain.{Tag, WithId, WithTotal}
 import realworld.http.Pagination
-import realworld.spec.Bio
-import realworld.spec.CreatedAt
-import realworld.spec.Slug
-import realworld.spec.UpdateArticleData
-import realworld.spec.UpdatedAt
+import realworld.spec.{Bio, CreatedAt, Slug, UpdateArticleData, UpdatedAt}
 import realworld.types.TagName
-import realworld.db.*
-import org.typelevel.log4cats.Logger
 
 trait ArticleRepo[F[_]]:
   def list(

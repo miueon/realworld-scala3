@@ -1,22 +1,20 @@
 package realworld.config
 
-import scala.concurrent.duration.FiniteDuration
-
 import cats.Show
-
+import ciris.Secret
+import com.comcast.ip4s.{Host, Port}
 import io.github.iltotore.iron.cats.given
+import io.github.iltotore.iron.ciris.given
 import realworld.domain.types.DeriveType
 import realworld.ext.ciris.Decoder
-import io.github.iltotore.iron.ciris.given
-import ciris.Secret
-import com.comcast.ip4s.Host
-import com.comcast.ip4s.Port
+
+import scala.concurrent.duration.FiniteDuration
 
 object types:
   type JwtAccessTokenKeyConfig = JwtAccessTokenKeyConfig.Type
   object JwtAccessTokenKeyConfig extends DeriveType[NonEmptyStringR]:
     given Decoder.Id[JwtAccessTokenKeyConfig] = derive
-    given Show[JwtAccessTokenKeyConfig] = derive
+    given Show[JwtAccessTokenKeyConfig]       = derive
 
   type JwtClaimConfig = JwtClaimConfig.Type
   object JwtClaimConfig extends DeriveType[NonEmptyStringR]:
@@ -51,7 +49,7 @@ object types:
   case class PostgresSQLConfig(
       jdbcUrl: NonEmptyStringR,
       user: NonEmptyStringR,
-      password: Secret[NonEmptyStringR],
+      password: Secret[NonEmptyStringR]
   )
 
   case class HttpServerConfig(

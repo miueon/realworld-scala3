@@ -1,13 +1,12 @@
 package realworld.auth
 
-import java.time.Clock
-
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
-
 import pdi.jwt.JwtClaim
 import realworld.config.types.TokenExpiration
 import realworld.effects.JwtClock
+
+import java.time.Clock
 
 trait JwtExpire[F[_]]:
   def expiresIn(claim: JwtClaim, exp: TokenExpiration): F[JwtClaim]

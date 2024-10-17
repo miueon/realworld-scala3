@@ -3,23 +3,21 @@ package realworld.service
 import cats.data.OptionT
 import cats.effect.*
 import cats.syntax.all.*
-import realworld.domain.Comment
-import realworld.domain.CommentDBView
-import realworld.domain.article.ArticleError
-import realworld.domain.article.ArticleId
+import realworld.domain.article.{ArticleError, ArticleId}
 import realworld.domain.follower.Follower
 import realworld.domain.user.UserId
-import realworld.repo.ArticleRepo
-import realworld.repo.CommentRepo
-import realworld.repo.FollowerRepo
-import realworld.spec.CommentBody
-import realworld.spec.CommentId
-import realworld.spec.CommentView
-import realworld.spec.CommentViewList
-import realworld.spec.CreatedAt
-import realworld.spec.Profile
-import realworld.spec.Slug
-import realworld.spec.UpdatedAt
+import realworld.domain.{Comment, CommentDBView}
+import realworld.repo.{ArticleRepo, CommentRepo, FollowerRepo}
+import realworld.spec.{
+  CommentBody,
+  CommentId,
+  CommentView,
+  CommentViewList,
+  CreatedAt,
+  Profile,
+  Slug,
+  UpdatedAt
+}
 
 import java.time.Instant
 

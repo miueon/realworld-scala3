@@ -3,17 +3,18 @@ package realworld.http
 import cats.effect.*
 import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
-import realworld.service.Auth
-import realworld.service.Comments
-import realworld.spec.AuthHeader
-import realworld.spec.CommentId
-import realworld.spec.CommentService
-import realworld.spec.CreateCommentData
-import realworld.spec.CreateCommentOutput
-import realworld.spec.ListCommentsOutput
-import realworld.spec.Slug
 import realworld.domain.CommentError
-import realworld.spec.NotFoundError
+import realworld.service.{Auth, Comments}
+import realworld.spec.{
+  AuthHeader,
+  CommentId,
+  CommentService,
+  CreateCommentData,
+  CreateCommentOutput,
+  ListCommentsOutput,
+  NotFoundError,
+  Slug
+}
 
 object CommentServiceImpl:
   def make[F[_]: MonadCancelThrow: Logger](

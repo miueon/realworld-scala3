@@ -2,27 +2,15 @@ package realworld.components.pages
 
 import com.raquo.laminar.api.L.*
 import monocle.syntax.all.*
-import realworld.AppState
-import realworld.AuthEvent
-import realworld.AuthState
 import realworld.api.*
-import realworld.authenticatedOnly
 import realworld.components.Component
-import realworld.components.widgets.ContainerPage
-import realworld.components.widgets.GenericForm
-import realworld.routes.JsRouter
-import realworld.routes.Page
-import realworld.spec.Bio
-import realworld.spec.UnprocessableEntity
-import realworld.spec.UpdateUserOutput
-import realworld.types.FieldType
-import realworld.types.GenericFormField
-import realworld.types.InputType
-import realworld.types.UserSettings
-import realworld.types.Username
+import realworld.components.widgets.{ContainerPage, GenericForm}
+import realworld.routes.{JsRouter, Page}
+import realworld.spec.{Bio, UnprocessableEntity, UpdateUserOutput}
 import realworld.types.validation.GenericError
+import realworld.types.{FieldType, GenericFormField, InputType, UserSettings, Username}
+import realworld.{AppState, AuthEvent, AuthState, authenticatedOnly}
 import utils.Utils.*
-import utils.Utils.toAuthHeader
 
 import scala.concurrent.ExecutionContext.Implicits.global
 final case class Settings()(using state: AppState, api: Api) extends Component:

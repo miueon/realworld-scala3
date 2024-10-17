@@ -1,13 +1,9 @@
 package realworld.domain
 
 import cats.Functor
-import doobie.Composite
-import doobie.SQLDefinition
-import doobie.TableDefinition
 import doobie.TableDefinition.RowHelpers
-import doobie.WithSQLDefinition
-import io.circe.Decoder
-import io.circe.Encoder
+import doobie.{Composite, SQLDefinition, TableDefinition, WithSQLDefinition}
+import io.circe.{Decoder, Encoder}
 import realworld.spec.Total
 
 import scala.annotation.targetName

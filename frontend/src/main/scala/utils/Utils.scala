@@ -1,27 +1,20 @@
 package utils
 
+import cats.data.EitherNec
+import cats.syntax.all.*
 import com.raquo.airstream.core.Observer
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import io.github.iltotore.iron.*
 import monocle.Lens
 import org.scalajs.dom
-import realworld.spec.AuthHeader
-import realworld.spec.Skip
-import realworld.spec.Token
+import realworld.spec.{AuthHeader, Skip, Token, UnprocessableEntity}
+import realworld.validation.InvalidField
 import smithy4s.Newtype
 
-import scala.concurrent.ExecutionContext
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.scalajs.js
-import scala.util.Failure
-import scala.util.Success
-
-import cats.data.EitherNec
-import cats.syntax.all.*
-import realworld.spec.UnprocessableEntity
-import realworld.validation.InvalidField
-import io.github.iltotore.iron.*
-import io.github.iltotore.iron.Constraint
+import scala.util.{Failure, Success}
 object Utils:
 
   /** Marks the otherwise-unused import as "used" in Scala.js, preventing dead code elimination.

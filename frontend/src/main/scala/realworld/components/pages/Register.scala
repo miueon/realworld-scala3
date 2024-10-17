@@ -2,24 +2,16 @@ package realworld.components.pages
 
 import com.raquo.laminar.api.L.*
 import monocle.syntax.all.*
-import realworld.AppState
-import realworld.AuthEvent
-import realworld.AuthState
 import realworld.api.*
 import realworld.components.Component
-import realworld.components.widgets.ContainerPage
-import realworld.components.widgets.GenericForm
-import realworld.guestOnly
+import realworld.components.widgets.{ContainerPage, GenericForm}
 import realworld.routes.JsRouter.*
 import realworld.routes.Page
-import realworld.spec.RegisterUserOutput
-import realworld.spec.UnprocessableEntity
-import realworld.types.GenericFormField
-import realworld.types.InputType
-import realworld.types.RegisterCredential
+import realworld.spec.{RegisterUserOutput, UnprocessableEntity}
 import realworld.types.validation.GenericError
+import realworld.types.{GenericFormField, InputType, RegisterCredential}
+import realworld.{AppState, AuthEvent, AuthState, guestOnly}
 import utils.Utils.*
-import utils.Utils.toAuthHeader
 
 import scala.concurrent.ExecutionContext.Implicits.global
 final case class Register()(using api: Api, state: AppState) extends Component:
@@ -37,9 +29,9 @@ final case class Register()(using api: Api, state: AppState) extends Component:
         case Left(UnprocessableEntity(Some(e))) =>
           signingUp.set(false)
           errors.set(e)
-        case Left(e) => 
+        case Left(e) =>
           signingUp.set(false)
-          errors.set(Map("error" -> List(e.getMessage()))) 
+          errors.set(Map("error" -> List(e.getMessage())))
         case Right(RegisterUserOutput(usr)) =>
           errors.set(Map())
           state.events.emit(

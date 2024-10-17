@@ -2,21 +2,21 @@ package realworld.types
 
 import io.github.iltotore.iron.*
 import io.github.iltotore.iron.constraint.all.*
-import io.github.iltotore.iron.constraint.any.DescribedAs
-import io.github.iltotore.iron.constraint.any.Not
+import io.github.iltotore.iron.constraint.any.{DescribedAs, Not}
 import io.github.iltotore.iron.constraint.string.Blank
-import smithy4s.RefinementProvider
-import smithy4s.Refinement
-import realworld.spec.UsernameFormat
-import realworld.spec.EmailFormat
-import realworld.spec.PasswordFormat
-import realworld.spec.TitleFormat
-import realworld.spec.DescriptionFormat
-import realworld.spec.BodyFormat
-import realworld.spec.TagNameFormat
-import realworld.spec.CommentBodyFormat
-import realworld.spec.NonEmptyListFormat
-import realworld.spec.ImageUrlFormat
+import realworld.spec.{
+  BodyFormat,
+  CommentBodyFormat,
+  DescriptionFormat,
+  EmailFormat,
+  ImageUrlFormat,
+  NonEmptyListFormat,
+  PasswordFormat,
+  TagNameFormat,
+  TitleFormat,
+  UsernameFormat
+}
+import smithy4s.{Refinement, RefinementProvider}
 
 type UsernameConstraint = MinLength[1] & MaxLength[50] & Not[Blank] DescribedAs
   "should not be blank and should be between 1 and 50 characters"

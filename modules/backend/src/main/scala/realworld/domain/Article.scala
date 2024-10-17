@@ -1,32 +1,21 @@
 package realworld.domain.article
 
-import doobie.Column
-import doobie.Composite
-import doobie.TableDefinition
-import doobie.WithSQLDefinition
 import doobie.util.meta.Meta
+import doobie.{Column, Composite, TableDefinition, WithSQLDefinition}
 import io.github.iltotore.iron.constraint.all.*
 import io.github.iltotore.iron.doobie.given
 import realworld.domain.*
 import realworld.domain.given
 import realworld.domain.types.IdNewtype
 import realworld.domain.user.UserId
-import realworld.spec.Bio
-import realworld.spec.CreatedAt
-import realworld.spec.Slug
-import realworld.spec.UpdatedAt
-import realworld.types.Body
-import realworld.types.Description
-import realworld.types.ImageUrl
-import realworld.types.TagName
-import realworld.types.Title
-import realworld.types.Username
+import realworld.spec.{Bio, CreatedAt, Slug, UpdatedAt}
+import realworld.types.{Body, Description, ImageUrl, TagName, Title, Username}
 
 import scala.util.control.NoStackTrace
 type ArticleId = ArticleId.Type
 object ArticleId extends IdNewtype
 
-given Meta[Slug]        = metaOf(Slug)
+given Meta[Slug] = metaOf(Slug)
 // given Meta[Title]       = Meta[String].refined[Not[Blank]]
 // given Meta[Description] = Meta[String].refined[Not[Blank]]
 // given Meta[Body]        = Meta[String].refined[Not[Blank]]

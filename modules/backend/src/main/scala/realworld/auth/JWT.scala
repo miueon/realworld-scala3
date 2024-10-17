@@ -2,13 +2,9 @@ package realworld.auth
 
 import cats.Monad
 import cats.syntax.all.*
-
 import io.circe.syntax.*
-import pdi.jwt.JwtAlgorithm
-import pdi.jwt.JwtCirce
-import pdi.jwt.JwtClaim
-import realworld.config.types.JwtAccessTokenKeyConfig
-import realworld.config.types.TokenExpiration
+import pdi.jwt.{JwtAlgorithm, JwtCirce, JwtClaim}
+import realworld.config.types.{JwtAccessTokenKeyConfig, TokenExpiration}
 import realworld.effects.GenUUID
 import realworld.spec.Token
 

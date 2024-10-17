@@ -6,21 +6,15 @@ import realworld.AppState
 import realworld.api.*
 import realworld.components.Component
 import realworld.components.widgets.ArticleEditor
-import realworld.routes.JsRouter
-import realworld.routes.Page
-import realworld.spec.Article
-import realworld.spec.UnprocessableEntity
-import realworld.spec.UpdateArticleOutput
+import realworld.routes.{JsRouter, Page}
+import realworld.spec.{Article, NotFoundError, UnprocessableEntity, UpdateArticleOutput}
 import realworld.types.ArticleForm
 import realworld.types.ArticleForm.u
 import realworld.types.validation.GenericError
 import utils.Utils.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
-import realworld.spec.NotFoundError
+import scala.util.{Failure, Success, Try}
 
 final case class EditArticlePage(s_page: Signal[Page.EditArticlePage])(using
     state: AppState,
@@ -44,7 +38,7 @@ final case class EditArticlePage(s_page: Signal[Page.EditArticlePage])(using
                 isSubmittingVar -> false,
                 errors          -> e
               )
-            case Left(NotFoundError(msgOpt)) => 
+            case Left(NotFoundError(msgOpt)) =>
               Var.set(
                 isSubmittingVar -> false,
                 errors -> Map("Not found article, " -> List(msgOpt.getOrElse("Article not found")))

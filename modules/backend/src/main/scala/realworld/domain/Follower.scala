@@ -1,11 +1,8 @@
 package realworld.domain.follower
 
-import doobie.Column
-import doobie.Composite
-import doobie.TableDefinition
-import doobie.WithSQLDefinition
-import realworld.domain.user.UserId
 import doobie.TableDefinition.RowHelpers
+import doobie.{Column, Composite, TableDefinition, WithSQLDefinition}
+import realworld.domain.user.UserId
 
 case class Follower(
     userId: UserId,
@@ -22,6 +19,8 @@ object Followers extends TableDefinition("followers"):
           userId.sqlDef,
           followerId.sqlDef
         )(Follower.apply)(Tuple.fromProductTyped)
-      ) with RowHelpers[Follower](this)
+      )
+      with RowHelpers[Follower](this)
 
   val rowCol = UserSqlDef
+end Followers

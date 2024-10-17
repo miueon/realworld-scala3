@@ -1,12 +1,11 @@
 package realworld.domain
 
-import java.util.UUID
-
 import cats.Functor
 import cats.syntax.all.*
-
 import realworld.domain.types.IsUUID
 import realworld.effects.GenUUID
+
+import java.util.UUID
 
 object ID:
   def make[F[_]: Functor: GenUUID, A: IsUUID]: F[A] =

@@ -2,17 +2,12 @@ package realworld.modules
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import org.http4s.AuthScheme
-import org.http4s.Credentials
-import org.http4s.HttpApp
-import org.http4s.Response
 import org.http4s.headers.Authorization
+import org.http4s.{AuthScheme, Credentials, HttpApp, Response}
 import realworld.auth.JWT
-import realworld.spec.Token
-import realworld.spec.UnauthorizedError
-import smithy4s.Endpoint
-import smithy4s.Hints
+import realworld.spec.{Token, UnauthorizedError}
 import smithy4s.http4s.ServerEndpointMiddleware
+import smithy4s.{Endpoint, Hints}
 
 object JwtAuthMiddleware:
   def apply[F[_]: MonadThrow](
@@ -37,16 +32,14 @@ object JwtAuthMiddleware:
     HttpApp[F]: request =>
       val maybeKey = request.headers
         .get[`Authorization`]
-        .collect {
-          case Authorization(Credentials.Token(AuthScheme.Bearer, value)) =>
-            value
+        .collect { case Authorization(Credentials.Token(AuthScheme.Bearer, value)) =>
+          value
         }
         .map(Token.apply)
 
       val isAuthorized = maybeKey.map(jwt.validate).getOrElse(false.pure[F])
       isAuthorized.ifM(
         ifTrue = inputApp(request),
-        ifFalse =
-          UnauthorizedError("Not authorized!".some).raiseError[F, Response[F]]
+        ifFalse = UnauthorizedError("Not authorized!".some).raiseError[F, Response[F]]
       )
 end JwtAuthMiddleware

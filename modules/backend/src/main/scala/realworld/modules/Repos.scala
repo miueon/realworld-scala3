@@ -3,14 +3,9 @@ package realworld.modules
 import cats.effect.*
 import dev.profunktor.redis4cats.RedisCommands
 import doobie.util.transactor.Transactor
-import realworld.db.DoobieTx
-import realworld.repo.ArticleRepo
-import realworld.repo.CommentRepo
-import realworld.repo.FavoriteRepo
-import realworld.repo.FollowerRepo
-import realworld.repo.TagRepo
-import realworld.repo.UserRepo
 import org.typelevel.log4cats.Logger
+import realworld.db.DoobieTx
+import realworld.repo.{ArticleRepo, CommentRepo, FavoriteRepo, FollowerRepo, TagRepo, UserRepo}
 
 object Repos:
   def make[F[_]: MonadCancelThrow: DoobieTx: Logger](

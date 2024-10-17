@@ -6,25 +6,21 @@ import scala.scalajs.js
 trait DynamicJsObject extends js.Object
 // END[wind-gradient]
 
-/**
-  * These updateDynamic helpers provide an easy way to set rarely
-  * used values on JS types that you don't care to type properly.
+/** These updateDynamic helpers provide an easy way to set rarely used values on JS types that you
+  * don't care to type properly.
   *
-  * For example, we use one of them to set a custom backgroundColor
-  * on ChartDataset. We have alternatives to that:
+  * For example, we use one of them to set a custom backgroundColor on ChartDataset. We have
+  * alternatives to that:
   *
-  * 1) We could add a backgroundColor property to the constructor of
-  *    ChartDataset, then we can set it like any other parameter.
+  * 1) We could add a backgroundColor property to the constructor of ChartDataset, then we can set
+  * it like any other parameter.
   *
-  * 2) We could create an instance of an anonymous class extending
-  *    ChartDataset using the `new` keyword, and define the
-  *    background property just for that class, like so:
+  * 2) We could create an instance of an anonymous class extending ChartDataset using the `new`
+  * keyword, and define the background property just for that class, like so:
   *
-  *    new ChartDataset(..constructor params..) {
-  *      val backgroundColor: String = ...
-  *    }
+  * new ChartDataset(..constructor params..) { val backgroundColor: String = ... }
   */
-object DynamicJsObject {
+object DynamicJsObject:
 
   // #TODO update comments
 
@@ -43,23 +39,20 @@ object DynamicJsObject {
 
   // BEGIN[wind-gradient]
   extension (obj: DynamicJsObject)
-
-    def updateDynamic(keyValuePairs: (String, js.Any)*): obj.type = {
+    def updateDynamic(keyValuePairs: (String, js.Any)*): obj.type =
       keyValuePairs.foreach { (key, value) =>
         obj.asInstanceOf[js.Dynamic].updateDynamic(key)(value)
       }
       obj
-    }
     // END[wind-gradient]
 
-    //def updateDynamic(key: String, value: js.Any): obj.type = {
+    // def updateDynamic(key: String, value: js.Any): obj.type = {
     //  obj.asInstanceOf[js.Dynamic].updateDynamic(key)(value)
     //  obj
-    //}
+    // }
     //
-    //def updateDynamic(keyValuePair: (String, js.Any)): obj.type = {
+    // def updateDynamic(keyValuePair: (String, js.Any)): obj.type = {
     //  obj.asInstanceOf[js.Dynamic].updateDynamic(keyValuePair._1)(keyValuePair._2)
     //  obj
-    //}
-
-}
+    // }
+end DynamicJsObject

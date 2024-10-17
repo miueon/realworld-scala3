@@ -6,13 +6,9 @@ import com.raquo.laminar.modifiers.EventListener
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import org.scalajs.dom.Event
 import realworld.components.ComponentSeq
-import realworld.components.widgets.FromGroup.Input
-import realworld.components.widgets.FromGroup.ListFormGroup
-import realworld.components.widgets.FromGroup.TextArea
-import realworld.types.FieldType
-import realworld.types.FormRecord
-import realworld.types.GenericFormField
+import realworld.components.widgets.FromGroup.{Input, ListFormGroup, TextArea}
 import realworld.types.validation.GenericError
+import realworld.types.{FieldType, FormRecord, GenericFormField}
 
 final case class GenericForm(
     esg: Signal[GenericError],

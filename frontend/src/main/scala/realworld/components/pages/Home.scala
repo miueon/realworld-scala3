@@ -5,21 +5,19 @@ import monocle.syntax.all.*
 import realworld.AppState
 import realworld.api.*
 import realworld.components.Component
-import realworld.components.widgets.ArticleViewer
-import realworld.components.widgets.ArticleViewrState
-import realworld.components.widgets.ContainerPage
-import realworld.components.widgets.Feed
-import realworld.components.widgets.GlobalFeed
-import realworld.components.widgets.Tab
-import realworld.components.widgets.Tag
-import realworld.spec.Article
-import realworld.spec.Skip
-import realworld.spec.Total
+import realworld.components.widgets.{
+  ArticleViewer,
+  ArticleViewrState,
+  ContainerPage,
+  Feed,
+  GlobalFeed,
+  Tab,
+  Tag
+}
+import realworld.spec.{Article, Skip, Total}
 import realworld.types.ArticlePage
 import realworld.types.ArticlePage.toPage
-import utils.Utils.some
-import utils.Utils.toArticleViewerSkip
-import utils.Utils.writerF
+import utils.Utils.{some, toArticleViewerSkip, writerF}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 case class HomeState(
@@ -49,7 +47,9 @@ final case class Home()(using api: Api, state: AppState) extends Component:
           .promiseStream(_.articlePromise.listFeedArticle(state.authHeader.get, skip = skip))
           .map(_.toPage)
       case GlobalFeed | _ =>
-        api.promiseStream(_.articlePromise.listArticle(skip = skip, auth = state.authHeader)).map(_.toPage)
+        api
+          .promiseStream(_.articlePromise.listArticle(skip = skip, auth = state.authHeader))
+          .map(_.toPage)
   val tabObserver = Observer[Tab] { tab =>
     tabVar.set(tab)
     homeState.set(HomeState())
@@ -59,7 +59,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
     else Set(GlobalFeed, t).toSeq
   }
 
-  val onFavoriteObserver = Observer[Article]{ article =>
+  val onFavoriteObserver = Observer[Article] { article =>
     val updatedArticles = homeState.now().articleList.articles.map { (previews: List[Article]) =>
       previews.map {
         case elem if elem.slug == article.slug => article

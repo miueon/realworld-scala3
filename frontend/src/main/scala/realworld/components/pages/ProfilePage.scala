@@ -8,25 +8,21 @@ import org.scalajs.dom
 import realworld.AppState
 import realworld.api.*
 import realworld.components.Component
-import realworld.components.widgets.ArticleViewer
-import realworld.components.widgets.ArticleViewrState
-import realworld.components.widgets.Favorited
-import realworld.components.widgets.MyArticle
-import realworld.components.widgets.Tab
-import realworld.components.widgets.UserInfo
-import realworld.routes.JsRouter
-import realworld.routes.Page
-import realworld.spec.Article
-import realworld.spec.Profile
-import realworld.spec.Skip
+import realworld.components.widgets.{
+  ArticleViewer,
+  ArticleViewrState,
+  Favorited,
+  MyArticle,
+  Tab,
+  UserInfo
+}
+import realworld.routes.{JsRouter, Page}
+import realworld.spec.{Article, Profile, Skip}
 import realworld.types.ArticlePage
 import realworld.types.ArticlePage.toPage
-import utils.Utils.some
-import utils.Utils.writerF
+import utils.Utils.{some, writerF}
 
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 import concurrent.ExecutionContext.Implicits.global
 case class ProfileArticlePage(
@@ -59,7 +55,7 @@ final case class ProfilePage(s_profile: Signal[Page.ProfilePage])(using state: A
                 _.articlePromise.listArticle(
                   skip = skip,
                   auth = state.authHeader,
-                  author = profile.username.some,
+                  author = profile.username.some
                 )
               )
               .map(_.toPage)
@@ -70,7 +66,7 @@ final case class ProfilePage(s_profile: Signal[Page.ProfilePage])(using state: A
                 _.articlePromise.listArticle(
                   skip = skip,
                   auth = state.authHeader,
-                  favorited = profile.username.some,
+                  favorited = profile.username.some
                 )
               )
               .map(_.toPage)

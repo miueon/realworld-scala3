@@ -1,14 +1,12 @@
 package realworld.domain.types
 
-import monocle.Iso
-import cats.kernel.Eq
-import cats.kernel.Order
 import cats.Show
-import doobie.util.Write
-import doobie.util.Read
+import cats.kernel.{Eq, Order}
+import doobie.util.{Read, Write}
+import io.circe.{Decoder, Encoder}
+import monocle.Iso
+
 import java.util.UUID
-import io.circe.Encoder
-import io.circe.Decoder
 
 abstract class DeriveType[A]:
   opaque type Type = A

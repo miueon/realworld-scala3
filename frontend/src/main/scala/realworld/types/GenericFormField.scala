@@ -4,15 +4,18 @@ import cats.syntax.all.*
 import com.raquo.laminar.api.L.*
 import io.github.iltotore.iron.*
 import io.github.iltotore.iron.constraint.string.Blank
-import realworld.spec.Bio
-import realworld.spec.LoginUserInputData
-import realworld.spec.RegisterUserData
-import realworld.spec.UnprocessableEntity
+import realworld.spec.{
+  Bio,
+  CreateArticleData,
+  LoginUserInputData,
+  RegisterUserData,
+  UnprocessableEntity,
+  UpdateArticleData,
+  UpdateUserData
+}
 import realworld.validation.InvalidField.*
 import utils.Utils.*
-import realworld.spec.UpdateUserData
-import realworld.spec.CreateArticleData
-import realworld.spec.UpdateArticleData
+
 import scala.reflect.ClassTag
 
 opaque type InputType = String

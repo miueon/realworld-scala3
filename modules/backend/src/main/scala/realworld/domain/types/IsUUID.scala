@@ -1,8 +1,8 @@
 package realworld.domain.types
 
-import java.util.UUID
-
 import monocle.Iso
+
+import java.util.UUID
 
 trait IsUUID[A]:
   def iso: Iso[UUID, A]

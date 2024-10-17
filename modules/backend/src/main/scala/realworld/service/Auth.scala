@@ -1,41 +1,33 @@
 package realworld.service
 
 import cats.Functor
+import cats.data.EitherT
 import cats.effect.kernel.MonadCancelThrow
 import cats.syntax.all.*
-
 import dev.profunktor.redis4cats.RedisCommands
-import io.circe.Codec
-import io.circe.Decoder
-import io.circe.DecodingFailure
-import io.circe.Encoder
 import io.circe.parser.decode
 import io.circe.syntax.*
-import realworld.auth.Crypto
-import realworld.auth.JWT
-import realworld.config.types.TokenExpiration
-import realworld.domain.ID
-import realworld.codec.given
-import realworld.domain.user.DBUser
-import realworld.domain.user.UserId
-import realworld.effects.GenUUID
-import realworld.spec.AuthHeader
-import realworld.spec.LoginUserInputData
-import realworld.spec.RegisterUserData
-import realworld.spec.Token
-import realworld.spec.UnauthorizedError
-import realworld.spec.User
-import realworld.domain.user.UserError
-import realworld.domain.WithId
-import realworld.spec.UpdateUserData
-
-import realworld.db.DoobieTx
-import realworld.repo.UserRepo
-import realworld.spec.CredentialsError
-import cats.data.EitherT
-import realworld.types.Username
-import realworld.types.Email
+import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 import org.typelevel.log4cats.Logger
+import realworld.auth.{Crypto, JWT}
+import realworld.codec.given
+import realworld.config.types.TokenExpiration
+import realworld.db.DoobieTx
+import realworld.domain.user.{DBUser, UserError, UserId}
+import realworld.domain.{ID, WithId}
+import realworld.effects.GenUUID
+import realworld.repo.UserRepo
+import realworld.spec.{
+  AuthHeader,
+  CredentialsError,
+  LoginUserInputData,
+  RegisterUserData,
+  Token,
+  UnauthorizedError,
+  UpdateUserData,
+  User
+}
+import realworld.types.{Email, Username}
 
 trait Auth[F[_]: Functor]:
   def login(user: LoginUserInputData): F[User]

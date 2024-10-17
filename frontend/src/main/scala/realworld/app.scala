@@ -3,20 +3,20 @@ import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import com.raquo.waypoint.SplitRender
 import realworld.api.Api
-import realworld.components.pages.Home
-import realworld.components.pages.Login
-import realworld.components.pages.Register
-import realworld.components.widgets.Footer
-import realworld.components.widgets.Header
-import realworld.routes.JsRouter
-import realworld.routes.Page
 import realworld.components.Component
+import realworld.components.pages.{
+  ArticleDetailPage,
+  EditArticlePage,
+  Home,
+  Login,
+  NewArticle,
+  ProfilePage,
+  Register,
+  Settings
+}
+import realworld.components.widgets.{Footer, Header}
+import realworld.routes.{JsRouter, Page}
 import utils.Utils.toSignal
-import realworld.components.pages.EditArticlePage
-import realworld.components.pages.ProfilePage
-import realworld.components.pages.Settings
-import realworld.components.pages.NewArticle
-import realworld.components.pages.ArticleDetailPage
 
 object App:
   extension [P](sp: SplitRender[P, HtmlElement])

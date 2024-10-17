@@ -8,16 +8,11 @@ import doobie.*
 import doobie.free.connection.ConnectionIO
 import doobie.implicits.*
 import io.github.iltotore.iron.doobie.given
-import realworld.db.DoobieTx
-import realworld.db.transaction
+import realworld.db.{DoobieTx, transaction}
 import realworld.domain.WithId
-import realworld.domain.user.DBUser
-import realworld.domain.user.EncryptedPassword
-import realworld.domain.user.UserId
-import realworld.spec.RegisterUserData
-import realworld.spec.UpdateUserData
-import realworld.types.Email
-import realworld.types.Username
+import realworld.domain.user.{DBUser, EncryptedPassword, UserId}
+import realworld.spec.{RegisterUserData, UpdateUserData}
+import realworld.types.{Email, Username}
 
 trait UserRepo[F[_]]:
   def findById(id: UserId): F[Option[WithId[UserId, DBUser]]]

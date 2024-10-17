@@ -4,23 +4,24 @@ import cats.MonadThrow
 import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
 import realworld.domain.user.UserError
-import realworld.service.Auth
-import realworld.service.Profiles
-import realworld.spec.AuthHeader
-import realworld.spec.FollowUserOutput
-import realworld.spec.ForbiddenError
-import realworld.spec.GetProfileOutput
-import realworld.spec.GetUserOutput
-import realworld.spec.LoginUserInputData
-import realworld.spec.LoginUserOutput
-import realworld.spec.NotFoundError
-import realworld.spec.RegisterUserData
-import realworld.spec.RegisterUserOutput
-import realworld.spec.UnfollowUserOutput
-import realworld.spec.UnprocessableEntity
-import realworld.spec.UpdateUserData
-import realworld.spec.UpdateUserOutput
-import realworld.spec.UserService
+import realworld.service.{Auth, Profiles}
+import realworld.spec.{
+  AuthHeader,
+  FollowUserOutput,
+  ForbiddenError,
+  GetProfileOutput,
+  GetUserOutput,
+  LoginUserInputData,
+  LoginUserOutput,
+  NotFoundError,
+  RegisterUserData,
+  RegisterUserOutput,
+  UnfollowUserOutput,
+  UnprocessableEntity,
+  UpdateUserData,
+  UpdateUserOutput,
+  UserService
+}
 import realworld.types.Username
 
 object UserServiceImpl:

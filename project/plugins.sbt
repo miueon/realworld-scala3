@@ -11,5 +11,6 @@ addSbtPlugin("org.scalameta"               % "sbt-scalafmt"        % "2.5.0")
 addSbtPlugin("com.armanbilge"              % "sbt-bundlemon"       % "0.1.3")
 addSbtPlugin("org.scalablytyped.converter" % "sbt-converter"       % "1.0.0-beta44")
 addSbtPlugin("nl.gn0s1s"                   % "sbt-dotenv"          % "3.0.0")
+addSbtPlugin("ch.epfl.scala"                % "sbt-scalafix"         % "0.12.1")
 
 libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always

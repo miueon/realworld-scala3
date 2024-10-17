@@ -1,21 +1,19 @@
 package realworld.components.widgets
 
 import com.raquo.laminar.api.L.*
+import io.github.iltotore.iron.*
 import monocle.syntax.all.*
 import org.scalajs.dom.MouseEvent
 import realworld.AppState
 import realworld.api.*
 import realworld.components.Component
-import realworld.routes.JsRouter
-import realworld.routes.Page
+import realworld.routes.{JsRouter, Page}
 import realworld.spec.Profile
 import utils.Utils.writerF
 
-import scala.util.Failure
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 import concurrent.ExecutionContext.Implicits.global
-import io.github.iltotore.iron.*
 case class UserInfoState(
     isSubmitting: Boolean = false,
     isFollowing: Boolean = false,
@@ -39,22 +37,29 @@ final case class UserInfo(s_profile: Signal[Profile], profileObserver: Observer[
 
   def toggleFollowButton(
   ) =
-    val onFollowObserver = Observer[MouseEvent]: _ =>
+    val onFollowObserver = Observer[MouseEvent] { _ =>
       state.authHeader.fold(JsRouter.redirectTo(Page.Register)) { case header =>
         isSubmittingWriter.onNext(true)
         val userInfoState = userInfoStateVar.now()
-        if userInfoState.isFollowing then
-          api.promise(_.userPromise.unfollowUser(userInfoState.username.assume, header).map(_.profile))
-        else
-          api
-            .promise(_.userPromise.followUser(userInfoState.username.assume, header).map(_.profile))
-        .onComplete {
-          case Failure(exception) => JsRouter.redirectTo(Page.Login)
-          case Success(profile) =>
-            profileObserver.onNext(profile)
-            isSubmittingWriter.onNext(false)
+        {
+          if userInfoState.isFollowing then
+            api.promise(
+              _.userPromise.unfollowUser(userInfoState.username.assume, header).map(_.profile)
+            )
+          else
+            api
+              .promise(
+                _.userPromise.followUser(userInfoState.username.assume, header).map(_.profile)
+              )
         }
+          .onComplete {
+            case Failure(exception) => JsRouter.redirectTo(Page.Login)
+            case Success(profile) =>
+              profileObserver.onNext(profile)
+              isSubmittingWriter.onNext(false)
+          }
       }
+    }
     button(
       cls := "btn btn-sm btn-outline-secondary action-btn",
       disabled <-- userInfoStateVar.signal.map(_.isSubmitting),
@@ -79,12 +84,10 @@ final case class UserInfo(s_profile: Signal[Profile], profileObserver: Observer[
             img(cls := "user-img"),
             h4(child.text <-- s_profile.map(_.username)),
             p(child.maybe <-- s_profile.map(_.bio.map(_.value))),
-            child <-- s_profile.splitOne(_.username)((username, _, _) => {
-              if state.user.map(_.username == username).getOrElse(false) then
-                editProfileButton()
-              else
-                toggleFollowButton()
-            })
+            child <-- s_profile.splitOne(_.username)((username, _, _) =>
+              if state.user.map(_.username == username).getOrElse(false) then editProfileButton()
+              else toggleFollowButton()
+            )
           )
         )
       )

@@ -1,9 +1,6 @@
 package realworld.types
 
-import realworld.spec.Article
-import realworld.spec.Total
-import realworld.spec.ListFeedArticleOutput
-import realworld.spec.ListArticleOutput
+import realworld.spec.{Article, ListArticleOutput, ListFeedArticleOutput, Total}
 import utils.Utils.some
 
 case class ArticlePage(

@@ -1,9 +1,9 @@
 package realworld.effects
 
-import java.util.UUID
-
 import cats.ApplicativeThrow
 import cats.effect.kernel.Sync
+
+import java.util.UUID
 
 trait GenUUID[F[_]]:
   def make: F[UUID]

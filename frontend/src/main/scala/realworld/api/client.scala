@@ -2,14 +2,11 @@ package realworld.api
 
 import com.raquo.airstream.core.EventStream as LaminarStream
 import org.scalajs.dom
-import realworld.spec.ArticleService
-import realworld.spec.CommentService
-import realworld.spec.TagService
-import realworld.spec.UserService
+import realworld.spec.{ArticleService, CommentService, TagService, UserService}
 import smithy4s.Service
+import smithy4s_fetch.*
 
 import scala.concurrent.Future
-import smithy4s_fetch.*
 import scala.scalajs.js.Promise
 
 export scala.scalajs.js.Thenable.Implicits.thenable2future

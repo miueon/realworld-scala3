@@ -4,34 +4,25 @@ import cats.data.OptionT
 import cats.effect.*
 import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
-import realworld.domain.Favorite
-import realworld.domain.ID
-import realworld.domain.Tag
-import realworld.domain.WithId
-import realworld.domain.WithTotal
-import realworld.domain.article.ArticleError
-import realworld.domain.article.ArticleId
-import realworld.domain.article.ArticleView
-import realworld.domain.article.ListArticleQuery
+import realworld.domain.article.{ArticleError, ArticleId, ArticleView, ListArticleQuery}
 import realworld.domain.follower.Follower
 import realworld.domain.user.UserId
+import realworld.domain.{Favorite, ID, Tag, WithId, WithTotal}
 import realworld.effects.GenUUID
 import realworld.http.Pagination
-import realworld.repo.ArticleRepo
-import realworld.repo.FavoriteRepo
-import realworld.repo.FollowerRepo
-import realworld.repo.TagRepo
-import realworld.spec.Article
-import realworld.spec.ArticleList
-import realworld.spec.CreateArticleData
-import realworld.spec.CreatedAt
-import realworld.spec.FavoritesCount
-import realworld.spec.Profile
-import realworld.spec.Slug
-import realworld.spec.UpdateArticleData
-import realworld.spec.UpdatedAt
-import realworld.types.TagName
-import realworld.types.Title
+import realworld.repo.{ArticleRepo, FavoriteRepo, FollowerRepo, TagRepo}
+import realworld.spec.{
+  Article,
+  ArticleList,
+  CreateArticleData,
+  CreatedAt,
+  FavoritesCount,
+  Profile,
+  Slug,
+  UpdateArticleData,
+  UpdatedAt
+}
+import realworld.types.{TagName, Title}
 
 import java.text.Normalizer
 import java.text.Normalizer.Form

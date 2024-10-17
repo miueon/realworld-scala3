@@ -1,10 +1,8 @@
 package realworld.auth
 
-
 import cats.effect.kernel.Sync
 import cats.syntax.all.*
-import com.password4j.Argon2Function
-import com.password4j.Password as pswd
+import com.password4j.{Argon2Function, Password as pswd}
 import realworld.config.types.PasswordSalt
 import realworld.domain.user.EncryptedPassword
 import realworld.types.Password

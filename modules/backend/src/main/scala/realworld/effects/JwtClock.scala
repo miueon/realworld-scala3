@@ -1,7 +1,8 @@
 package realworld.effects
 
-import java.time.Clock
 import cats.effect.kernel.Sync
+
+import java.time.Clock
 
 trait JwtClock[F[_]]:
   def utc: F[Clock]

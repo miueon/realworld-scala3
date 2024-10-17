@@ -5,33 +5,25 @@ import com.raquo.laminar.api.L.*
 import com.raquo.laminar.modifiers.RenderableText
 import com.raquo.laminar.nodes.ReactiveHtmlElement
 import monocle.syntax.all.*
-import org.scalajs.dom.HTMLButtonElement
-import org.scalajs.dom.HTMLElement
-import org.scalajs.dom.MouseEvent
+import org.scalajs.dom.{HTMLButtonElement, HTMLElement, MouseEvent}
 import realworld.AppState
 import realworld.api.*
 import realworld.components.Component
 import realworld.components.widgets.TagListWidget
-import realworld.routes.JsRouter
-import realworld.routes.Page
-import realworld.spec.Article
-import realworld.spec.CommentBody
-import realworld.spec.CommentId
-import realworld.spec.CommentView
-import realworld.spec.CreateCommentData
-import realworld.spec.Profile
-import realworld.spec.Slug
+import realworld.routes.{JsRouter, Page}
+import realworld.spec.{
+  Article,
+  CommentBody,
+  CommentId,
+  CommentView,
+  CreateCommentData,
+  Profile,
+  Slug
+}
 import utils.Utils
-import utils.Utils.classTupleToClassName
-import utils.Utils.some
-import utils.Utils.someWriterF
-import utils.Utils.toList
-import utils.Utils.toSignal
-import utils.Utils.writerF
+import utils.Utils.{classTupleToClassName, some, someWriterF, toList, toSignal, writerF}
 
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 import concurrent.ExecutionContext.Implicits.global
 

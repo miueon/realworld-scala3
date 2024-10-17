@@ -2,27 +2,16 @@ package realworld.components.pages
 
 import com.raquo.laminar.api.L.*
 import monocle.syntax.all.*
-import realworld.AppState
-import realworld.AuthEvent
-import realworld.AuthState
 import realworld.api.Api
 import realworld.components.Component
-import realworld.components.widgets.ContainerPage
-import realworld.components.widgets.GenericForm
-import realworld.guestOnly
+import realworld.components.widgets.{ContainerPage, GenericForm}
 import realworld.routes.JsRouter.*
 import realworld.routes.Page
-import realworld.spec.LoginUserOutput
-import realworld.spec.UnprocessableEntity
-import realworld.types.FieldType
-import realworld.types.GenericFormField
-import realworld.types.InputType
-import realworld.types.LoginCredential
+import realworld.spec.{LoginUserOutput, UnprocessableEntity}
 import realworld.types.validation.GenericError
-import utils.Utils.attempt
-import utils.Utils.toAuthHeader
-import utils.Utils.writerF
-import utils.Utils.foldError
+import realworld.types.{FieldType, GenericFormField, InputType, LoginCredential}
+import realworld.{AppState, AuthEvent, AuthState, guestOnly}
+import utils.Utils.{attempt, foldError, toAuthHeader, writerF}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.scalajs.js.Thenable.Implicits.thenable2future
@@ -37,7 +26,7 @@ final case class Login()(using api: Api, state: AppState) extends Component:
       .foldError(api.userPromise.loginUser(_).attempt)
       .collect {
         case Left(UnprocessableEntity(Some(e))) => errors.set(e)
-        case Left(e) => errors.set(Map("error" -> List(e.getMessage())))
+        case Left(e)                            => errors.set(Map("error" -> List(e.getMessage())))
         case Right(LoginUserOutput(usr)) =>
           errors.set(Map())
           state.events.emit(

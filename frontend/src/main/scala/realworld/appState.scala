@@ -3,9 +3,7 @@ package realworld
 import com.raquo.laminar.api.L.*
 import org.scalajs.dom
 import realworld.api.*
-import realworld.spec.AuthHeader
-import realworld.spec.Token
-import realworld.spec.User
+import realworld.spec.{AuthHeader, Token, User}
 import utils.Utils.*
 
 import scala.concurrent.ExecutionContext.Implicits.global

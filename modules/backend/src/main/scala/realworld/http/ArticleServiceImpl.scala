@@ -3,27 +3,26 @@ package realworld.http
 import cats.effect.*
 import cats.syntax.all.*
 import org.typelevel.log4cats.Logger
-import realworld.domain.article.ArticleError
-import realworld.domain.article.ListArticleQuery
-import realworld.service.Articles
-import realworld.service.Auth
-import realworld.spec.ArticleService
-import realworld.spec.AuthHeader
-import realworld.spec.CreateArticleData
-import realworld.spec.CreateArticleOutput
-import realworld.spec.FavoriteArticleOutput
-import realworld.spec.GetArticleOutput
-import realworld.spec.Limit
-import realworld.spec.ListArticleOutput
-import realworld.spec.ListFeedArticleOutput
-import realworld.spec.NotFoundError
-import realworld.spec.Skip
-import realworld.spec.Slug
-import realworld.spec.UnfavoriteArticleOutput
-import realworld.spec.UpdateArticleData
-import realworld.spec.UpdateArticleOutput
-import realworld.types.TagName
-import realworld.types.Username
+import realworld.domain.article.{ArticleError, ListArticleQuery}
+import realworld.service.{Articles, Auth}
+import realworld.spec.{
+  ArticleService,
+  AuthHeader,
+  CreateArticleData,
+  CreateArticleOutput,
+  FavoriteArticleOutput,
+  GetArticleOutput,
+  Limit,
+  ListArticleOutput,
+  ListFeedArticleOutput,
+  NotFoundError,
+  Skip,
+  Slug,
+  UnfavoriteArticleOutput,
+  UpdateArticleData,
+  UpdateArticleOutput
+}
+import realworld.types.{TagName, Username}
 
 object ArticleServiceImpl:
   def make[F[_]: MonadCancelThrow: Logger](

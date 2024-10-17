@@ -1,7 +1,6 @@
 package realworld.config
 
 import cats.implicits.*
-
 import ciris.ConfigDecoder
 import realworld.domain.types.DeriveType
 

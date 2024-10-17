@@ -2,13 +2,19 @@ import org.scalajs.linker.interface.Report
 import org.scalajs.linker.interface.ModuleSplitStyle
 import smithy4s.codegen.Smithy4sCodegenPlugin
 import scala.sys.process.Process
-import java.nio.file._
+import java.nio.file.*
 import java.nio.charset.StandardCharsets
 
 Compile / run / fork          := true
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / scalacOptions := Seq(
   "-Wunused:all"
+)
+inThisBuild(
+  Seq(
+    semanticdbEnabled := true, // for scalafix
+    semanticdbVersion := scalafixSemanticdb.revision
+  )
 )
 
 val Versions = new {
@@ -46,7 +52,7 @@ val Versions = new {
 
 val Config = new {
   val DockerImageName = "realworld-smithy4s"
-  val DockerBaseImage = "eclipse-temurin:17"
+  val DockerBaseImage = "wonder/jdk:17.0.10_7-ubuntu"
   val BasePackage     = "realworld"
 }
 
@@ -299,6 +305,9 @@ addCommandAlias(
   "frontendTests",
   "backend/testOnly jobby.tests.frontend.*"
 )
+
+addCommandAlias("lint", "scalafixAll; scalafmtAll")
+addCommandAlias("lintCheck", "; scalafixAll --check ; scalafmtCheckAll")
 
 ThisBuild / concurrentRestrictions ++= {
   if (sys.env.contains("CI")) {

@@ -1,20 +1,12 @@
 package realworld.domain
 
-import doobie.Column
-import doobie.Composite
-import doobie.TableDefinition
 import doobie.TableDefinition.RowHelpers
-import doobie.WithSQLDefinition
 import doobie.util.meta.Meta
+import doobie.{Column, Composite, TableDefinition, WithSQLDefinition}
 import realworld.domain.article.ArticleId
 import realworld.domain.user.UserId
-import realworld.spec.Bio
-import realworld.spec.CommentBody
-import realworld.spec.CommentId
-import realworld.spec.CreatedAt
-import realworld.spec.UpdatedAt
-import realworld.types.ImageUrl
-import realworld.types.Username
+import realworld.spec.{Bio, CommentBody, CommentId, CreatedAt, UpdatedAt}
+import realworld.types.{ImageUrl, Username}
 
 import scala.util.control.NoStackTrace
 

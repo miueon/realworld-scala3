@@ -1,11 +1,8 @@
 package realworld.db
 
-import cats.effect.kernel.Resource
+import cats.effect.kernel.{MonadCancelThrow, Resource}
 import cats.~>
-import cats.effect.kernel.MonadCancelThrow
-
-import doobie.ConnectionIO
-import doobie.Transactor
+import doobie.{ConnectionIO, Transactor}
 
 extension [F[_]: DoobieTx](xa: Transactor[F])
   def transaction: Resource[F, ConnectionIO ~> F] = DoobieTx[F].transaction(xa)

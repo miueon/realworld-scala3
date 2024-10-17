@@ -1,19 +1,12 @@
 package realworld
 
 import doobie.postgres.JavaTimeInstances
-import doobie.util.meta.Meta
-import doobie.util.meta.MetaConstructors
+import doobie.util.meta.{Meta, MetaConstructors}
 import io.github.iltotore.iron.*
-import realworld.spec.CommentId
-import realworld.spec.CreatedAt
-import realworld.spec.Limit
-import realworld.spec.Skip
-import realworld.spec.UpdatedAt
-import smithy4s.Newtype
-import smithy4s.Timestamp
+import realworld.spec.{CommentId, CreatedAt, Limit, Skip, UpdatedAt}
+import smithy4s.{Newtype, Timestamp}
 
 import java.time.Instant
-
 
 package object domain:
   object DoobieMeta extends MetaConstructors with JavaTimeInstances

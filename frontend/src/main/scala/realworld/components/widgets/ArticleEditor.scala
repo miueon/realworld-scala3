@@ -3,14 +3,9 @@ package realworld.components.widgets
 import com.raquo.laminar.api.L.*
 import monocle.syntax.all.*
 import realworld.components.Component
-import realworld.types.ArticleForm
-import realworld.types.FieldType
-import realworld.types.GenericFormField
-import realworld.types.InputType
 import realworld.types.validation.GenericError
-import utils.Utils.some
-import utils.Utils.writerF
-import utils.Utils.writerOptF
+import realworld.types.{ArticleForm, FieldType, GenericFormField, InputType}
+import utils.Utils.{some, writerF, writerOptF}
 
 final case class ArticleEditor(
     article: ArticleForm,

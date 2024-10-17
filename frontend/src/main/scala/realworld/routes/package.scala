@@ -1,13 +1,11 @@
 package realworld
 
 import com.raquo.waypoint.*
-import urldsl.language.PathSegment
-import urldsl.errors.DummyError
-import realworld.routes.Page.ProfilePage
-import realworld.routes.Page.ArticleDetailPage
-import realworld.spec.Slug
-import realworld.routes.Page.EditArticlePage
 import io.github.iltotore.iron.*
+import realworld.routes.Page.{ArticleDetailPage, EditArticlePage, ProfilePage}
+import realworld.spec.Slug
+import urldsl.errors.DummyError
+import urldsl.language.PathSegment
 package object routes:
   def fragmentStatic[Page](staticPage: Page, pattern: PathSegment[Unit, DummyError]) =
     Route.static(staticPage, pattern, Route.fragmentBasePath)
