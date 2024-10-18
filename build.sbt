@@ -77,7 +77,7 @@ lazy val app = projectMatrix
     dockerBaseImage         := Config.DockerBaseImage,
     dockerUpdateLatest      := true,
     Docker / packageName    := Config.DockerImageName,
-    Docker / dockerRepository := Some("ghcr.io")
+    Docker / dockerRepository := Some("ghcr.io"),
     libraryDependencies ++= Seq(
       "org.http4s"    %% "http4s-blaze-server"        % Versions.http4sBlaze,
       "org.http4s"    %% "http4s-ember-server"        % Versions.http4s,
