@@ -51,7 +51,7 @@ val Versions = new {
 }
 
 val Config = new {
-  val DockerImageName = "realworld-smithy4s"
+  val DockerImageName = "miueon/realworld-smithy4s"
   val DockerBaseImage = "wonder/jdk:17.0.10_7-ubuntu"
   val BasePackage     = "realworld"
 }
@@ -75,7 +75,9 @@ lazy val app = projectMatrix
     scalaVersion            := Versions.Scala,
     Compile / doc / sources := Seq.empty,
     dockerBaseImage         := Config.DockerBaseImage,
+    dockerUpdateLatest      := true,
     Docker / packageName    := Config.DockerImageName,
+    Docker / dockerRepository := Some("ghcr.io")
     libraryDependencies ++= Seq(
       "org.http4s"    %% "http4s-blaze-server"        % Versions.http4sBlaze,
       "org.http4s"    %% "http4s-ember-server"        % Versions.http4s,
@@ -83,14 +85,6 @@ lazy val app = projectMatrix
       "org.flywaydb"   % "flyway-database-postgresql" % Versions.Flyway,
       "ch.qos.logback" % "logback-classic"            % Versions.logback
     ),
-    // Compile / resourceGenerators += {
-    //   Def.task[Seq[File]] {
-    //     copyAll(
-    //       frontendModules.value._2,
-    //       (Compile / resourceManaged).value / "assets"
-    //     )
-    //   }
-    // },
     reStart / baseDirectory := (ThisBuild / baseDirectory).value,
     run / baseDirectory     := (ThisBuild / baseDirectory).value
   )
@@ -154,20 +148,10 @@ lazy val backend = projectMatrix
         "org.http4s"                   %% "http4s-blaze-client" % Versions.http4sBlaze,
         "org.http4s"                   %% "http4s-ember-server" % Versions.http4s,
         "org.http4s"                   %% "http4s-ember-client" % Versions.http4s
-        // "org.postgresql"       % "postgresql"          % Versions.Postgres,
-        // "org.flywaydb"         % "flyway-core"         % Versions.Flyway
       ).map(_ % Test),
     testFrameworks += new TestFramework("weaver.framework.CatsEffect"),
     Test / fork          := true,
     Test / baseDirectory := (ThisBuild / baseDirectory).value
-    // Test / resourceGenerators += {
-    //   Def.task[Seq[File]] {
-    //     copyAll(
-    //       frontendBundle.value,
-    //       (Test / resourceManaged).value / "assets"
-    //     )
-    //   }
-    // }
   )
 lazy val shared = projectMatrix
   .in(file("modules/shared"))
@@ -198,12 +182,7 @@ lazy val frontend = projectMatrix
       val config = scalaJSLinkerConfig.value
       import org.scalajs.linker.interface.OutputPatterns
       config
-        // .withModuleSplitStyle(
-        //   ModuleSplitStyle
-        //     .SmallModulesFor(List(s"${Config.BasePackage}.frontend"))
-        // )
         .withModuleKind(ModuleKind.ESModule)
-        // .withOutputPatterns(OutputPatterns.fromJSFile("%s.mjs"))
         .withSourceMap(true)
     },
     externalNpm := (ThisBuild / baseDirectory).value / "frontend",
@@ -290,7 +269,8 @@ buildFrontend := {
   VirtualAxis.jvm
 )(Versions.Scala) / Docker / publishLocal).dependsOn(buildFrontend).value
 
-addCommandAlias("publishDocker", "app/Docker/publishLocal")
+addCommandAlias("publishDockerLocal", "app/Docker/publishLocal")
+addCommandAlias("publishDocker", "app/Docker/publish")
 addCommandAlias("stubTests", "backend/testOnly jobby.tests.stub.*")
 addCommandAlias("unitTests", "backend/testOnly jobby.tests.unit.*")
 addCommandAlias(
