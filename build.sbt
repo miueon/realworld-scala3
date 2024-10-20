@@ -231,7 +231,11 @@ buildFrontend := {
   def frontendProj    = frontend.finder(VirtualAxis.js)(Versions.Scala)
   val frontendDirPath = frontend.base.getAbsolutePath()
   val appDirPath      = app.base.getAbsolutePath()
-  (frontendProj / Compile / fullLinkJS).value
+  if (isRelease) {
+    (frontendProj / Compile / fullLinkJS).value
+  } else {
+    (frontendProj / Compile / fastLinkJS).value
+  }
 
   // Install JS dependencies from package-lock.json
   val npmCiExitCode = Process("pnpm install --frozen-lockfile", cwd = frontend.base).!
