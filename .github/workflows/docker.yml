@@ -36,17 +36,12 @@ jobs:
           version: 9
           run_install: false
 
-      - name: Change dir
-        run: cd frontend
-
-      - name: Install Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-
-      - name: Change dir back
-        run: cd ..
+      # - name: Install Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     : frontend
+      #     node-version: 20
+      #     cache: 'pnpm'
 
       - name: Build frontend
         run: sbt buildFrontend
