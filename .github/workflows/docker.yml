@@ -44,7 +44,8 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
+        working-directory: frontend
+        run: pnpm i --frozen-lockfile --no-verify-store-integrity
 
       - name: Build frontend
         run: sbt buildFrontend
