@@ -31,7 +31,7 @@ services:
       retries: 30
 
   realworld:
-    image: realworld-smithy4s:0.1.0-SNAPSHOT
+    image: ghcr.io/miueon/realworld-smithy4s:0.1.0-SNAPSHOT
     restart: always
     ports:
       - "8080:8080"

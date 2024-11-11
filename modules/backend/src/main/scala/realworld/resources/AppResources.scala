@@ -4,7 +4,7 @@ import cats.effect.Concurrent
 import cats.effect.kernel.{Async, Resource}
 import cats.effect.std.Console
 import cats.syntax.all.*
-import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
 import dev.profunktor.redis4cats.effect.MkRedis
 import dev.profunktor.redis4cats.{Redis, RedisCommands}
 import doobie.*
@@ -12,13 +12,12 @@ import doobie.hikari.HikariTransactor
 import doobie.implicits.*
 import doobie.util.log.*
 import doobie.util.transactor.Transactor
-import org.flywaydb.core.Flyway
 import org.typelevel.log4cats.Logger
 import realworld.config.types.{AppConfig, PostgresSQLConfig, RedisConfig}
 
 sealed abstract class AppResources[F[_]](
     val redis: RedisCommands[F, String, String],
-    val xa: Transactor[F]
+    val xa: Transactor[F]{type A = HikariDataSource}
 )
 
 object AppResources:
@@ -46,7 +45,7 @@ object AppResources:
     ): Resource[F, RedisCommands[F, String, String]] =
       Redis[F].utf8(c.uri.value).evalTap(checkRedisConnection)
 
-    def mkTransactor(p: PostgresSQLConfig): Resource[F, Transactor[F]] =
+    def mkTransactor(p: PostgresSQLConfig): Resource[F, Transactor[F]{type A = HikariDataSource}] =
       val logHandler = new LogHandler[F]:
         def run(logEvent: LogEvent): F[Unit] =
           logEvent match
@@ -68,11 +67,6 @@ object AppResources:
       yield xa
       xaResource
         .evalTap(checkPostgresConnection)
-        .evalTap {
-          _.configure { ds =>
-            Async[F].delay(Flyway.configure().dataSource(ds).load().migrate())
-          }
-        }
     end mkTransactor
 
     (

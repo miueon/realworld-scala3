@@ -83,33 +83,29 @@ object Auth:
       end login
 
       def register(user: RegisterUserData): F[User] =
-        userRepo
-          .findByEmail(user.email)
-          .flatMap:
-            case Some(_) => UserError.EmailAlreadyExists().raiseError[F, User]
-            case None =>
-              val encryptedPassword = crypto.encrypt(user.password)
-              for
-                uid <- ID.make[F, UserId]
-                _ <- userRepo.tx.use { tx =>
-                  tx.create(uid, user, encryptedPassword) *> Logger[F].info("")
-                }
-                jwt <- jwt.create
-                _ <- redis.setEx(
-                  jwt.value,
-                  UserSession(
-                    uid,
-                    User(user.email, user.username)
-                  ).asJson.noSpaces,
-                  TokenExpiration
-                )
-                _ <- redis.setEx(user.email, jwt.value, TokenExpiration)
-              yield User(
-                email = user.email,
-                username = user.username,
-                token = jwt.some
-              )
-              end for
+        val encryptedPassword = crypto.encrypt(user.password)
+        for
+          uid <- ID.make[F, UserId]
+          _ <- emailNotUsed(user.email, uid)
+          // _ <- usernameNotUsed(user.username, uid)
+          _ <- userRepo.tx.use { tx =>
+            tx.create(uid, user, encryptedPassword) *> Logger[F].info("")
+          }
+          jwt <- jwt.create
+          _ <- redis.setEx(
+            jwt.value,
+            UserSession(
+              uid,
+              User(user.email, user.username)
+            ).asJson.noSpaces,
+            TokenExpiration
+          )
+          _ <- redis.setEx(user.email, jwt.value, TokenExpiration)
+        yield User(
+          email = user.email,
+          username = user.username,
+          token = jwt.some
+        )
       end register
 
       def access(header: AuthHeader): F[UserSession] =

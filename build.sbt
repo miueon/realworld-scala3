@@ -26,7 +26,6 @@ val Versions = new {
   val scalaCheck        = "1.17.0"
   val doobie            = "1.0.0-RC4"
   val doobieTypeSafe    = "0.1.0"
-  val flyway            = "10.4.1"
   val log4cats          = "2.6.0"
   val http4sBlaze       = "0.23.14"
   val http4s            = "0.23.18"
@@ -35,7 +34,7 @@ val Versions = new {
   val jwt               = "9.1.2"
   val Flyway            = "10.7.2"
   val Postgres          = "42.6.0"
-  val TestContainers    = "0.40.15"
+  val TestContainers    = "0.41.4"
   val Weaver            = "0.8.3"
   val WeaverPlaywright  = "0.0.5"
   val Laminar           = "15.0.1"
@@ -72,17 +71,16 @@ lazy val app = projectMatrix
   .jvmPlatform(Seq(Versions.Scala))
   .enablePlugins(JavaAppPackaging)
   .settings(
-    scalaVersion            := Versions.Scala,
-    Compile / doc / sources := Seq.empty,
-    dockerBaseImage         := Config.DockerBaseImage,
-    dockerUpdateLatest      := true,
-    Docker / packageName    := Config.DockerImageName,
+    scalaVersion              := Versions.Scala,
+    Compile / doc / sources   := Seq.empty,
+    dockerBaseImage           := Config.DockerBaseImage,
+    dockerUpdateLatest        := true,
+    Docker / packageName      := Config.DockerImageName,
     Docker / dockerRepository := Some("ghcr.io"),
     libraryDependencies ++= Seq(
       "org.http4s"    %% "http4s-blaze-server"        % Versions.http4sBlaze,
       "org.http4s"    %% "http4s-ember-server"        % Versions.http4s,
       "org.postgresql" % "postgresql"                 % Versions.Postgres,
-      "org.flywaydb"   % "flyway-database-postgresql" % Versions.Flyway,
       "ch.qos.logback" % "logback-classic"            % Versions.logback
     ),
     reStart / baseDirectory := (ThisBuild / baseDirectory).value,
@@ -108,7 +106,7 @@ val iron = Seq(
 )
 
 val db = Seq(
-  "org.flywaydb"        % "flyway-core"     % Versions.flyway,
+      "org.flywaydb"   % "flyway-database-postgresql" % Versions.Flyway,
   "org.tpolecat"       %% "doobie-postgres" % Versions.doobie,
   "org.tpolecat"       %% "doobie-hikari"   % Versions.doobie,
   "io.github.arturaz"  %% "doobie-typesafe" % Versions.doobieTypeSafe,
@@ -141,13 +139,15 @@ lazy val backend = projectMatrix
       Seq(
         "org.typelevel" %% "cats-core"                       % Versions.cats,
         "com.dimafeng"  %% "testcontainers-scala-postgresql" % Versions.TestContainers,
+        "com.dimafeng"  %% "testcontainers-scala-redis"      % Versions.TestContainers,
         "com.indoorvivants.playwright" %% "weaver"              % Versions.WeaverPlaywright,
         "com.disneystreaming"          %% "weaver-cats"         % Versions.Weaver,
         "com.disneystreaming"          %% "weaver-scalacheck"   % Versions.Weaver,
         "org.http4s"                   %% "http4s-blaze-server" % Versions.http4sBlaze,
         "org.http4s"                   %% "http4s-blaze-client" % Versions.http4sBlaze,
         "org.http4s"                   %% "http4s-ember-server" % Versions.http4s,
-        "org.http4s"                   %% "http4s-ember-client" % Versions.http4s
+        "org.http4s"                   %% "http4s-ember-client" % Versions.http4s,
+        "org.typelevel"                %% "log4cats-noop"       % Versions.log4cats
       ).map(_ % Test),
     testFrameworks += new TestFramework("weaver.framework.CatsEffect"),
     Test / fork          := true,
@@ -231,11 +231,12 @@ buildFrontend := {
   def frontendProj    = frontend.finder(VirtualAxis.js)(Versions.Scala)
   val frontendDirPath = frontend.base.getAbsolutePath()
   val appDirPath      = app.base.getAbsolutePath()
-  if (isRelease) {
-    (frontendProj / Compile / fullLinkJS).value
-  } else {
-    (frontendProj / Compile / fastLinkJS).value
-  }
+
+  (if (isRelease) {
+     (frontendProj / Compile / fullLinkJS)
+   } else {
+     (frontendProj / Compile / fastLinkJS)
+   }).value
 
   // Install JS dependencies from package-lock.json
   val npmCiExitCode = Process("pnpm install --frozen-lockfile", cwd = frontend.base).!

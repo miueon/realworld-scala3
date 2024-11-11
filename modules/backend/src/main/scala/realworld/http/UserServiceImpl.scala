@@ -106,5 +106,7 @@ object UserServiceImpl:
           .recoverWith:
             case UserError.EmailAlreadyExists(_) =>
               UnprocessableEntity(Map("Email" -> List("already exisits")).some).raise
+            case UserError.UsernameAlreadyExists(_) =>
+              UnprocessableEntity(Map("Username" -> List("already exisits")).some).raise
 
 end UserServiceImpl
