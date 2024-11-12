@@ -1,7 +1,6 @@
 package realworld
 package tests
 
-import cats.effect.IO
 import realworld.spec.RegisterUserData
 import realworld.types.*
 

@@ -5,7 +5,7 @@
 In .jvmopts is used for dimise the error: `Unable to make field private static final java.util.HashMap`
 
 
-
+- Find the optimized way to preparing test data
 - Target stream line dev
 - DONE finetue validation 
 - Itegration 
