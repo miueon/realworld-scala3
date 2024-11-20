@@ -31,14 +31,14 @@ val Versions = new {
   val log4cats          = "2.6.0"
   val http4sBlaze       = "0.23.14"
   val http4s            = "0.23.18"
-  val Scala             = "3.5.0"
+  val scala             = "3.5.0"
   val jwt               = "9.1.2"
-  val Flyway            = "10.7.2"
-  val Postgres          = "42.6.0"
-  val TestContainers    = "0.41.4"
-  val Weaver            = "0.8.3"
-  val WeaverPlaywright  = "0.0.5"
-  val Laminar           = "15.0.1"
+  val flyway            = "10.7.2"
+  val postgres          = "42.6.0"
+  val testContainers    = "0.41.4"
+  val weaver            = "0.8.3"
+  val weaverPlaywright  = "0.0.5"
+  val laminar           = "15.0.1"
   val waypoint          = "6.0.0"
   val monocle           = "3.2.0"
   val circe             = "0.14.3"
@@ -64,10 +64,10 @@ lazy val app = projectMatrix
   .in(file("modules/app"))
   .dependsOn(backend)
   .defaultAxes(defaults*)
-  .jvmPlatform(Seq(Versions.Scala))
+  .jvmPlatform(Seq(Versions.scala))
   .enablePlugins(JavaAppPackaging)
   .settings(
-    scalaVersion              := Versions.Scala,
+    scalaVersion              := Versions.scala,
     Compile / doc / sources   := Seq.empty,
     dockerBaseImage           := Config.DockerBaseImage,
     dockerUpdateLatest        := true,
@@ -76,7 +76,7 @@ lazy val app = projectMatrix
     libraryDependencies ++= Seq(
       "org.http4s"    %% "http4s-blaze-server" % Versions.http4sBlaze,
       "org.http4s"    %% "http4s-ember-server" % Versions.http4s,
-      "org.postgresql" % "postgresql"          % Versions.Postgres,
+      "org.postgresql" % "postgresql"          % Versions.postgres,
       "ch.qos.logback" % "logback-classic"     % Versions.logback
     ),
     reStart / baseDirectory := (ThisBuild / baseDirectory).value,
@@ -100,7 +100,7 @@ val iron = Seq(
 )
 
 val db = Seq(
-  "org.flywaydb"        % "flyway-database-postgresql" % Versions.Flyway,
+  "org.flywaydb"        % "flyway-database-postgresql" % Versions.flyway,
   "org.tpolecat"       %% "doobie-postgres"            % Versions.doobie,
   "org.tpolecat"       %% "doobie-hikari"              % Versions.doobie,
   "io.github.arturaz"  %% "doobie-typesafe"            % Versions.doobieTypeSafe,
@@ -111,9 +111,9 @@ lazy val backend = projectMatrix
   .in(file("modules/backend"))
   .dependsOn(shared)
   .defaultAxes(defaults*)
-  .jvmPlatform(Seq(Versions.Scala))
+  .jvmPlatform(Seq(Versions.scala))
   .settings(
-    scalaVersion            := Versions.Scala,
+    scalaVersion            := Versions.scala,
     Compile / doc / sources := Seq.empty,
     libraryDependencies ++= Seq(
       ("com.disneystreaming.smithy4s" %% "smithy4s-http4s"         % smithy4sVersion.value),
@@ -132,11 +132,11 @@ lazy val backend = projectMatrix
     libraryDependencies ++=
       Seq(
         "org.typelevel" %% "cats-core"                       % Versions.cats,
-        "com.dimafeng"  %% "testcontainers-scala-postgresql" % Versions.TestContainers,
-        "com.dimafeng"  %% "testcontainers-scala-redis"      % Versions.TestContainers,
-        "com.indoorvivants.playwright" %% "weaver"              % Versions.WeaverPlaywright,
-        "com.disneystreaming"          %% "weaver-cats"         % Versions.Weaver,
-        "com.disneystreaming"          %% "weaver-scalacheck"   % Versions.Weaver,
+        "com.dimafeng"  %% "testcontainers-scala-postgresql" % Versions.testContainers,
+        "com.dimafeng"  %% "testcontainers-scala-redis"      % Versions.testContainers,
+        "com.indoorvivants.playwright" %% "weaver"              % Versions.weaverPlaywright,
+        "com.disneystreaming"          %% "weaver-cats"         % Versions.weaver,
+        "com.disneystreaming"          %% "weaver-scalacheck"   % Versions.weaver,
         "org.http4s"                   %% "http4s-blaze-server" % Versions.http4sBlaze,
         "org.http4s"                   %% "http4s-blaze-client" % Versions.http4sBlaze,
         "org.http4s"                   %% "http4s-ember-server" % Versions.http4s,
@@ -151,8 +151,8 @@ lazy val backend = projectMatrix
 lazy val shared = projectMatrix
   .in(file("modules/shared"))
   .defaultAxes(defaults*)
-  .jvmPlatform(Seq(Versions.Scala))
-  .jsPlatform(Seq(Versions.Scala))
+  .jvmPlatform(Seq(Versions.scala))
+  .jsPlatform(Seq(Versions.scala))
   .enablePlugins(Smithy4sCodegenPlugin)
   .settings(
     smithy4sWildcardArgument := "?",
@@ -168,7 +168,7 @@ lazy val frontend = projectMatrix
   .in(file("modules/frontend"))
   .defaultAxes((defaults :+ VirtualAxis.js)*)
   .dependsOn(shared)
-  .jsPlatform(Seq(Versions.Scala))
+  .jsPlatform(Seq(Versions.scala))
   .enablePlugins(ScalaJSPlugin, BundleMonPlugin)
   .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
   .settings(
@@ -184,7 +184,7 @@ lazy val frontend = projectMatrix
         .cross(CrossVersion.for3Use2_13),
       "dev.optics"         %%% "monocle-core"                % Versions.monocle,
       "com.raquo"          %%% "waypoint"                    % Versions.waypoint,
-      "com.raquo"          %%% "laminar"                     % Versions.Laminar,
+      "com.raquo"          %%% "laminar"                     % Versions.laminar,
       "org.scala-js"       %%% "scala-js-macrotask-executor" % Versions.macroTaskExecutor,
       "io.laminext"        %%% "validation-cats"             % "0.15.0",
       "tech.neander"       %%% "smithy4s-fetch"              % "0.0.4",
@@ -214,14 +214,14 @@ lazy val frontend = projectMatrix
   )
 
 lazy val defaults =
-  Seq(VirtualAxis.scalaABIVersion(Versions.Scala), VirtualAxis.jvm)
+  Seq(VirtualAxis.scalaABIVersion(Versions.scala), VirtualAxis.jvm)
 
 lazy val isRelease = sys.env.get("RELEASE").contains("yesh")
 
 val buildFrontend = taskKey[Unit]("Build frontend")
 
 buildFrontend := {
-  def frontendProj    = frontend.finder(VirtualAxis.js)(Versions.Scala)
+  def frontendProj    = frontend.finder(VirtualAxis.js)(Versions.scala)
   val frontendDirPath = frontend.base.getAbsolutePath()
   val appDirPath      = app.base.getAbsolutePath()
 
@@ -263,9 +263,9 @@ buildFrontend := {
   processFile(Paths.get(appDirPath, "src", "main", "resources", "static", "index.html"))
 }
 
-(app.finder(VirtualAxis.jvm)(Versions.Scala) / Docker / publishLocal) := (app.finder(
+(app.finder(VirtualAxis.jvm)(Versions.scala) / Docker / publishLocal) := (app.finder(
   VirtualAxis.jvm
-)(Versions.Scala) / Docker / publishLocal).dependsOn(buildFrontend).value
+)(Versions.scala) / Docker / publishLocal).dependsOn(buildFrontend).value
 
 addCommandAlias("publishDockerLocal", "app/Docker/publishLocal")
 addCommandAlias("publishDocker", "app/Docker/publish")

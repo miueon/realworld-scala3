@@ -1,0 +1,21 @@
+version: "0.5"
+
+log_level: info
+use_host_network: true  # Run processes directly on host network
+
+processes:
+  backend:
+    command: just dev-scala
+    depends_on:
+      infra:
+        condition: process_started
+
+  infra:
+    command: docker compose up -d
+    network_mode: host
+
+  compile-scala-js:
+    command: just dev-scala-js
+
+  vite-dev:
+    command: just dev-js
