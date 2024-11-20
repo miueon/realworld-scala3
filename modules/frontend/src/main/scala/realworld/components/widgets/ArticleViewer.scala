@@ -33,7 +33,7 @@ case object Favorited extends Tab:
 case object MyArticle extends Tab:
   override def toString(): String = "My Articles"
 final case class ArticleViewer(
-    s_viewerState: Signal[ArticleViewrState],
+    viewerStateSignal: Signal[ArticleViewrState],
     tabObserver: Observer[Tab],
     s_tabs: Signal[Seq[Tab]],
     toggleClassName: String,
@@ -109,7 +109,7 @@ final case class ArticleViewer(
 
   def articleDisplay() =
     // TODO is there any better way to deal with this?
-    s_viewerState
+    viewerStateSignal
       .map(_.articlePreviews)
       .signal
       .splitOption(
@@ -126,8 +126,8 @@ final case class ArticleViewer(
       ArticleTabSet(s_tabs, toggleClassName, selectedTab, tabObserver),
       children <-- articleDisplay(),
       Pagination(
-        s_viewerState.map(_.currentPage),
-        s_viewerState.map(_.articleCount),
+        viewerStateSignal.map(_.currentPage),
+        viewerStateSignal.map(_.articleCount),
         itemsPerPage = 10,
         curPageObserver
       )

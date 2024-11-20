@@ -87,7 +87,7 @@ object Auth:
         for
           uid <- ID.make[F, UserId]
           _ <- emailNotUsed(user.email, uid)
-          // _ <- usernameNotUsed(user.username, uid)
+          _ <- usernameNotUsed(user.username, uid)
           _ <- userRepo.tx.use { tx =>
             tx.create(uid, user, encryptedPassword) *> Logger[F].info("")
           }

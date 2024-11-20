@@ -25,7 +25,7 @@ export default defineConfig({
   publicDir: "public",
   plugins: [
     scalaJSPlugin({
-      cwd: "..", // path to build.sbt
+      cwd: "../..", // path to build.sbt
       projectID: "frontend" // scala.js project name in build.sbt
     }),
     globResolverPlugin({

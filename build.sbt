@@ -17,9 +17,11 @@ inThisBuild(
   )
 )
 
+resolvers +=
+  "Sonatype S01 OSS Snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots"
+
 val Versions = new {
   val ciris             = "3.5.0"
-  val kitten            = "3.0.0"
   val iron              = "2.4.0"
   val logback           = "1.4.14"
   val redis4cats        = "1.5.1"
@@ -30,7 +32,6 @@ val Versions = new {
   val http4sBlaze       = "0.23.14"
   val http4s            = "0.23.18"
   val Scala             = "3.5.0"
-  val http4sDom         = "0.2.7"
   val jwt               = "9.1.2"
   val Flyway            = "10.7.2"
   val Postgres          = "42.6.0"
@@ -39,13 +40,11 @@ val Versions = new {
   val WeaverPlaywright  = "0.0.5"
   val Laminar           = "15.0.1"
   val waypoint          = "6.0.0"
-  val scalacss          = "1.0.0"
   val monocle           = "3.2.0"
   val circe             = "0.14.3"
   val macroTaskExecutor = "1.1.1"
   val cats              = "2.10.0"
   val password4j        = "1.7.3"
-  val borer             = "1.14.0"
   val upickle           = "4.0.1"
 }
 
@@ -61,9 +60,6 @@ lazy val root = project
   .aggregate(shared.projectRefs*)
   .aggregate(frontend.projectRefs*)
 
-resolvers +=
-  "Sonatype S01 OSS Snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots"
-
 lazy val app = projectMatrix
   .in(file("modules/app"))
   .dependsOn(backend)
@@ -78,10 +74,10 @@ lazy val app = projectMatrix
     Docker / packageName      := Config.DockerImageName,
     Docker / dockerRepository := Some("ghcr.io"),
     libraryDependencies ++= Seq(
-      "org.http4s"    %% "http4s-blaze-server"        % Versions.http4sBlaze,
-      "org.http4s"    %% "http4s-ember-server"        % Versions.http4s,
-      "org.postgresql" % "postgresql"                 % Versions.Postgres,
-      "ch.qos.logback" % "logback-classic"            % Versions.logback
+      "org.http4s"    %% "http4s-blaze-server" % Versions.http4sBlaze,
+      "org.http4s"    %% "http4s-ember-server" % Versions.http4s,
+      "org.postgresql" % "postgresql"          % Versions.Postgres,
+      "ch.qos.logback" % "logback-classic"     % Versions.logback
     ),
     reStart / baseDirectory := (ThisBuild / baseDirectory).value,
     run / baseDirectory     := (ThisBuild / baseDirectory).value
@@ -91,9 +87,7 @@ def copyAll(location: File, outDir: File) = {
   IO.listFiles(location).toList.map { file =>
     val (name, ext) = file.baseAndExt
     val out         = outDir / (name + "." + ext)
-
     IO.copyFile(file, out)
-
     out
   }
 }
@@ -106,11 +100,11 @@ val iron = Seq(
 )
 
 val db = Seq(
-      "org.flywaydb"   % "flyway-database-postgresql" % Versions.Flyway,
-  "org.tpolecat"       %% "doobie-postgres" % Versions.doobie,
-  "org.tpolecat"       %% "doobie-hikari"   % Versions.doobie,
-  "io.github.arturaz"  %% "doobie-typesafe" % Versions.doobieTypeSafe,
-  "io.github.iltotore" %% "iron-doobie"     % Versions.iron
+  "org.flywaydb"        % "flyway-database-postgresql" % Versions.Flyway,
+  "org.tpolecat"       %% "doobie-postgres"            % Versions.doobie,
+  "org.tpolecat"       %% "doobie-hikari"              % Versions.doobie,
+  "io.github.arturaz"  %% "doobie-typesafe"            % Versions.doobieTypeSafe,
+  "io.github.iltotore" %% "iron-doobie"                % Versions.iron
 )
 
 lazy val backend = projectMatrix
@@ -153,6 +147,7 @@ lazy val backend = projectMatrix
     Test / fork          := true,
     Test / baseDirectory := (ThisBuild / baseDirectory).value
   )
+
 lazy val shared = projectMatrix
   .in(file("modules/shared"))
   .defaultAxes(defaults*)
@@ -170,7 +165,7 @@ lazy val shared = projectMatrix
   )
 
 lazy val frontend = projectMatrix
-  .in(file("frontend"))
+  .in(file("modules/frontend"))
   .defaultAxes((defaults :+ VirtualAxis.js)*)
   .dependsOn(shared)
   .jsPlatform(Seq(Versions.Scala))
@@ -178,14 +173,12 @@ lazy val frontend = projectMatrix
   .enablePlugins(ScalablyTypedConverterExternalNpmPlugin)
   .settings(
     scalaJSUseMainModuleInitializer := true,
-    scalaJSLinkerConfig := {
-      val config = scalaJSLinkerConfig.value
-      import org.scalajs.linker.interface.OutputPatterns
-      config
-        .withModuleKind(ModuleKind.ESModule)
-        .withSourceMap(true)
+    scalaJSLinkerConfig ~= {
+      import org.scalajs.linker.interface.ModuleSplitStyle
+      _.withModuleKind(ModuleKind.ESModule)
+        .withModuleSplitStyle(ModuleSplitStyle.SmallModulesFor(List("realworld")))
     },
-    externalNpm := (ThisBuild / baseDirectory).value / "frontend",
+    externalNpm := (ThisBuild / baseDirectory).value / "modules" / "frontend",
     libraryDependencies ++= Seq(
       ("org.scala-js" %%% "scalajs-java-securerandom" % "1.0.0")
         .cross(CrossVersion.for3Use2_13),
