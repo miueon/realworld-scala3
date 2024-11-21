@@ -13,5 +13,6 @@ addSbtPlugin("org.scalablytyped.converter" % "sbt-converter"       % "1.0.0-beta
 addSbtPlugin("nl.gn0s1s"                   % "sbt-dotenv"          % "3.0.0")
 addSbtPlugin("ch.epfl.scala"               % "sbt-scalafix"        % "0.12.1")
 addSbtPlugin("org.scalameta"               % "sbt-metals"          % "1.4.1")
+addSbtPlugin("com.github.sbt"              % "sbt-dynver"          % "5.1.0")
 
 libraryDependencySchemes += "org.scala-lang.modules" %% "scala-xml" % VersionScheme.Always

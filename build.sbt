@@ -13,7 +13,8 @@ Global / scalacOptions := Seq(
 inThisBuild(
   Seq(
     semanticdbEnabled := true, // for scalafix
-    semanticdbVersion := scalafixSemanticdb.revision
+    semanticdbVersion := scalafixSemanticdb.revision,
+    dynverSeparator := "-"
   )
 )
 
@@ -269,23 +270,6 @@ buildFrontend := {
 
 addCommandAlias("publishDockerLocal", "app/Docker/publishLocal")
 addCommandAlias("publishDocker", "app/Docker/publish")
-addCommandAlias("stubTests", "backend/testOnly jobby.tests.stub.*")
-addCommandAlias("unitTests", "backend/testOnly jobby.tests.unit.*")
-addCommandAlias(
-  "fastTests",
-  "backend/testOnly jobby.tests.stub.* jobby.tests.unit.*"
-)
-addCommandAlias(
-  "integrationTests",
-  "backend/testOnly jobby.tests.integration.*"
-)
-addCommandAlias(
-  "frontendTests",
-  "backend/testOnly jobby.tests.frontend.*"
-)
-
-addCommandAlias("lint", "scalafixAll; scalafmtAll")
-addCommandAlias("lintCheck", "; scalafixAll --check ; scalafmtCheckAll")
 
 ThisBuild / concurrentRestrictions ++= {
   if (sys.env.contains("CI")) {
