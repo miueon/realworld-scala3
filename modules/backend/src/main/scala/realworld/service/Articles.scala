@@ -26,7 +26,8 @@ import realworld.types.{TagName, Title}
 
 import java.text.Normalizer
 import java.text.Normalizer.Form
-import java.time.Instant
+import realworld.effects.Time
+import smithy4s.Timestamp
 
 trait Articles[F[_]]:
   def list(
@@ -43,7 +44,7 @@ trait Articles[F[_]]:
   def unfavoriteArticle(slug: Slug, uid: UserId): F[Article]
 
 object Articles:
-  def make[F[_]: MonadCancelThrow: GenUUID: Logger](
+  def make[F[_]: MonadCancelThrow: GenUUID: Logger: Time](
       articleRepo: ArticleRepo[F],
       favRepo: FavoriteRepo[F],
       tagRepo: TagRepo[F],
@@ -94,7 +95,7 @@ object Articles:
       def create(uid: UserId, data: CreateArticleData): F[Article] =
         def articleWithId(
             id: ArticleId,
-            nowTime: Instant
+            nowTime: Timestamp
         ): WithId[ArticleId, realworld.domain.article.Article] =
           WithId(
             id,
@@ -103,32 +104,31 @@ object Articles:
               data.title,
               data.description,
               data.body,
-              CreatedAt(nowTime.toTimestamp),
-              UpdatedAt(nowTime.toTimestamp),
+              CreatedAt(nowTime),
+              UpdatedAt(nowTime),
               uid
             )
           )
-        val now = Instant.now()
         for
           articleId <- ID.make[F, ArticleId]
-          row = articleWithId(articleId, now)
+          timestamp <- Time[F].timestamp
+          row = articleWithId(articleId, timestamp)
           article <- articleRepo.create(row, data.tagList)
         yield article.toArticleOutput(false, (data.tagList, false, FavoritesCount(0)))
       end create
 
       def update(slug: Slug, uid: UserId, data: UpdateArticleData): F[Article] =
-        val now     = Instant.now()
-        val newSlug = data.title.map(mkSlug(_, now)).getOrElse(slug)
-
         val result = for
+          timestamp <- OptionT.liftF(Time[F].timestamp)
+          newSlug = data.title.map(mkSlug(_, timestamp)).getOrElse(slug)
           article <- OptionT(
-            articleRepo.update(data, newSlug, slug, UpdatedAt(now.toTimestamp), uid)
+            articleRepo.update(data, newSlug, slug, UpdatedAt(timestamp), uid)
           )
           extra <- OptionT.liftF(articleExtra(uid.some, article.id))
         yield article.toArticleOutput(false, extra)
 
         result.value.flatMap:
-          case None        => ArticleError.NotFound(newSlug).raiseError
+          case None        => ArticleError.NotFound(slug).raiseError
           case Some(value) => value.pure
       end update
 
@@ -171,8 +171,8 @@ object Articles:
 
         val wordsOnly = notWordsRs.replaceAllIn(cleaned, " ").trim
         spacesRe.replaceAllIn(wordsOnly, "-").toLowerCase
-      private def mkSlug(title: Title, nowTime: Instant): Slug =
-        Slug(s"${slugify(title)}-${nowTime.toEpochMilli()}")
+      private def mkSlug(title: Title, nowTime: Timestamp): Slug =
+        Slug(s"${slugify(title)}-${nowTime.conciseDateTime}")
 
       private def articlesExtras(
           uidOpt: Option[UserId],

@@ -3,10 +3,11 @@ package realworld.modules
 import cats.effect.*
 import org.typelevel.log4cats.Logger
 import realworld.effects.GenUUID
+import realworld.effects.Time
 import realworld.service.{Articles, Comments, Profiles, Tags}
 
 object Services:
-  def make[F[_]: MonadCancelThrow: GenUUID: Logger](
+  def make[F[_]: MonadCancelThrow: GenUUID: Logger: Time](
       repos: Repos[F]
   ): Services[F] =
     new Services[F](
