@@ -14,8 +14,10 @@ build-frontend:
   sbt buildFrontend
 
 install-frontend:
-  cd modules/frontend; pnpm install
+  cd modules/frontend; pnpm i --frozen-lockfile --no-verify-store-integrity
 
 test:
   sbt backend/test
 
+publish-docker:
+  sbt publishDocker

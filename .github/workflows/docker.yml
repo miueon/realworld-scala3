@@ -22,6 +22,7 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
+      - uses: extractions/setup-just@v2
 
       - name: Setup JVM
         uses: actions/setup-java@v4
@@ -40,15 +41,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache-dependency-path: frontend/pnpm-lock.yaml
+          cache-dependency-path: modules/frontend/pnpm-lock.yaml
           cache: 'pnpm'
 
       - name: Install dependencies
-        working-directory: frontend
-        run: pnpm i --frozen-lockfile --no-verify-store-integrity
-
-      - name: Build frontend
-        run: sbt buildFrontend
+        working-directory: modules/frontend
+        run: just install-frontend
+      - run: just build-frontend
 
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
@@ -64,4 +63,4 @@ jobs:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
 
       - name: Build and push Docker image
-        run: sbt publishDocker
+        run: just publish-docker
