@@ -52,7 +52,7 @@ object Config:
         RedisConfig(redisUri),
         HttpServerConfig(
           host = host"0.0.0.0",
-          port = port"8080"
+          port = port"8088"
         )
       )
     }

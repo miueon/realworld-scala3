@@ -3,12 +3,13 @@ package realworld.service
 import cats.data.OptionT
 import cats.effect.*
 import cats.syntax.all.*
+import io.github.arainko.ducktape.*
 import org.typelevel.log4cats.Logger
 import realworld.domain.article.{ArticleError, ArticleId, ArticleView, ListArticleQuery}
 import realworld.domain.follower.Follower
 import realworld.domain.user.UserId
 import realworld.domain.{Favorite, ID, Tag, WithId, WithTotal}
-import realworld.effects.GenUUID
+import realworld.effects.{GenUUID, Time}
 import realworld.http.Pagination
 import realworld.repo.{ArticleRepo, FavoriteRepo, FollowerRepo, TagRepo}
 import realworld.spec.{
@@ -23,11 +24,11 @@ import realworld.spec.{
   UpdatedAt
 }
 import realworld.types.{TagName, Title}
+import smithy4s.Timestamp
 
 import java.text.Normalizer
 import java.text.Normalizer.Form
-import realworld.effects.Time
-import smithy4s.Timestamp
+import scala.util.chaining.*
 
 trait Articles[F[_]]:
   def list(
@@ -56,16 +57,15 @@ object Articles:
           query: ListArticleQuery,
           pagination: Pagination
       ): F[WithTotal[ArticleList]] =
-        val result = for
-          articles <- articleRepo.list(query, pagination)
-          authorIds  = articles.entity.map(_.authorId)
-          articleIds = articles.entity.map(_.id)
+        for
+          articlesWithTotal <- articleRepo.list(query, pagination)
+          authorIds  = articlesWithTotal.entity.map(_.authorId)
+          articleIds = articlesWithTotal.entity.map(_.id)
           followers <- uidOpt
             .traverse(followerRepo.listFollowers(authorIds, _))
             .map(_.getOrElse(List.empty))
           articleExtras <- articlesExtras(uidOpt, articleIds)
-        yield articles.map(_.toArticleList(followers, articleExtras))
-        result
+        yield articlesWithTotal.map(articleList(followers, articleExtras))
       end list
 
       def listFeed(uid: UserId, pagination: Pagination): F[WithTotal[ArticleList]] =
@@ -75,7 +75,7 @@ object Articles:
           articleIds = articles.entity.map(_.id)
           followers     <- authorIds.map(Follower(_, uid)).pure
           articleExtras <- articlesExtras(Some(uid), articleIds)
-        yield articles.map(_.toArticleList(followers, articleExtras))
+        yield articles.map(articleList(followers, articleExtras))
         result
 
       def getBySlug(uidOpt: Option[UserId], slug: Slug): F[Article] =
@@ -85,7 +85,7 @@ object Articles:
             uidOpt.flatTraverse(followerRepo.findFollower(article.authorId, _)).map(_.nonEmpty)
           )
           extras <- OptionT.liftF(articleExtra(uidOpt, article.id))
-        yield article.toArticleOutput(following, extras)
+        yield articleViewToArticle(following, extras)(article)
         article.value.flatMap {
           case None        => ArticleError.NotFound(slug).raiseError
           case Some(value) => value.pure
@@ -114,7 +114,7 @@ object Articles:
           timestamp <- Time[F].timestamp
           row = articleWithId(articleId, timestamp)
           article <- articleRepo.create(row, data.tagList)
-        yield article.toArticleOutput(false, (data.tagList, false, FavoritesCount(0)))
+        yield articleViewToArticle(false, (data.tagList, false, FavoritesCount(0)))(article)
       end create
 
       def update(slug: Slug, uid: UserId, data: UpdateArticleData): F[Article] =
@@ -125,7 +125,7 @@ object Articles:
             articleRepo.update(data, newSlug, slug, UpdatedAt(timestamp), uid)
           )
           extra <- OptionT.liftF(articleExtra(uid.some, article.id))
-        yield article.toArticleOutput(false, extra)
+        yield articleViewToArticle(false, extra)(article)
 
         result.value.flatMap:
           case None        => ArticleError.NotFound(slug).raiseError
@@ -154,7 +154,7 @@ object Articles:
               followerRepo.findFollower(article.authorId, uid).map(_.nonEmpty)
             )
             extras <- OptionT.liftF(articleExtra(uid.some, article.id))
-          yield article.toArticleOutput(following, extras)
+          yield articleViewToArticle(following, extras)(article)
 
         article.value.flatMap:
           case None        => ArticleError.NotFound(slug).raiseError
@@ -211,42 +211,40 @@ object Articles:
           favCount    <- favRepo.favoriteCount(articleId)
         yield (tags.map(_.tag), isFavorited, favCount)
 
-      extension (a: List[ArticleView])
-        def toArticleList(
-            followers: List[Follower],
-            articleExtras: Map[ArticleId, (List[TagName], Boolean, FavoritesCount)]
-        ): ArticleList =
-          val followingMap = followers.groupBy(_.userId)
-          val aricles = a.map { article =>
-            article.toArticleOutput(
+      private def articleList(
+          followers: List[Follower],
+          articleExtras: Map[ArticleId, (List[TagName], Boolean, FavoritesCount)]
+      )(articles: List[ArticleView]): ArticleList =
+        articles
+          .map { article =>
+            val followingMap = followers.groupBy(_.userId)
+            articleViewToArticle(
               followingMap.get(article.authorId).nonEmpty,
               articleExtras(article.id)
-            )
+            )(article)
           }
-          ArticleList(aricles)
+          .pipe(ArticleList.apply)
 
-      extension (a: ArticleView)
-        def toArticleOutput(
-            following: Boolean,
-            articleExtra: (List[TagName], Boolean, FavoritesCount)
-        ): Article =
-          val (tags, isFavorited, favoritesCount) = articleExtra
-          Article(
-            a.slug,
-            a.title,
-            a.description,
-            a.body,
-            a.createdAt,
-            a.updatedAt,
-            Profile(
-              a.authorName,
-              following,
-              a.authorBio,
-              a.authorImage
-            ),
-            tags,
-            isFavorited,
-            favoritesCount
+      private def articleViewToArticle(
+          following: Boolean,
+          articleExtra: (List[TagName], Boolean, FavoritesCount)
+      )(article: ArticleView): Article =
+        val (tags, isFavorited, favoritesCount) = articleExtra
+        article
+          .into[Article]
+          .transform(
+            Field.const(_.favoritesCount, favoritesCount),
+            Field.const(_.favorited, isFavorited),
+            Field.const(_.tagList, tags),
+            Field.const(
+              _.author,
+              Profile(
+                article.authorName,
+                following,
+                article.authorBio,
+                article.authorImage
+              )
+            )
           )
-
+      end articleViewToArticle
 end Articles
