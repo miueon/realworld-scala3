@@ -14,7 +14,7 @@ inThisBuild(
   Seq(
     semanticdbEnabled := true, // for scalafix
     semanticdbVersion := scalafixSemanticdb.revision,
-    dynverSeparator := "-"
+    dynverSeparator   := "-"
   )
 )
 
@@ -47,6 +47,9 @@ val Versions = new {
   val cats              = "2.10.0"
   val password4j        = "1.7.3"
   val upickle           = "4.0.1"
+  val ducktape          = "0.2.6"
+  val laminext          = "0.15.0"
+  val smithy4sFetch     = "0.0.4"
 }
 
 val Config = new {
@@ -126,7 +129,8 @@ lazy val backend = projectMatrix
       "dev.profunktor"                %% "redis4cats-log4cats"     % Versions.redis4cats,
       "org.typelevel"                 %% "log4cats-slf4j"          % Versions.log4cats,
       "is.cir"                        %% "ciris"                   % Versions.ciris,
-      "is.cir"                        %% "ciris-refined"           % Versions.ciris
+      "is.cir"                        %% "ciris-refined"           % Versions.ciris,
+      "io.github.arainko"             %% "ducktape"                % Versions.ducktape
     ),
     libraryDependencies ++= db,
     libraryDependencies ++= iron,
@@ -187,8 +191,8 @@ lazy val frontend = projectMatrix
       "com.raquo"          %%% "waypoint"                    % Versions.waypoint,
       "com.raquo"          %%% "laminar"                     % Versions.laminar,
       "org.scala-js"       %%% "scala-js-macrotask-executor" % Versions.macroTaskExecutor,
-      "io.laminext"        %%% "validation-cats"             % "0.15.0",
-      "tech.neander"       %%% "smithy4s-fetch"              % "0.0.4",
+      "io.laminext"        %%% "validation-cats"             % Versions.laminext,
+      "tech.neander"       %%% "smithy4s-fetch"              % Versions.smithy4sFetch,
       "com.lihaoyi"        %%% "upickle"                     % Versions.upickle,
       "io.github.iltotore" %%% "iron-upickle"                % Versions.iron
     ),
