@@ -134,14 +134,14 @@ object Auth:
         // val usernameCleanOpt =
         //   updateData.username.map(un => un.value.trim())
 
-        val hasedPsw = updateData.password.map(crypto.encrypt(_))
+        val hasedPassword = updateData.password.map(crypto.encrypt(_))
         val uid      = userSession.id
         val token    = userSession.user.token.get.value
         for
           _ <- updateData.email.traverse(emailNotUsed(_, uid))
           _ <- updateData.username.traverse(usernameNotUsed(_, uid))
           row <- userRepo.tx.use {
-            _.update(uid, updateData, hasedPsw).flatMap {
+            _.update(uid, updateData, hasedPassword).flatMap {
               case Some(u) => u.pure[F]
               case None    => UserError.UserNotFound().raiseError
             }

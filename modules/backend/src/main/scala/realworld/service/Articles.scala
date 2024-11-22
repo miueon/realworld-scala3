@@ -93,26 +93,20 @@ object Articles:
       end getBySlug
 
       def create(uid: UserId, data: CreateArticleData): F[Article] =
-        def articleWithId(
-            id: ArticleId,
-            nowTime: Timestamp
-        ): WithId[ArticleId, realworld.domain.article.Article] =
-          WithId(
-            id,
-            realworld.domain.article.Article(
-              mkSlug(data.title, nowTime),
-              data.title,
-              data.description,
-              data.body,
-              CreatedAt(nowTime),
-              UpdatedAt(nowTime),
-              uid
-            )
-          )
         for
           articleId <- ID.make[F, ArticleId]
           timestamp <- Time[F].timestamp
-          row = articleWithId(articleId, timestamp)
+          row = WithId(
+            articleId,
+            data
+              .into[realworld.domain.article.Article]
+              .transform(
+                Field.const(_.slug, mkSlug(data.title, timestamp)),
+                Field.const(_.createdAt, CreatedAt(timestamp)),
+                Field.const(_.updatedAt, UpdatedAt(timestamp)),
+                Field.const(_.authorId, uid)
+              )
+          )
           article <- articleRepo.create(row, data.tagList)
         yield articleViewToArticle(false, (data.tagList, false, FavoritesCount(0)))(article)
       end create

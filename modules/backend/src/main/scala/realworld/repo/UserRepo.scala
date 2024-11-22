@@ -34,16 +34,6 @@ trait TxUsers[F[_]]:
   ): F[Option[WithId[UserId, DBUser]]]
 
 object UserRepo:
-  extension (u: UpdateUserData)
-    def update(user: DBUser, password: Option[EncryptedPassword]): DBUser =
-      DBUser(
-        u.email.orElse(user.email.some).get,
-        u.username.orElse(user.username.some).get,
-        password.orElse(user.password.some).get,
-        u.bio.orElse(user.bio),
-        u.image.orElse(user.image)
-      )
-
   import UserSQL as u
   def make[F[_]: MonadCancelThrow: DoobieTx](xa: Transactor[F]) =
     new UserRepo[F]():

@@ -45,11 +45,8 @@ case class DBUser(
       bio,
       image
     )
-
-  def toProfiile(following: Boolean): Profile =
-    Profile(username, following, bio, image)
-
 end DBUser
+
 object Users extends TableDefinition("users"):
   val id: Column[UserId]                  = Column("id")
   val email: Column[Email]                = Column("email")

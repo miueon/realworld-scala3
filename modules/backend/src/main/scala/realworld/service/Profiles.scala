@@ -3,10 +3,11 @@ package realworld.service
 import cats.data.{EitherT, OptionT}
 import cats.effect.*
 import cats.syntax.all.*
-import realworld.domain.user.{UserError, UserId}
+import realworld.domain.user.{UserError, UserId, DBUser}
 import realworld.repo.{FollowerRepo, UserRepo}
 import realworld.spec.Profile
 import realworld.types.Username
+import io.github.arainko.ducktape.*
 
 trait Profiles[F[_]]:
   def get(username: Username, uid: Option[UserId]): F[Profile]
@@ -29,7 +30,7 @@ object Profiles:
               )
               .map(_.nonEmpty)
           )
-        yield user.entity.toProfiile(following)
+        yield dbUserToProfile(following)(user.entity)
         profile.value.flatMap {
           case None        => UserError.ProfileNotFound().raiseError
           case Some(value) => value.pure
@@ -45,10 +46,10 @@ object Profiles:
           _ <- EitherT.cond(
             user.id =!= uid,
             (),
-            UserError.UserUnfollowingHimself(profile = user.entity.toProfiile(false))
+            UserError.UserUnfollowingHimself(profile = dbUserToProfile(false)(user.entity))
           )
           _ <- EitherT.liftF(followerRepo.deleteFollower(user.id, uid))
-        yield user.entity.toProfiile(false)
+        yield dbUserToProfile(false)(user.entity)
 
         profile.value.flatMap(
           _.fold(
@@ -70,12 +71,12 @@ object Profiles:
           _ <- EitherT.cond(
             user.id =!= uid,
             (),
-            UserError.UserFollowingHimself(profile = user.entity.toProfiile(false))
+            UserError.UserFollowingHimself(profile = dbUserToProfile(false)(user.entity))
           )
           _ <- EitherT.liftF(
             followerRepo.createFollower(user.id, uid)
           )
-        yield user.entity.toProfiile(true)
+        yield dbUserToProfile(true)(user.entity)
         profile.value.flatMap:
           _.fold(
             {
@@ -85,4 +86,9 @@ object Profiles:
             _.pure
           )
       end follow
+
+  private def dbUserToProfile(following: Boolean)(user: DBUser): Profile = 
+    user.into[Profile].transform(
+      Field.const(_.following, following)
+    )
 end Profiles

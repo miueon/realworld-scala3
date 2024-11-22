@@ -3,6 +3,7 @@ package realworld.service
 import cats.data.OptionT
 import cats.effect.*
 import cats.syntax.all.*
+import io.github.arainko.ducktape.*
 import realworld.domain.article.{ArticleError, ArticleId}
 import realworld.domain.follower.Follower
 import realworld.domain.user.UserId
@@ -19,7 +20,6 @@ import realworld.spec.{
   Slug,
   UpdatedAt
 }
-
 import smithy4s.Timestamp
 
 trait Comments[F[_]]:
@@ -47,11 +47,11 @@ object Comments:
         val result =
           for
             articleView <- OptionT(articleRepo.findBySlug(slug))
-            timestamp <- OptionT.liftF(Time[F].timestamp)
+            timestamp   <- OptionT.liftF(Time[F].timestamp)
             commentDBView <- OptionT.liftF(
               commentRepo.create(mkComment(articleView.id, timestamp))
             )
-          yield commentDBView.toCommentView(false)
+          yield dbCommentToCommentView(false)(commentDBView)
         result.value.flatMap:
           case None              => ArticleError.NotFound(slug).raiseError
           case Some(commentView) => commentView.pure
@@ -77,18 +77,17 @@ object Comments:
           case None        => ArticleError.NotFound(slug).raiseError
           case Some(value) => CommentViewList(value).pure
 
-      def mkComments(comments: List[CommentDBView], followers: List[Follower]) =
-        // val authorFollowerMap = followers.groupBy(_.userId)
+      def mkComments(comments: List[CommentDBView], followers: List[Follower]): List[CommentView] =
+        val authorFollowerMap = followers.groupBy(_.userId)
+        comments.map(c => dbCommentToCommentView(authorFollowerMap.contains(c.authorId))(c))
 
-        comments.map(c => c.toCommentView(followers.contains(c.authorId)))
-
-      extension (c: CommentDBView)
-        def toCommentView(following: Boolean) =
-          CommentView(
-            c.id,
-            c.createdAt,
-            c.updatedAt,
-            c.body,
-            Profile(c.username, following, c.bio, c.image)
+      private def dbCommentToCommentView(following: Boolean)(commentView: CommentDBView) =
+        commentView
+          .into[CommentView]
+          .transform(
+            Field.const(
+              _.author,
+              commentView.into[Profile].transform(Field.const(_.following, following))
+            )
           )
 end Comments
