@@ -8,6 +8,7 @@ import dev.profunktor.redis4cats.RedisCommands
 import io.circe.parser.decode
 import io.circe.syntax.*
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
+import io.github.arainko.ducktape.*
 import org.typelevel.log4cats.Logger
 import realworld.auth.{Crypto, JWT}
 import realworld.codec.given
@@ -50,62 +51,52 @@ object Auth:
     new:
       private val TokenExpiration = tokenExpiration.value
       def login(user: LoginUserInputData): F[User] =
-        userRepo
-          .findByEmail(user.email)
-          .flatMap:
+        def withUserLoginCheck(
+            usr: LoginUserInputData,
+            next: ((UserId, DBUser) => F[User])
+        ): F[User] =
+          userRepo.findByEmail(usr.email).flatMap {
             case None => UserError.UserNotFound().raiseError[F, User]
-            case Some(WithId(_, dbUser))
-                if !crypto.verifyPassword(user.password, dbUser.password) =>
+            case Some(WithId(_, dbUser)) if !crypto.verifyPassword(usr.password, dbUser.password) =>
               UserError.UserPasswordNotMatched().raiseError[F, User]
-            case Some(WithId(uid, dbUser)) =>
-              redis
-                .get(user.email)
-                .flatMap:
-                  case Some(t) =>
-                    dbUser.toUser(Token(t).some).pure[F]
-                  case None =>
-                    jwt.create
-                      .flatMap: t =>
-                        dbUser.toUser(t.some).pure[F]
-                      .flatTap { u =>
-                        val token = u.token.get.value
-                        redis.setEx(
-                          token,
-                          UserSession(uid, u).asJson.noSpaces,
-                          TokenExpiration
-                        ) *>
-                          redis.setEx(
-                            user.email,
-                            token,
-                            TokenExpiration
-                          )
-                      }
+            case Some(WithId(uid, dbUser)) => next(uid, dbUser)
+          }
+
+        def withCreateRediUserSession(uid: UserId, dbUser: DBUser): F[User] =
+          redis.get(dbUser.email).flatMap {
+            case tokenOpt: Some[String] => dbUserToUser(tokenOpt.map(Token.apply))(dbUser).pure[F]
+            case None =>
+              for
+                u <- jwt.create.map(t => dbUserToUser(Some(t))(dbUser))
+                token       = u.token.get.value
+                sessionJson = UserSession(uid, u).asJson.noSpaces
+                _ <- redis.setEx(token, sessionJson, TokenExpiration)
+                _ <- redis.setEx(dbUser.email, token, TokenExpiration)
+              yield u
+          }
+        withUserLoginCheck(user, withCreateRediUserSession)
       end login
 
-      def register(user: RegisterUserData): F[User] =
-        val encryptedPassword = crypto.encrypt(user.password)
+      def register(registerUserData: RegisterUserData): F[User] =
+        val encryptedPassword = crypto.encrypt(registerUserData.password)
         for
           uid <- ID.make[F, UserId]
-          _ <- emailNotUsed(user.email, uid)
-          _ <- usernameNotUsed(user.username, uid)
-          _ <- userRepo.tx.use { tx =>
-            tx.create(uid, user, encryptedPassword) *> Logger[F].info("")
-          }
+          _   <- emailNotUsed(registerUserData.email, uid)
+          _   <- usernameNotUsed(registerUserData.username, uid)
+          _   <- userRepo.create(uid, registerUserData, encryptedPassword)
           jwt <- jwt.create
-          _ <- redis.setEx(
-            jwt.value,
-            UserSession(
-              uid,
-              User(user.email, user.username)
-            ).asJson.noSpaces,
-            TokenExpiration
-          )
-          _ <- redis.setEx(user.email, jwt.value, TokenExpiration)
+          userSessionJson = UserSession(
+            uid,
+            registerUserData.into[User].transform(Field.fallbackToDefault)
+          ).asJson.noSpaces
+          _ <- redis.setEx(jwt.value, userSessionJson, TokenExpiration)
+          _ <- redis.setEx(registerUserData.email, jwt.value, TokenExpiration)
         yield User(
-          email = user.email,
-          username = user.username,
+          email = registerUserData.email,
+          username = registerUserData.username,
           token = jwt.some
         )
+        end for
       end register
 
       def access(header: AuthHeader): F[UserSession] =
@@ -129,24 +120,17 @@ object Auth:
       end access
 
       def update(userSession: UserSession, updateData: UpdateUserData): F[UserSession] =
-        // val emailCleanOpt =
-        //   updateData.email.map(e => e.value.toLowerCase.trim())
-        // val usernameCleanOpt =
-        //   updateData.username.map(un => un.value.trim())
-
         val hasedPassword = updateData.password.map(crypto.encrypt(_))
-        val uid      = userSession.id
-        val token    = userSession.user.token.get.value
+        val uid           = userSession.id
+        val token         = userSession.user.token.get.value
         for
           _ <- updateData.email.traverse(emailNotUsed(_, uid))
           _ <- updateData.username.traverse(usernameNotUsed(_, uid))
-          row <- userRepo.tx.use {
-            _.update(uid, updateData, hasedPassword).flatMap {
-              case Some(u) => u.pure[F]
-              case None    => UserError.UserNotFound().raiseError
-            }
+          row <- userRepo.update(uid, updateData, hasedPassword).flatMap {
+            case Some(u) => u.pure[F]
+            case None    => UserError.UserNotFound().raiseError
           }
-          session = userSession.copy(user = row.entity.toUser(userSession.user.token))
+          session = userSession.copy(user = dbUserToUser(userSession.user.token)(row.entity))
           _ <- redis.setEx(token, session.asJson.noSpaces, TokenExpiration)
           _ <- redis.setEx(row.entity.email, token, TokenExpiration)
         yield session
@@ -176,4 +160,7 @@ object Auth:
         userRepo
           .findByUsername(username)
           .flatMap(notTakenByOthers(_, userId, UserError.UsernameAlreadyExists()))
+
+      private def dbUserToUser(tokenOpt: Option[Token])(dbUser: DBUser): User =
+        dbUser.into[User].transform(Field.const(_.token, tokenOpt))
 end Auth

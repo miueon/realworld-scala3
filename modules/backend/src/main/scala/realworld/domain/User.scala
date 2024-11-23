@@ -10,7 +10,7 @@ import io.github.iltotore.iron.doobie.given
 import realworld.codec.given
 import realworld.domain.*
 import realworld.domain.types.{IdNewtype, Newtype}
-import realworld.spec.{Bio, Profile, Token, User}
+import realworld.spec.{Bio, Profile}
 import realworld.types.{Email, EmailConstraint, ImageUrl, Username, UsernameConstraint}
 
 import javax.crypto.Cipher
@@ -36,16 +36,7 @@ case class DBUser(
     password: EncryptedPassword,
     bio: Option[Bio] = None,
     image: Option[ImageUrl] = None
-) derives Codec.AsObject:
-  def toUser(tokenOpt: Option[Token]) =
-    User(
-      email,
-      username,
-      tokenOpt,
-      bio,
-      image
-    )
-end DBUser
+) derives Codec.AsObject
 
 object Users extends TableDefinition("users"):
   val id: Column[UserId]                  = Column("id")

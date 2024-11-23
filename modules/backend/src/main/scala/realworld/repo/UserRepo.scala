@@ -3,12 +3,11 @@ package realworld.repo
 import cats.data.*
 import cats.effect.*
 import cats.syntax.all.*
-import cats.~>
 import doobie.*
 import doobie.free.connection.ConnectionIO
 import doobie.implicits.*
 import io.github.iltotore.iron.doobie.given
-import realworld.db.{DoobieTx, transaction}
+import realworld.db.DoobieTx
 import realworld.domain.WithId
 import realworld.domain.user.{DBUser, EncryptedPassword, UserId}
 import realworld.spec.{RegisterUserData, UpdateUserData}
@@ -18,20 +17,17 @@ trait UserRepo[F[_]]:
   def findById(id: UserId): F[Option[WithId[UserId, DBUser]]]
   def findByEmail(email: Email): F[Option[WithId[UserId, DBUser]]]
   def findByUsername(username: Username): F[Option[WithId[UserId, DBUser]]]
-  def tx: Resource[F, TxUsers[F]]
-
-trait TxUsers[F[_]]:
   def create(
       uid: UserId,
       user: RegisterUserData,
       encryptedPassword: EncryptedPassword
   ): F[Int]
-
   def update(
       uid: UserId,
       updateData: UpdateUserData,
-      hasedPsw: Option[EncryptedPassword]
+      hashedPsw: Option[EncryptedPassword]
   ): F[Option[WithId[UserId, DBUser]]]
+end UserRepo
 
 object UserRepo:
   import UserSQL as u
@@ -48,29 +44,19 @@ object UserRepo:
       ): F[Option[WithId[UserId, DBUser]]] =
         u.selectByUsername(username).transact(xa)
 
-      def tx: Resource[F, TxUsers[F]] =
-        xa.transaction.map(transactional[F])
-
-  private def transactional[F[_]: MonadCancelThrow](
-      fk: ConnectionIO ~> F
-  ): TxUsers[F] =
-    new:
       def create(
           uid: UserId,
           user: RegisterUserData,
           encryptedPassword: EncryptedPassword
-      ): F[Int] = fk {
-        u.insert(uid, user.username, user.email, encryptedPassword)
-      }
+      ): F[Int] =
+        u.insert(uid, user.username, user.email, encryptedPassword).transact(xa)
 
       def update(
           uid: UserId,
           updateData: UpdateUserData,
           hashedPsw: Option[EncryptedPassword]
-      ): F[Option[WithId[UserId, DBUser]]] = fk {
-        u.update(uid, updateData, hashedPsw)
-      }
-  end transactional
+      ): F[Option[WithId[UserId, DBUser]]] =
+        u.update(uid, updateData, hashedPsw).transact(xa)
 end UserRepo
 
 private object UserSQL:
