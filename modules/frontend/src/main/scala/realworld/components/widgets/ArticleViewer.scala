@@ -35,7 +35,7 @@ case object MyArticle extends Tab:
 final case class ArticleViewer(
     viewerStateSignal: Signal[ArticleViewrState],
     tabObserver: Observer[Tab],
-    s_tabs: Signal[Seq[Tab]],
+    tabsSignal: Signal[Seq[Tab]],
     toggleClassName: String,
     selectedTab: StrictSignal[Tab],
     curPageObserver: Observer[Int],
@@ -46,7 +46,7 @@ final case class ArticleViewer(
   def articlePreview(
       s: Slug,
       article: Article,
-      s_article: Signal[Article]
+      articleSignal: Signal[Article]
   ) =
     val articleVar      = Var(article)
     val isSubmittingVar = Var(false)
@@ -68,14 +68,14 @@ final case class ArticleViewer(
       )
     }
     div(
-      s_article --> articleVar.writer,
+      articleSignal --> articleVar.writer,
       cls := "article-preview",
       div(
         cls := "article-meta",
         a(
           cls := "author",
           img(
-            src <-- s_article.map(
+            src <-- articleSignal.map(
               _.author.image
                 .getOrElse(Utils.defaultAvatarUrl)
             )
@@ -88,11 +88,11 @@ final case class ArticleViewer(
         ),
         button(
           cls := "btn btn-sm pull-xs-right",
-          cls <-- s_article.map(a => if a.favorited then "btn-primary" else "btn-outline-primary"),
+          cls <-- articleSignal.map(a => if a.favorited then "btn-primary" else "btn-outline-primary"),
           aria.label := "Toggle Favorite",
           disabled <-- isSubmittingVar.signal,
           i(cls := "ion-heart"),
-          child.text <-- s_article.map(a => s" ${a.favoritesCount.value}"),
+          child.text <-- articleSignal.map(a => s" ${a.favoritesCount.value}"),
           onClick.preventDefault.mapTo(articleVar.now()) --> favObserver
         )
       ),
@@ -123,7 +123,7 @@ final case class ArticleViewer(
 
   def fragement: Seq[Modifier[ReactiveHtmlElement[HTMLElement]]] =
     List(
-      ArticleTabSet(s_tabs, toggleClassName, selectedTab, tabObserver),
+      ArticleTabSet(tabsSignal, toggleClassName, selectedTab, tabObserver),
       children <-- articleDisplay(),
       Pagination(
         viewerStateSignal.map(_.currentPage),
@@ -135,7 +135,7 @@ final case class ArticleViewer(
 end ArticleViewer
 
 def ArticleTabSet(
-    s_tabs: Signal[Seq[Tab]],
+    tabsSignal: Signal[Seq[Tab]],
     toggleClassName: String,
     selectedTab: StrictSignal[Tab],
     tabObserver: Observer[Tab]
@@ -144,7 +144,7 @@ def ArticleTabSet(
     cls := toggleClassName,
     ul(
       cls := "nav nav-pills outline-active",
-      children <-- s_tabs.map(_.map(tab => Tab(tab, tab.equals(selectedTab.now()), tabObserver)))
+      children <-- tabsSignal.map(_.map(tab => Tab(tab, tab.equals(selectedTab.now()), tabObserver)))
     )
   )
 

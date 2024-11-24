@@ -7,7 +7,7 @@ object FromGroup:
   def Input(
       inputType: InputType,
       _placeholder: String,
-      s_disabled: Signal[Boolean],
+      isDisabledSignal: Signal[Boolean],
       isLarge: Boolean,
       controlled: Mod[Input]
   ) =
@@ -17,7 +17,7 @@ object FromGroup:
         cls         := s"form-control${if isLarge then " form-control-lg" else ""}",
         tpe         := inputType.value,
         placeholder := _placeholder,
-        disabled <-- s_disabled,
+        disabled <-- isDisabledSignal,
         controlled
       )
     )
@@ -26,7 +26,7 @@ object FromGroup:
   def TextArea(
       inputType: InputType,
       _placeholder: String,
-      s_disabled: Signal[Boolean],
+      isDisabledSignal: Signal[Boolean],
       isLarge: Boolean,
       _rows: Int,
       controlled: Mod[TextArea]
@@ -37,7 +37,7 @@ object FromGroup:
         cls         := s"form-control${if isLarge then " form-control-lg" else ""}",
         tpe         := inputType.value,
         placeholder := _placeholder,
-        disabled <-- s_disabled,
+        disabled <-- isDisabledSignal,
         rows := _rows,
         controlled
       )
@@ -46,10 +46,10 @@ object FromGroup:
   def ListFormGroup(
       inputType: InputType,
       _placeholder: String,
-      s_disabled: Signal[Boolean],
+      isDisabledSignal: Signal[Boolean],
       isLarge: Boolean,
       controlled: Mod[Input],
-      s_tags: Signal[List[String]],
+      tagsSignal: Signal[List[String]],
       addTagWriter: Observer[Unit],
       removedTagWriter: Observer[String]
   ) =
@@ -58,14 +58,14 @@ object FromGroup:
         cls         := s"form-control${if isLarge then " form-control-lg" else ""}",
         tpe         := inputType.value,
         placeholder := _placeholder,
-        disabled <-- s_disabled,
+        disabled <-- isDisabledSignal,
         controlled,
         onKeyDown --> { ev => if ev.key == "Enter" then ev.preventDefault() },
         onKeyUp.preventDefault.filter(_.key == "Enter").mapToUnit --> addTagWriter
       ),
       div(
         cls := "tag-list",
-        children <-- s_tags.split(identity)((tagValue, tag, _) =>
+        children <-- tagsSignal.split(identity)((tagValue, tag, _) =>
           span(
             cls := "tag-default tag-pill",
             onClick.preventDefault.mapTo(tag) --> removedTagWriter,

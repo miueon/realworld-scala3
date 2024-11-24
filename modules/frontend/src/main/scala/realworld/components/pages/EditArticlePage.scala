@@ -16,7 +16,7 @@ import utils.Utils.*
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.{Failure, Success, Try}
 
-final case class EditArticlePage(s_page: Signal[Page.EditArticlePage])(using
+final case class EditArticlePage(pageSignal: Signal[Page.EditArticlePage])(using
     state: AppState,
     api: Api
 ) extends Component:
@@ -54,7 +54,7 @@ final case class EditArticlePage(s_page: Signal[Page.EditArticlePage])(using
       )
   }
 
-  val onLoad = s_page.flatMap { case Page.EditArticlePage(slug) =>
+  val onLoad = pageSignal.flatMap { case Page.EditArticlePage(slug) =>
     api.promiseStream(
       _.articlePromise.getArticle(slug).map(_.article)
     )

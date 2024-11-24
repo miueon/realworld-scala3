@@ -10,8 +10,8 @@ import utils.Utils.{some, writerF, writerOptF}
 final case class ArticleEditor(
     article: ArticleForm,
     articleSubmitObserver: Observer[ArticleForm],
-    s_errors: Signal[GenericError],
-    s_submitting: Signal[Boolean]
+    errorsSignal: Signal[GenericError],
+    isSubmittingSignal: Signal[Boolean]
 ) extends Component:
   val articleVar        = Var(article)
   val tagBarVar         = Var("")
@@ -39,10 +39,10 @@ final case class ArticleEditor(
         div(
           cls := "col-md-10 offset-md-1 col-xs-12",
           GenericForm(
-            s_errors,
+            errorsSignal,
             onSubmit.preventDefault.mapTo(articleVar.now()) --> articleSubmitObserver,
             "Publish Article",
-            s_submitting,
+            isSubmittingSignal,
             List(
               GenericFormField(
                 placeholder = "Article Title",
@@ -74,7 +74,7 @@ final case class ArticleEditor(
                   value <-- tagBarVar.signal,
                   onInput.mapToValue --> tagBarVar.writer
                 ),
-                s_tags = articleVar.signal.map(_.tagList).some
+                tagsSignal = articleVar.signal.map(_.tagList).some
               )
             ),
             addItemToListObserverOpt = addTagObserver.some,

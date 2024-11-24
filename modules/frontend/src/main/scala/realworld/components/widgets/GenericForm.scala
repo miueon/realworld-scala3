@@ -14,7 +14,7 @@ final case class GenericForm(
     esg: Signal[GenericError],
     onSubmit: EventListener[Event, ? <: FormRecord],
     submitButtonText: String,
-    s_disabled: Signal[Boolean],
+    isDisabledSignal: Signal[Boolean],
     fields: List[GenericFormField],
     addItemToListObserverOpt: Option[Observer[Unit]] = None,
     removedTagObserverOpt: Option[Observer[String]] = None
@@ -34,7 +34,7 @@ final case class GenericForm(
                 Input(
                   field.tpe,
                   field.placeholder,
-                  s_disabled,
+                  isDisabledSignal,
                   field.isLarge,
                   field.controlled
                 )
@@ -42,7 +42,7 @@ final case class GenericForm(
                 TextArea(
                   field.tpe,
                   field.placeholder,
-                  s_disabled,
+                  isDisabledSignal,
                   field.isLarge,
                   field.rows.getOrElse(3),
                   field.controlled
@@ -51,10 +51,10 @@ final case class GenericForm(
                 ListFormGroup(
                   field.tpe,
                   field.placeholder,
-                  s_disabled,
+                  isDisabledSignal,
                   field.isLarge,
                   field.controlled,
-                  field.s_tags.get,
+                  field.tagsSignal.get,
                   addItemToListObserverOpt.getOrElse(Observer.empty),
                   removedTagObserverOpt.getOrElse(Observer.empty)
                 )

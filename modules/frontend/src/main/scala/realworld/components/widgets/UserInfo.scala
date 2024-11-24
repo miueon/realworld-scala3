@@ -19,7 +19,7 @@ case class UserInfoState(
     isFollowing: Boolean = false,
     username: String = ""
 )
-final case class UserInfo(s_profile: Signal[Profile], profileObserver: Observer[Profile])(using
+final case class UserInfo(profileSignal: Signal[Profile], profileObserver: Observer[Profile])(using
     state: AppState,
     api: Api
 ) extends Component:
@@ -73,7 +73,7 @@ final case class UserInfo(s_profile: Signal[Profile], profileObserver: Observer[
 
   def body: HtmlElement =
     div(
-      s_profile --> userInfoProfileUpdater,
+      profileSignal --> userInfoProfileUpdater,
       cls := "user-info",
       div(
         cls := "container",
@@ -82,9 +82,9 @@ final case class UserInfo(s_profile: Signal[Profile], profileObserver: Observer[
           div(
             cls := "col-xs-12 col-md-10 offset-md-1",
             img(cls := "user-img"),
-            h4(child.text <-- s_profile.map(_.username)),
-            p(child.maybe <-- s_profile.map(_.bio.map(_.value))),
-            child <-- s_profile.splitOne(_.username)((username, _, _) =>
+            h4(child.text <-- profileSignal.map(_.username)),
+            p(child.maybe <-- profileSignal.map(_.bio.map(_.value))),
+            child <-- profileSignal.splitOne(_.username)((username, _, _) =>
               if state.user.map(_.username == username).getOrElse(false) then editProfileButton()
               else toggleFollowButton()
             )

@@ -38,7 +38,7 @@ case class MetaSectionState(
     deletingArticle: Boolean = false
 )
 
-final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
+final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(using
     state: AppState,
     api: Api
 ) extends Component:
@@ -62,7 +62,7 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
       )
       .collect { case comments => commentsWriter.onNext(comments.some) }
 
-  private val onLoad = s_page.flatMap { case Page.ArticleDetailPage(slug) =>
+  private val onLoad = pageSignal.flatMap { case Page.ArticleDetailPage(slug) =>
     api.promiseStream(a =>
       for
         articleOutput  <- a.articlePromise.getArticle(slug, state.authHeader)
@@ -105,23 +105,23 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
       child <-- display()
     )
 
-  def articlePageBanner(article: Article, s_article: Signal[Article]) =
+  def articlePageBanner(article: Article, articleSignal: Signal[Article]) =
     div(
       cls := "banner",
       div(
         cls := "container",
         h1(article.title),
-        articleMeta(article, s_article)
+        articleMeta(article, articleSignal)
       )
     )
 
-  def articleMeta(article: Article, s_article: Signal[Article]) =
+  def articleMeta(article: Article, articleSignal: Signal[Article]) =
     div(
       cls := "article-meta",
       articleAuthorInfo(article),
       state.user match
         case Some(u) if u.username == article.author.username => ownerArticleMetaActions(article)
-        case _ => viewerArticleMetaActions(article, s_article)
+        case _ => viewerArticleMetaActions(article, articleSignal)
     )
 
   def ownerArticleMetaActions(article: Article): Seq[Modifier[ReactiveHtmlElement[HTMLElement]]] =
@@ -154,12 +154,12 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
 
   def viewerArticleMetaActions(
       article: Article,
-      s_article: Signal[Article]
+      articleSignal: Signal[Article]
   ): Seq[Modifier[ReactiveHtmlElement[HTMLElement]]] =
     val followingVar = Var(article.author.following)
     val favoritedVar = Var(article.favorited)
-    val s_following  = s_article.map(_.author.following)
-    val s_favorited  = s_article.map(_.favorited)
+    val s_following  = articleSignal.map(_.author.following)
+    val s_favorited  = articleSignal.map(_.favorited)
     val onFollowObserver = Observer[MouseEvent]: _ =>
       state.authHeader.fold(JsRouter.redirectTo(Page.Register)) { case header =>
         metaSectionVar.update(_.copy(submittingFollow = true))
@@ -207,7 +207,7 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
         disabled <-- metaSectionVar.signal.map(_.submittingFollow),
         i(cls := "ion-plus-round"),
         child.text <-- s_following
-          .combineWith(s_article)
+          .combineWith(articleSignal)
           .map((following, article) =>
             s" ${if following then "Unfollow" else "Follow"} ${article.author.username}"
           ),
@@ -227,7 +227,7 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
         child.text <-- s_favorited.map(favorited =>
           s" ${if favorited then "Unfavorite" else "Favorite"} Article"
         ),
-        span(cls := "counter", child.text <-- s_article.map(_.favoritesCount.value)),
+        span(cls := "counter", child.text <-- articleSignal.map(_.favoritesCount.value)),
         onClick.preventDefault --> onFavorite
       )
     )
@@ -274,12 +274,12 @@ final case class ArticleDetailPage(s_page: Signal[Page.ArticleDetailPage])(using
     )
 
   import typings.dateFns.formatMod
-  def articleComment(cid: CommentId, comment: CommentView, s_comment: Signal[CommentView]) =
+  def articleComment(cid: CommentId, comment: CommentView, commentSignal: Signal[CommentView]) =
     div(
       cls := "card",
       div(
         cls := "card-block",
-        p(cls := "card-text", child.text <-- s_comment.map(_.body.value))
+        p(cls := "card-text", child.text <-- commentSignal.map(_.body.value))
       ),
       div(
         cls := "card-footer",

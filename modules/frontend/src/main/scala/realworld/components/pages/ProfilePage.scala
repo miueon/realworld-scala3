@@ -29,7 +29,7 @@ case class ProfileArticlePage(
     articleList: ArticlePage = ArticlePage(),
     currentPage: Int = 1
 )
-final case class ProfilePage(s_profile: Signal[Page.ProfilePage])(using state: AppState, api: Api)
+final case class ProfilePage(profileSignal: Signal[Page.ProfilePage])(using state: AppState, api: Api)
     extends Component:
   val profileVar            = Var[Option[Profile]](None)
   val profileArticlePageVar = Var(ProfileArticlePage())
@@ -93,7 +93,7 @@ final case class ProfilePage(s_profile: Signal[Page.ProfilePage])(using state: A
         ifEmpty = div(cls := "article-preview", "Loading profile...")
       )
 
-  val onLoad = s_profile.flatMap { case Page.ProfilePage(username) =>
+  val onLoad = profileSignal.flatMap { case Page.ProfilePage(username) =>
     api.promiseStream(_.userPromise.getProfile(username, state.authHeader).map(_.profile))
   }.recoverToTry --> Observer[Try[Profile]]:
     case Failure(exception) => JsRouter.redirectTo(Page.Home)

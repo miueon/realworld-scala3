@@ -54,7 +54,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
     tabVar.set(tab)
     homeState.set(HomeState())
   }
-  val s_tabs: Signal[Seq[Tab]] = tabVar.signal.map { t =>
+  val tabsSignal: Signal[Seq[Tab]] = tabVar.signal.map { t =>
     if state.authHeader.isDefined then Set(Feed, GlobalFeed, t).toSeq
     else Set(GlobalFeed, t).toSeq
   }
@@ -118,7 +118,7 @@ final case class Home()(using api: Api, state: AppState) extends Component:
               )
             ),
             tabObserver,
-            s_tabs,
+            tabsSignal,
             "feed-toggle",
             tabVar.signal,
             curPageWriter,

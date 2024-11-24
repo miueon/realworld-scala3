@@ -36,7 +36,7 @@ case class GenericFormField(
     isLarge: Boolean = true,
     controlled: Mod[Input | TextArea],
     rows: Option[Int] = None,
-    s_tags: Option[Signal[List[String]]] = None
+    tagsSignal: Option[Signal[List[String]]] = None
 )
 sealed trait FormRecord
 
