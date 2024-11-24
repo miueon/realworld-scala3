@@ -8,18 +8,19 @@ import org.http4s.client.Client
 import cats.effect.kernel.Resource
 
 case class Probe(
-  api: Api,
-  serverUri: Uri,
-  gen: Generator,
-  config: AppConfig
-)
+    api: Api,
+    serverUri: Uri,
+    gen: Generator,
+    config: AppConfig
+):
+  def userDataSupport = UserDataSupport(this)
 
 object Probe:
   def make(
-    client: Client[IO],
-    uri: Uri,
-    config: AppConfig,
-  ) = 
+      client: Client[IO],
+      uri: Uri,
+      config: AppConfig
+  ) =
     Resource.eval(
       for
         gen <- Generator.make
