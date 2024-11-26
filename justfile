@@ -5,19 +5,19 @@ dev-js:
   cd modules/frontend; pnpm dev
 
 dev-scala-js:
-  sbt ~frontend/fastLinkJS
+  sbt --client '~frontend/fastLinkJS'
 
 dev-scala:
-  sbt ~app/reStart
+  sbt --client '~app/reStart'
 
 build-frontend:
-  sbt buildFrontend
+  sbt --client 'buildFrontend'
 
 install-frontend:
   cd modules/frontend; pnpm i --frozen-lockfile --no-verify-store-integrity
 
 test:
-  sbt backend/test
+  sbt --client 'backend/test'
 
 publish-docker:
-  sbt publishDocker
+  sbt --client 'publishDocker'

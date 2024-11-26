@@ -83,18 +83,18 @@ lazy val app = projectMatrix
       "org.postgresql" % "postgresql"          % Versions.postgres,
       "ch.qos.logback" % "logback-classic"     % Versions.logback
     ),
+    Compile / resourceGenerators += {
+      Def.task[Seq[File]] {
+        val frontendDir = buildFrontend.value
+        val staticDir = (Compile / resourceManaged).value
+        val log = streams.value.log
+        log.info(s"Copying directory ${frontendDir.getAbsolutePath} to ${staticDir.getAbsolutePath}")
+        copyAll(buildFrontend.value, (Compile / resourceManaged).value / "static")
+      }
+    },
     reStart / baseDirectory := (ThisBuild / baseDirectory).value,
     run / baseDirectory     := (ThisBuild / baseDirectory).value
   )
-
-def copyAll(location: File, outDir: File) = {
-  IO.listFiles(location).toList.map { file =>
-    val (name, ext) = file.baseAndExt
-    val out         = outDir / (name + "." + ext)
-    IO.copyFile(file, out)
-    out
-  }
-}
 
 val iron = Seq(
   "io.github.iltotore" %% "iron"       % Versions.iron,
@@ -223,12 +223,10 @@ lazy val defaults =
 
 lazy val isRelease = sys.env.get("RELEASE").contains("yesh")
 
-val buildFrontend = taskKey[Unit]("Build frontend")
-
-buildFrontend := {
+val buildFrontend = taskKey[File]("Build frontend")
+ThisBuild /  buildFrontend := {
   def frontendProj    = frontend.finder(VirtualAxis.js)(Versions.scala)
-  val frontendDirPath = frontend.base.getAbsolutePath()
-  val appDirPath      = app.base.getAbsolutePath()
+  // val appDirPath      = app.base.getAbsolutePath()
 
   (if (isRelease) {
      (frontendProj / Compile / fullLinkJS)
@@ -248,14 +246,14 @@ buildFrontend := {
     throw new IllegalStateException(s"Building frontend failed. See above for reason")
   }
 
-  IO.delete(app.base / "src" / "main" / "resources" / "static")
-  IO.copyDirectory(
-    source = frontend.base / "dist",
-    target = app.base / "src" / "main" / "resources" / "static"
-  )
+  // IO.delete(app.base / "src" / "main" / "resources" / "static")
+  // IO.copyDirectory(
+  //   source = frontend.base / "dist",
+  //   target = app.base / "src" / "main" / "resources" / "static"
+  // )
 
   val log = streams.value.log
-  def processFile(file: Path): Unit = {
+  def addStaticPathPrefix(file: Path): Unit = {
     val content = new String(Files.readAllBytes(file), StandardCharsets.UTF_8)
     val updatedContent = content.replaceAll(
       """(<script[^>]*\s+src=")([^"]+)""",
@@ -265,7 +263,19 @@ buildFrontend := {
     log.info(s"Updated ${file.getFileName}")
   }
 
-  processFile(Paths.get(appDirPath, "src", "main", "resources", "static", "index.html"))
+  val frontendDirPath = frontend.base.getAbsolutePath()
+  addStaticPathPrefix(Paths.get(frontendDirPath, "dist", "index.html"))
+  sbt.IO.toFile(Paths.get(frontendDirPath, "dist").toUri())
+}
+
+def copyAll(location: File, outDir: File) = {
+  IO.delete(outDir)
+  IO.copyDirectory(location, outDir)
+  def getAllFiles(dir: File): List[File] = {
+    val these = dir.listFiles
+    these.filter(_.isFile).toList ++ these.filter(_.isDirectory).flatMap(getAllFiles)
+  }
+  getAllFiles(outDir)
 }
 
 (app.finder(VirtualAxis.jvm)(Versions.scala) / Docker / publishLocal) := (app.finder(
