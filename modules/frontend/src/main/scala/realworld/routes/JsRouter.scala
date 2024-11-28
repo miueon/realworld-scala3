@@ -10,7 +10,16 @@ import scala.util.{Failure, Success, Try}
 object JsRouter
     extends waypoint.Router[Page](
       routes = routes,
-      getPageTitle = { case _ => "Conduit" },
+      getPageTitle = { 
+        case Page.Home => "Conduit"
+        case Page.Login => "Conduit: Login"
+        case Page.Register => "Conduit: Register"
+        case Page.Setting => "Conduit: Settings"
+        case Page.NewArticle => "Conduit: New Article"
+        case Page.ArticleDetailPage(slug, title) => s"Conduit: $title"
+        case Page.ProfilePage(username) => s"Conduit: $username"
+        case Page.EditArticlePage(slug, title) => s"Conduit: Edit $title"
+      },
       serializePage = pg => write(pg),
       deserializePage = str => read[Page](str)
     )(popStateEvents = windowEvents(_.onPopState), owner = unsafeWindowOwner):

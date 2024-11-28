@@ -83,15 +83,6 @@ lazy val app = projectMatrix
       "org.postgresql" % "postgresql"          % Versions.postgres,
       "ch.qos.logback" % "logback-classic"     % Versions.logback
     ),
-    Compile / resourceGenerators += {
-      Def.task[Seq[File]] {
-        val frontendDir = buildFrontend.value
-        val staticDir = (Compile / resourceManaged).value
-        val log = streams.value.log
-        log.info(s"Copying directory ${frontendDir.getAbsolutePath} to ${staticDir.getAbsolutePath}")
-        copyAll(buildFrontend.value, (Compile / resourceManaged).value / "static")
-      }
-    },
     reStart / baseDirectory := (ThisBuild / baseDirectory).value,
     run / baseDirectory     := (ThisBuild / baseDirectory).value
   )
@@ -146,11 +137,17 @@ lazy val backend = projectMatrix
         "org.http4s"                   %% "http4s-blaze-client" % Versions.http4sBlaze,
         "org.http4s"                   %% "http4s-ember-server" % Versions.http4s,
         "org.http4s"                   %% "http4s-ember-client" % Versions.http4s,
-        "org.typelevel"                %% "log4cats-noop"       % Versions.log4cats
+        "org.typelevel"                %% "log4cats-noop"       % Versions.log4cats,
+        "com.microsoft.playwright"      % "playwright"          % "1.49.0"
       ).map(_ % Test),
     testFrameworks += new TestFramework("weaver.framework.CatsEffect"),
     Test / fork          := true,
-    Test / baseDirectory := (ThisBuild / baseDirectory).value
+    Test / baseDirectory := (ThisBuild / baseDirectory).value,
+    Test / resourceGenerators += {
+      Def.task[Seq[File]] {
+        copyAll(buildFrontend.value, (Test / resourceManaged).value / "static")
+      }
+    }
   )
 
 lazy val shared = projectMatrix
@@ -224,8 +221,8 @@ lazy val defaults =
 lazy val isRelease = sys.env.get("RELEASE").contains("yesh")
 
 val buildFrontend = taskKey[File]("Build frontend")
-ThisBuild /  buildFrontend := {
-  def frontendProj    = frontend.finder(VirtualAxis.js)(Versions.scala)
+ThisBuild / buildFrontend := {
+  def frontendProj = frontend.finder(VirtualAxis.js)(Versions.scala)
   // val appDirPath      = app.base.getAbsolutePath()
 
   (if (isRelease) {
@@ -266,6 +263,12 @@ ThisBuild /  buildFrontend := {
   val frontendDirPath = frontend.base.getAbsolutePath()
   addStaticPathPrefix(Paths.get(frontendDirPath, "dist", "index.html"))
   sbt.IO.toFile(Paths.get(frontendDirPath, "dist").toUri())
+}
+
+lazy val buildAndCopyFrontend = taskKey[Seq[File]]("Build and copy frontend")
+buildAndCopyFrontend := {
+  val frontendDir = buildFrontend.value
+  copyAll(frontendDir, app.base / "src" / "main" / "resources" / "static")
 }
 
 def copyAll(location: File, outDir: File) = {

@@ -49,12 +49,12 @@ final case class EditArticlePage(pageSignal: Signal[Page.EditArticlePage])(using
                 errors          -> Map("error" -> List(e.getMessage()))
               )
             case Right(UpdateArticleOutput(article)) =>
-              JsRouter.redirectTo(Page.ArticleDetailPage(article.slug))
+              JsRouter.redirectTo(Page.ArticleDetailPage(article.slug, article.title))
           }
       )
   }
 
-  val onLoad = pageSignal.flatMap { case Page.EditArticlePage(slug) =>
+  val onLoad = pageSignal.flatMap { case Page.EditArticlePage(slug, title) =>
     api.promiseStream(
       _.articlePromise.getArticle(slug).map(_.article)
     )

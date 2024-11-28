@@ -62,7 +62,7 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
       )
       .collect { case comments => commentsWriter.onNext(comments.some) }
 
-  private val onLoad = pageSignal.flatMap { case Page.ArticleDetailPage(slug) =>
+  private val onLoad = pageSignal.flatMap { case Page.ArticleDetailPage(slug, title) =>
     api.promiseStream(a =>
       for
         articleOutput  <- a.articlePromise.getArticle(slug, state.authHeader)
@@ -128,7 +128,7 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
     List(
       button(
         cls := "btn btn-outline-secondary btn-sm",
-        JsRouter.navigateTo(Page.EditArticlePage(article.slug)),
+        JsRouter.navigateTo(Page.EditArticlePage(article.slug, article.title)),
         i(cls := "ion-plus-round"),
         " Edit Article"
       ),

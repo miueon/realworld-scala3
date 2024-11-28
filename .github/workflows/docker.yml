@@ -47,7 +47,7 @@ jobs:
       - name: Install dependencies
         working-directory: modules/frontend
         run: just install-frontend
-      - run: just build-frontend
+      - run: just build-and-copy-frontend
 
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1

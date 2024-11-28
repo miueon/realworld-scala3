@@ -10,8 +10,8 @@ dev-scala-js:
 dev-scala:
   sbt --client '~app/reStart'
 
-build-frontend:
-  sbt --client 'buildFrontend'
+build-and-copy-frontend:
+  sbt --client 'buildAndCopyFrontend'
 
 install-frontend:
   cd modules/frontend; pnpm i --frozen-lockfile --no-verify-store-integrity
