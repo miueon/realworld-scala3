@@ -2,16 +2,16 @@ package realworld
 package tests
 package frontend
 
-import scala.concurrent.duration.*
-import com.indoorvivants.weaver.playwright.*
-import org.http4s.*
-import cats.syntax.all.*
 import cats.effect.*
-import weaver.*
+import cats.effect.kernel.Outcome.Succeeded
+import cats.syntax.all.*
+import com.indoorvivants.weaver.playwright.*
 import com.indoorvivants.weaver.playwright.BrowserConfig.Chromium
 import com.microsoft.playwright.BrowserType.LaunchOptions
+import weaver.*
+
 import java.nio.file.Paths
-import realworld.tests.Probe
+import scala.concurrent.duration.*
 
 case class Resources(
     probe: Probe,
@@ -40,18 +40,42 @@ abstract class FrontendSuite(global: GlobalRead) extends weaver.IOSuite with Pla
     }
   end sharedResource
 
-  val (poolSize, timeout) = 
+  val (poolSize, timeout) =
     if sys.env.contains("CI") then 1 -> 30.seconds
-    else 5 -> 5.seconds
+    else 5                           -> 5.seconds
 
-  override def getPlaywright(res: Res): PlaywrightRuntime = 
+  override def getPlaywright(res: Res): PlaywrightRuntime =
     res.pw
 
-  override def retryPolicy: PlaywrightRetry = 
+  override def retryPolicy: PlaywrightRetry =
     PlaywrightRetry.linear(10, 500.millis)
 
   def configure(pc: PageContext) = pc.page(_.setDefaultTimeout(timeout.toMillis))
 
-  // def frontendTest(name: TestName)(f: (Probe, PageContext, PageFragments))
-  
+  def frontendTest(name: TestName)(f: (Probe, PageContext, PageFragments) => IO[Expectations]) =
+    test(name) { (res, logs) =>
+      getPageContext(res).evalTap(configure).use { pc =>
+        def screenshot(pc: PageContext, name: String) =
+          val path = Paths.get("playwright-screenshots", name + ".png")
+          pc.screenshot(path) *> logs.info(
+            s"Screenshot of last known page state saved to ${path.toAbsolutePath()}"
+          )
+
+        def testName = name.name.collect {
+          case c if c.isWhitespace => "_"
+          case o                   => o
+        }
+
+        f(res.probe, pc, PageFragments(pc, retryPolicy))
+          .guaranteeCase {
+            case Outcome.Errored(e) => screenshot(pc, s"${testName}_error")
+            case Succeeded(ioa) =>
+              ioa.flatMap { exp =>
+                if exp.run.isValid then IO.unit
+                else screenshot(pc, s"${testName}_failure")
+              }
+            case _ => IO.unit
+          }
+      }
+    }
 end FrontendSuite

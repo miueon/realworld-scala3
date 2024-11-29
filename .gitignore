@@ -24,3 +24,4 @@ modules/app/src/main/resources
 node_modules
 *.lsp.log
 .smithy.lsp.log
+playwright-screenshots
