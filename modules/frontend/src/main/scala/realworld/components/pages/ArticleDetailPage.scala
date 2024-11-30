@@ -81,10 +81,10 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
   private def display() =
     articleVar.signal
       .splitOption(
-        (article, s_article) =>
+        (article, articleSignal) =>
           div(
             cls := "article-page",
-            articlePageBanner(article, s_article),
+            articlePageBanner(article, articleSignal),
             div(
               cls := "container page",
               div(
@@ -94,7 +94,7 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
               )
             ),
             hr(),
-            div(cls := "article-actions", articleMeta(article, s_article)),
+            div(cls := "article-actions", articleMeta(article, articleSignal)),
             commentSection()
           ),
         ifEmpty = div("Loading article...")
@@ -159,8 +159,8 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
   ): Seq[Modifier[ReactiveHtmlElement[HTMLElement]]] =
     val followingVar = Var(article.author.following)
     val favoritedVar = Var(article.favorited)
-    val s_following  = articleSignal.map(_.author.following)
-    val s_favorited  = articleSignal.map(_.favorited)
+    val followingSignal  = articleSignal.map(_.author.following)
+    val favoritedSignal  = articleSignal.map(_.favorited)
     val onFollowObserver = Observer[MouseEvent]: _ =>
       state.authHeader.fold(JsRouter.redirectTo(Page.Register)) { case header =>
         metaSectionVar.update(_.copy(submittingFollow = true))
@@ -195,11 +195,11 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
           }
       }
     List(
-      s_favorited --> favoritedVar.writer,
-      s_following --> followingVar.writer,
+      favoritedSignal --> favoritedVar.writer,
+      followingSignal --> followingVar.writer,
       button(
         cls := "btn btn-sm",
-        cls <-- s_following.map { following =>
+        cls <-- followingSignal.map { following =>
           classTupleToClassName(
             "btn-outline-secondary" -> !following,
             "btn-secondary"         -> following
@@ -207,7 +207,7 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
         },
         disabled <-- metaSectionVar.signal.map(_.submittingFollow),
         i(cls := "ion-plus-round"),
-        child.text <-- s_following
+        child.text <-- followingSignal
           .combineWith(articleSignal)
           .map((following, article) =>
             s" ${if following then "Unfollow" else "Follow"} ${article.author.username}"
@@ -217,7 +217,7 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
       " ",
       button(
         cls := "btn btn-sm",
-        cls <-- s_favorited.map { favorited =>
+        cls <-- favoritedSignal.map { favorited =>
           classTupleToClassName(
             "btn-outline-primary" -> !favorited,
             "btn-primary"         -> favorited
@@ -225,7 +225,7 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
         },
         disabled <-- metaSectionVar.signal.map(_.submittingFavorite),
         i(cls := "ion-heart"),
-        child.text <-- s_favorited.map(favorited =>
+        child.text <-- favoritedSignal.map(favorited =>
           s" ${if favorited then "Unfavorite" else "Favorite"} Article"
         ),
         span(cls := "counter", child.text <-- articleSignal.map(_.favoritesCount.value)),
@@ -267,7 +267,7 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
           .distinctBy(_.comments)
           .map(_.comments)
           .splitOption(
-            (_, s_comments) => s_comments.split(_.id)(articleComment),
+            (_, commentsSignal) => commentsSignal.split(_.id)(articleComment),
             ifEmpty = div("Loading comments...").toList.toSignal
           )
           .flatten

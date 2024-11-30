@@ -89,7 +89,7 @@ final case class ProfilePage(profileSignal: Signal[Page.ProfilePage])(using stat
   def displayUserInfo() =
     profileVar.signal
       .splitOption(
-        (_, s_profile) => UserInfo(s_profile, profileVar.someWriter).body,
+        (_, profileSignal) => UserInfo(profileSignal, profileVar.someWriter).body,
         ifEmpty = div(cls := "article-preview", "Loading profile...")
       )
 
