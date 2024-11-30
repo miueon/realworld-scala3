@@ -33,7 +33,7 @@ final case class NewArticle()(using state: AppState, api: Api) extends Component
             )
           case Left(e) => errors.set(Map("error" -> List(e.getMessage())))
           case Right(CreateArticleOutput(article)) =>
-            JsRouter.redirectTo(Page.ArticleDetailPage(article.slug, article.title))
+            JsRouter.redirectTo(Page.ArticleDetailPage(article.slug))
         }
     )
   }

@@ -49,18 +49,19 @@ final case class EditArticlePage(pageSignal: Signal[Page.EditArticlePage])(using
                 errors          -> Map("error" -> List(e.getMessage()))
               )
             case Right(UpdateArticleOutput(article)) =>
-              JsRouter.redirectTo(Page.ArticleDetailPage(article.slug, article.title))
+              JsRouter.redirectTo(Page.ArticleDetailPage(article.slug))
           }
       )
   }
 
-  val onLoad = pageSignal.flatMap { case Page.EditArticlePage(slug, title) =>
+  val onLoad = pageSignal.flatMap { case Page.EditArticlePage(slug) =>
     api.promiseStream(
       _.articlePromise.getArticle(slug).map(_.article)
     )
   }.recoverToTry --> Observer[Try[Article]]:
     case Failure(exception) => JsRouter.redirectTo(Page.Home)
     case Success(article) =>
+      state.titleWriter.onNext(s"Conduit: Edit ${article.title}")
       state.user.fold(JsRouter.redirectTo(Page.Login)) { u =>
         if u.username == article.author.username then articleVar.set(article.some)
         else JsRouter.redirectTo(Page.Home)

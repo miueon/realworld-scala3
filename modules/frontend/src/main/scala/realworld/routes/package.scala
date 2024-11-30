@@ -19,14 +19,14 @@ package object routes:
 
   val articleDetailPageRoute = Route(
     encode = (stp: ArticleDetailPage) => stp.slug.value,
-    decode = (arg: String) => ArticleDetailPage(Slug(arg), ""),
+    decode = (arg: String) => ArticleDetailPage(Slug(arg)),
     pattern = root / "article" / segment[String] / endOfSegments,
     Route.fragmentBasePath
   )
 
   val editArticlePageRoute = Route(
     encode = (stp: EditArticlePage) => stp.slug.value,
-    decode = (arg: String) => EditArticlePage(Slug(arg), ""),
+    decode = (arg: String) => EditArticlePage(Slug(arg)),
     pattern = root / "editor" / segment[String] / endOfSegments,
     Route.fragmentBasePath
   )

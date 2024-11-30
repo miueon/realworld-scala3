@@ -15,7 +15,7 @@ def Header()(using state: AppState) =
       ul(
         cls("nav navbar-nav pull-xs-right"),
         navItem("Home", Page.Home),
-        children <-- state.s_auth.map {
+        children <-- state.authSignal.map {
           case Some(AuthState.Token(_, user)) => authenticatedLinks(user.username)
           case _                              => guestLinks
         }

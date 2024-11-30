@@ -16,9 +16,9 @@ object JsRouter
         case Page.Register => "Conduit: Register"
         case Page.Setting => "Conduit: Settings"
         case Page.NewArticle => "Conduit: New Article"
-        case Page.ArticleDetailPage(slug, title) => s"Conduit: $title"
+        case Page.ArticleDetailPage(slug) => s"Conduit:"
         case Page.ProfilePage(username) => s"Conduit: $username"
-        case Page.EditArticlePage(slug, title) => s"Conduit: Edit $title"
+        case Page.EditArticlePage(slug) => s"Conduit: Edit"
       },
       serializePage = pg => write(pg),
       deserializePage = str => read[Page](str)

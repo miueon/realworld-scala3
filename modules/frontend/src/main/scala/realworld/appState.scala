@@ -8,6 +8,7 @@ import utils.Utils.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import org.scalajs.dom
 
 enum AuthState:
   case Unauthenticated
@@ -22,13 +23,13 @@ class AppState private (
     _authToken: Var[Option[AuthState]],
     val events: EventBus[AuthEvent]
 ):
-  val s_token = _authToken.signal
-  val s_login = s_token.map {
+  val tokenSignal = _authToken.signal
+  val loginSignal = tokenSignal.map {
     case Some(tok: AuthState.Token) => true
     case _                          => false
   }
 
-  val s_auth = _authToken.signal.map {
+  val authSignal = _authToken.signal.map {
     case None | Some(AuthState.Unauthenticated) => None
     case t                                      => t
   }
@@ -42,12 +43,16 @@ class AppState private (
     case _                              => None
 
   val tokenWriter = _authToken.writer
+
+  val titleWriter = Observer[String] { title =>
+    dom.document.title = title
+  }
 end AppState
 
 class AuthStateWatcher(bus: EventBus[AuthEvent])(using state: AppState, api: Api):
   def loop =
     eventSources
-      .withCurrentValueOf(state.s_token)
+      .withCurrentValueOf(state.tokenSignal)
       .flatMap {
         case (AuthEvent.Load, None) =>
           val header = loadAuthHeader
@@ -74,7 +79,10 @@ class AuthStateWatcher(bus: EventBus[AuthEvent])(using state: AppState, api: Api
   private def clearToken = dom.window.localStorage.removeItem("token")
 
   private val eventSources =
-    EventStream.merge(bus.events, state.s_token.changes.collect { case None => AuthEvent.Reset })
+    EventStream.merge(
+      bus.events,
+      state.tokenSignal.changes.collect { case None => AuthEvent.Reset }
+    )
 end AuthStateWatcher
 
 object AppState:

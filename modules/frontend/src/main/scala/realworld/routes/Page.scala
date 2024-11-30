@@ -13,6 +13,6 @@ object Page:
   case object Setting                        extends Page
   case object NewArticle                     extends Page
   case class ProfilePage(username: Username) extends Page
-  case class ArticleDetailPage(slug: Slug, title: String)   extends Page
-  case class EditArticlePage(slug: Slug, title: String)     extends Page
+  case class ArticleDetailPage(slug: Slug) extends Page
+  case class EditArticlePage(slug: Slug) extends Page
 end Page

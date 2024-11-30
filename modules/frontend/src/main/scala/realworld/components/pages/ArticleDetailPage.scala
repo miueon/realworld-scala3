@@ -62,7 +62,7 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
       )
       .collect { case comments => commentsWriter.onNext(comments.some) }
 
-  private val onLoad = pageSignal.flatMap { case Page.ArticleDetailPage(slug, title) =>
+  private val onLoad = pageSignal.flatMap { case Page.ArticleDetailPage(slug) =>
     api.promiseStream(a =>
       for
         articleOutput  <- a.articlePromise.getArticle(slug, state.authHeader)
@@ -72,6 +72,7 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
   }.recoverToTry --> Observer[Try[(Article, List[CommentView])]]:
     case Failure(exception) => JsRouter.redirectTo(Page.Home)
     case Success(article, comments) =>
+      state.titleWriter.onNext(s"Conduit: ${article.title}")
       Var.set(
         articleVar        -> article.some,
         commentSectionVar -> CommentSectionState(comments = comments.some)
@@ -128,7 +129,7 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
     List(
       button(
         cls := "btn btn-outline-secondary btn-sm",
-        JsRouter.navigateTo(Page.EditArticlePage(article.slug, article.title)),
+        JsRouter.navigateTo(Page.EditArticlePage(article.slug)),
         i(cls := "ion-plus-round"),
         " Edit Article"
       ),

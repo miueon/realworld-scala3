@@ -97,7 +97,7 @@ final case class ArticleViewer(
         )
       ),
       a(
-        JsRouter.navigateTo(Page.ArticleDetailPage(article.slug, article.title)),
+        JsRouter.navigateTo(Page.ArticleDetailPage(article.slug)),
         cls := "preview-link",
         h1(article.title),
         p(article.description),

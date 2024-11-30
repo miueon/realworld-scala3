@@ -39,7 +39,7 @@ object App:
     given Api             = Api.create()
     given state: AppState = AppState.init
 
-    val node = state.s_token.changes
+    val node = state.tokenSignal.changes
       .splitOption(
         (initial, _) => renderPage,
         div().toSignal
@@ -57,14 +57,14 @@ object App:
 end App
 
 def authenticatedOnly(using state: AppState) =
-  state.s_token --> { tok =>
+  state.tokenSignal --> { tok =>
     tok match
       case None | Some(AuthState.Unauthenticated) => JsRouter.redirectTo(Page.Login)
       case _                                      =>
   }
 
 def guestOnly(using state: AppState) =
-  state.s_token --> { tok =>
+  state.tokenSignal --> { tok =>
     tok match
       case None | Some(AuthState.Unauthenticated) =>
       case _                                      => JsRouter.redirectTo(Page.Home)

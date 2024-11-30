@@ -53,7 +53,7 @@ final case class Login()(using api: Api, state: AppState) extends Component:
             errors.signal,
             onSubmit.preventDefault.mapTo(credential.now()) --> handler,
             "Sign in",
-            state.s_login,
+            state.loginSignal,
             List(
               GenericFormField(
                 placeholder = "Email",
