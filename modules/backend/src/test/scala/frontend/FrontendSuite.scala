@@ -42,7 +42,7 @@ abstract class FrontendSuite(global: GlobalRead) extends weaver.IOSuite with Pla
 
   val (poolSize, timeout) =
     if sys.env.contains("CI") then 1 -> 30.seconds
-    else 5                           -> 5.seconds
+    else 5                           -> 10.seconds
 
   override def getPlaywright(res: Res): PlaywrightRuntime =
     res.pw

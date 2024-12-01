@@ -2,15 +2,8 @@ package realworld
 package tests
 package frontend
 
-import cats.effect.*
-import cats.syntax.all.*
-import com.indoorvivants.weaver.playwright.*
 import com.microsoft.playwright.options.AriaRole
-import org.http4s.*
 import weaver.*
-
-import java.nio.file.Paths
-import scala.concurrent.duration.*
 
 class UsersSpec(global: GlobalRead) extends FrontendSuite(global):
   frontendTest("Register user") { (probe, pc, fragments) =>
@@ -18,6 +11,22 @@ class UsersSpec(global: GlobalRead) extends FrontendSuite(global):
     for
       _ <- page(_.navigate(probe.serverUri.toString))
       _ <- page(_.getByRole(AriaRole.LINK).getByText("Sign up").click())
-      _ <- fragments.submitRegistration("test", "test@test.com", "test1234")
+      registerUserData <- probe.userDataSupport.registerUserData()
+      _ <- fragments.submitRegistration(registerUserData.username, registerUserData.email, registerUserData.password)
     yield success
   }
+
+  frontendTest("Add article") { (probe, pc, fragments) =>
+    import pc.*
+
+    for 
+      _ <- page(_.navigate(probe.serverUri.toString))
+      _ <- page(_.getByRole(AriaRole.LINK).getByText("Sign up").click())
+      registerUserData <- probe.userDataSupport.registerUserData()
+      _ <- fragments.submitRegistration(registerUserData.username, registerUserData.email, registerUserData.password)
+      _ <- page(_.getByRole(AriaRole.LINK).getByText("New Article").click())
+      createArticleData <- probe.articleDataSupport.createArticleData()
+      _ <- fragments.submitArticle(createArticleData)
+    yield success
+  }
+end UsersSpec

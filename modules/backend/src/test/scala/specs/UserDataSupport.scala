@@ -8,7 +8,7 @@ import realworld.types.*
 class UserDataSupport(probe: Probe):
   import probe.*
 
-  private def registerUserData() =
+  def registerUserData() =
     (gen.strI(Username), gen.email, gen.strI(Password)).mapN(RegisterUserData.apply)
 
   def login(email: Email, password: Password) =

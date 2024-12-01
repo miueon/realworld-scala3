@@ -13,7 +13,8 @@ case class Probe(
     gen: Generator,
     config: AppConfig
 ):
-  def userDataSupport = UserDataSupport(this)
+  def userDataSupport    = UserDataSupport(this)
+  def articleDataSupport = ArticleDataSupport(this)
 
 object Probe:
   def make(
