@@ -2,15 +2,13 @@ package realworld
 package tests
 
 import cats.syntax.all.*
-import realworld.spec.{LoginUserInputData, RegisterUserData}
+import realworld.spec.{LoginUserInputData, RegisterUserData, UpdateUserData}
 import realworld.tests.integration.IntegrationSuite
 import realworld.types.*
 import weaver.*
-import realworld.spec.Bio
-import realworld.spec.UpdateUserData
 
 class UsersSuite(globalRead: GlobalRead) extends IntegrationSuite(globalRead):
-  test("Register and login") { (probe, log) =>
+  probeTest("Register and login") { probe =>
     import probe.*
 
     for
@@ -22,7 +20,6 @@ class UsersSuite(globalRead: GlobalRead) extends IntegrationSuite(globalRead):
       usrRsp <- api.users
         .registerUser(registerUserData)
         .map(_.user)
-
       getUsrRsp <- api.users
         .loginUser(LoginUserInputData(registerUserData.email, registerUserData.password))
         .map(_.user)
@@ -32,16 +29,13 @@ class UsersSuite(globalRead: GlobalRead) extends IntegrationSuite(globalRead):
     end for
   }
 
-  test("Update user data") { probe =>
+  probeTest("Update user data") { probe =>
     import probe.*
 
     for
-      authHeader <- userDataSupport.authenticateUser
-      user       <- api.users.getUser(authHeader).map(_.user)
-      updateUserData <- (gen.strI(Username), gen.str(Bio), gen.strI(ImageUrl)).mapN(
-        (username, description, imageUrl) =>
-          UpdateUserData(username = Some(username), bio = Some(description), image = Some(imageUrl))
-      )
+      authHeader     <- userDataSupport.authenticateUser
+      user           <- api.users.getUser(authHeader).map(_.user)
+      updateUserData <- userDataSupport.updateUserData()
       user <- api.users.updateUser(authHeader, updateUserData).map(_.user)
     yield expect.all(
       updateUserData.username.isDefined,

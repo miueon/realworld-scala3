@@ -2,7 +2,7 @@ package realworld
 package tests
 
 import cats.syntax.all.*
-import realworld.spec.{AuthHeader, LoginUserInputData, RegisterUserData}
+import realworld.spec.{AuthHeader, Bio, LoginUserInputData, RegisterUserData, UpdateUserData}
 import realworld.types.*
 
 class UserDataSupport(probe: Probe):
@@ -10,6 +10,12 @@ class UserDataSupport(probe: Probe):
 
   def registerUserData() =
     (gen.strI(Username), gen.email, gen.strI(Password)).mapN(RegisterUserData.apply)
+
+  def updateUserData() = 
+    (gen.strI(Username), gen.str(Bio), gen.strI(ImageUrl)).mapN(
+            (username, bio, imageUrl) =>
+              UpdateUserData(username = Some(username), bio = Some(bio), image = Some(imageUrl))
+          )
 
   def login(email: Email, password: Password) =
     api.users.loginUser(LoginUserInputData(email, password)).map(resp => AuthHeader(s"Token ${resp.user.token.get}"))

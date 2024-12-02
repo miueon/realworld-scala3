@@ -69,7 +69,6 @@ object UserServiceImpl:
         auth
           .login(user)
           .map(LoginUserOutput(_))
-          .onError(e => Logger[F].warn(e)(s"Failed to login user: $user"))
           .recoverWith:
             case UserError.UserNotFound(msg)           => NotFoundError(msg.some).raise
             case UserError.UserPasswordNotMatched(msg) => ForbiddenError(msg.some).raise
@@ -87,12 +86,13 @@ object UserServiceImpl:
             auth
               .update(u, user)
               .map(userSession => UpdateUserOutput(userSession.user))
-              .recoverWith:
+              .recoverWith {
                 case UserError.UserNotFound(msg) => NotFoundError(msg.some).raise
                 case UserError.EmailAlreadyExists(_) =>
                   UnprocessableEntity(Map("Email" -> List("already existed")).some).raise
                 case UserError.UsernameAlreadyExists(_) =>
                   UnprocessableEntity(Map("Username" -> List("already existed")).some).raise
+              }
         yield rs
 
       def registerUser(user: RegisterUserData): F[RegisterUserOutput] =

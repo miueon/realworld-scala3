@@ -7,7 +7,6 @@ import doobie.*
 import doobie.free.connection.ConnectionIO
 import doobie.implicits.*
 import io.github.iltotore.iron.doobie.given
-import realworld.db.DoobieTx
 import realworld.domain.WithId
 import realworld.domain.user.{DBUser, EncryptedPassword, UserId}
 import realworld.spec.{RegisterUserData, UpdateUserData}
@@ -31,7 +30,7 @@ end UserRepo
 
 object UserRepo:
   import UserSQL as u
-  def make[F[_]: MonadCancelThrow: DoobieTx](xa: Transactor[F]) =
+  def make[F[_]: MonadCancelThrow](xa: Transactor[F]) =
     new UserRepo[F]():
       def findById(id: UserId): F[Option[WithId[UserId, DBUser]]] =
         u.get(id).transact(xa)

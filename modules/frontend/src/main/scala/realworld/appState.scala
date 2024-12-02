@@ -8,7 +8,6 @@ import utils.Utils.*
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import org.scalajs.dom
 
 enum AuthState:
   case Unauthenticated

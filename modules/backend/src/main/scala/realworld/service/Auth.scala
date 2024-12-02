@@ -87,7 +87,9 @@ object Auth:
           jwt <- jwt.create
           userSessionJson = UserSession(
             uid,
-            registerUserData.into[User].transform(Field.fallbackToDefault)
+            registerUserData
+              .into[User]
+              .transform(Field.const(_.token, jwt.some), Field.fallbackToDefault)
           ).asJson.noSpaces
           _ <- redis.setEx(jwt.value, userSessionJson, TokenExpiration)
           _ <- redis.setEx(registerUserData.email, jwt.value, TokenExpiration)
@@ -122,10 +124,10 @@ object Auth:
       def update(userSession: UserSession, updateData: UpdateUserData): F[UserSession] =
         val hasedPassword = updateData.password.map(crypto.encrypt(_))
         val uid           = userSession.id
-        val token         = userSession.user.token.get.value
         for
-          _ <- updateData.email.traverse(emailNotUsed(_, uid))
-          _ <- updateData.username.traverse(usernameNotUsed(_, uid))
+          token <- userSession.user.token.get.value.pure[F]
+          _     <- updateData.email.traverse(emailNotUsed(_, uid))
+          _     <- updateData.username.traverse(usernameNotUsed(_, uid))
           row <- userRepo.update(uid, updateData, hasedPassword).flatMap {
             case Some(u) => u.pure[F]
             case None    => UserError.UserNotFound().raiseError

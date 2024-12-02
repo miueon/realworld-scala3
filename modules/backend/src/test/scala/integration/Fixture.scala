@@ -2,44 +2,37 @@ package realworld
 package tests
 package integration
 
+import _root_.cats.data.Chain
+import cats.Show
 import cats.effect.*
-import com.dimafeng.testcontainers.PostgreSQLContainer
-import org.testcontainers.utility.DockerImageName
 import cats.effect.kernel.Resource
-import com.dimafeng.testcontainers.RedisContainer
-import org.flywaydb.core.Flyway
-import realworld.config.types.PostgresSQLConfig
-import java.net.URI
+import cats.syntax.all.*
 import ciris.*
-import io.github.iltotore.iron.*
-import realworld.config.*
-import io.github.iltotore.iron.constraint.string.*
-import io.github.iltotore.iron.cats.given
-import realworld.config.types.RedisConfig
-import realworld.config.types.RedisURI
-import realworld.config.types.AppConfig
-import realworld.config.types.JwtAccessTokenKeyConfig
-import realworld.config.types.PasswordSalt
-import realworld.config.types.TokenExpiration
 import com.comcast.ip4s.*
-
+import com.dimafeng.testcontainers.{PostgreSQLContainer, RedisContainer}
 import dev.profunktor.redis4cats.log4cats.*
-
-import scala.concurrent.duration.*
-import realworld.config.types.HttpServerConfig
-import realworld.resources.AppResources
-import org.typelevel.log4cats.SelfAwareStructuredLogger
-import org.typelevel.log4cats.noop.NoOpLogger
-import realworld.modules.Repos
-import realworld.modules.Services
-import realworld.modules.HttpApi
-import org.http4s.HttpApp
-import org.http4s.Response
-import org.http4s.blaze.server.BlazeServerBuilder
+import io.github.iltotore.iron.*
+import io.github.iltotore.iron.cats.given
+import io.github.iltotore.iron.constraint.string.*
+import org.flywaydb.core.Flyway
 import org.http4s.blaze.client.BlazeClientBuilder
+import org.http4s.blaze.server.BlazeServerBuilder
+import org.http4s.{HttpApp, Response}
+import org.testcontainers.utility.DockerImageName
+import realworld.config.*
+import realworld.config.types.{AppConfig, HttpServerConfig, JwtAccessTokenKeyConfig, PasswordSalt, PostgresSQLConfig, RedisConfig, RedisURI, TokenExpiration}
+import realworld.effects.Time
+import realworld.modules.{HttpApi, Repos, Services}
+import realworld.resources.AppResources
+import weaver.Log
+import weaver.Log.Entry
+import weaver.LoggerImplicits.*
+
+import java.net.URI
+import scala.concurrent.duration.*
 
 object Fixture:
-  given logger: SelfAwareStructuredLogger[IO] = NoOpLogger[IO]
+  // given logger: SelfAwareStructuredLogger[IO] = NoOpLogger[IO]
   private def postgresContainer =
     val start = IO(
       PostgreSQLContainer(
@@ -79,9 +72,19 @@ object Fixture:
   private def redisConfig =
     redisContainer.map(cont => RedisConfig(RedisURI(cont.redisUri.refine)))
 
+  private def collectedLog(ref: Ref[IO, Chain[Entry]]): Log[IO] = 
+    new Log[IO](Time[IO].now.map(_.toEpochMilli())) {
+
+      def log(l: => Entry): IO[Unit] = 
+        ref.update(_ |+| l.pure[Chain])
+    }
+
   def resource: Resource[IO, Probe] =
     for
       shutdownLatch <- Resource.eval(IO.ref(false))
+      logRef <- Ref[IO].of(Chain.empty[Log.Entry]).toResource
+      logInstance = collectedLog(logRef)
+      given Log[IO] = logInstance
       postSQLConfig <- postSQLConfig
       redisConfig   <- redisConfig
       appConfig = AppConfig(
@@ -114,7 +117,7 @@ object Fixture:
         .map(_.baseUri)
 
       client <- BlazeClientBuilder[IO].resource.onFinalize(shutdownLatch.set(true))
-      probe  <- Probe.make(client, uri, appConfig)
+      probe  <- Probe.make(client, uri, appConfig, logRef) 
     yield probe
     end for
   end resource
