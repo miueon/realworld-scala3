@@ -31,8 +31,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
-      - name: Checkout current branch
+      - name: Checkout repository
         uses: actions/checkout@v4
+      - uses: extractions/setup-just@v2
 
       - name: Setup JVM
         uses: actions/setup-java@v4
@@ -41,8 +42,25 @@ jobs:
           java-version: 21
           cache: sbt
 
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 9
+          run_install: false
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache-dependency-path: modules/frontend/pnpm-lock.yaml
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        working-directory: modules/frontend
+        run: just install-frontend
+
       - name: Test project
-        run: sbt test
+        run: just test
 
   lint:
     runs-on: ubuntu-latest
