@@ -15,12 +15,15 @@ import io.github.iltotore.iron.*
 import io.github.iltotore.iron.cats.given
 import io.github.iltotore.iron.constraint.string.*
 import org.flywaydb.core.Flyway
+import org.http4s.{HttpApp, Response}
 import org.http4s.blaze.client.BlazeClientBuilder
 import org.http4s.blaze.server.BlazeServerBuilder
-import org.http4s.{HttpApp, Response}
 import org.testcontainers.utility.DockerImageName
 import realworld.config.*
-import realworld.config.types.{AppConfig, HttpServerConfig, JwtAccessTokenKeyConfig, PasswordSalt, PostgresSQLConfig, RedisConfig, RedisURI, TokenExpiration}
+import realworld.config.types.{
+  AppConfig, HttpServerConfig, JwtAccessTokenKeyConfig, PasswordSalt, PostgresSQLConfig, RedisConfig, RedisURI,
+  TokenExpiration
+}
 import realworld.effects.Time
 import realworld.modules.{HttpApi, Repos, Services}
 import realworld.resources.AppResources
@@ -72,18 +75,18 @@ object Fixture:
   private def redisConfig =
     redisContainer.map(cont => RedisConfig(RedisURI(cont.redisUri.refine)))
 
-  private def collectedLog(ref: Ref[IO, Chain[Entry]]): Log[IO] = 
+  private def collectedLog(ref: Ref[IO, Chain[Entry]]): Log[IO] =
     new Log[IO](Time[IO].now.map(_.toEpochMilli())) {
 
-      def log(l: => Entry): IO[Unit] = 
+      def log(l: => Entry): IO[Unit] =
         ref.update(_ |+| l.pure[Chain])
     }
 
   def resource: Resource[IO, Probe] =
     for
       shutdownLatch <- Resource.eval(IO.ref(false))
-      logRef <- Ref[IO].of(Chain.empty[Log.Entry]).toResource
-      logInstance = collectedLog(logRef)
+      logRef        <- Ref[IO].of(Chain.empty[Log.Entry]).toResource
+      logInstance   = collectedLog(logRef)
       given Log[IO] = logInstance
       postSQLConfig <- postSQLConfig
       redisConfig   <- redisConfig
@@ -117,7 +120,7 @@ object Fixture:
         .map(_.baseUri)
 
       client <- BlazeClientBuilder[IO].resource.onFinalize(shutdownLatch.set(true))
-      probe  <- Probe.make(client, uri, appConfig, logRef) 
+      probe  <- Probe.make(client, uri, appConfig, logRef)
     yield probe
     end for
   end resource

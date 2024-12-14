@@ -3,19 +3,13 @@ package realworld.components.pages
 import com.raquo.airstream.core.Signal
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import concurrent.ExecutionContext.Implicits.global
 import monocle.syntax.all.*
 import org.scalajs.dom
 import realworld.AppState
 import realworld.api.*
 import realworld.components.Component
-import realworld.components.widgets.{
-  ArticleViewer,
-  ArticleViewrState,
-  Favorited,
-  MyArticle,
-  Tab,
-  UserInfo
-}
+import realworld.components.widgets.{ArticleViewer, ArticleViewrState, Favorited, MyArticle, Tab, UserInfo}
 import realworld.routes.{JsRouter, Page}
 import realworld.spec.{Article, Profile, Skip}
 import realworld.types.ArticlePage
@@ -23,14 +17,12 @@ import realworld.types.ArticlePage.toPage
 import utils.Utils.{some, writerF}
 
 import scala.util.{Failure, Success, Try}
-
-import concurrent.ExecutionContext.Implicits.global
 case class ProfileArticlePage(
-    articleList: ArticlePage = ArticlePage(),
-    currentPage: Int = 1
+  articleList: ArticlePage = ArticlePage(),
+  currentPage: Int = 1
 )
 final case class ProfilePage(profileSignal: Signal[Page.ProfilePage])(using state: AppState, api: Api)
-    extends Component:
+extends Component:
   val profileVar            = Var[Option[Profile]](None)
   val profileArticlePageVar = Var(ProfileArticlePage())
   val articlePageWriter     = profileArticlePageVar.writerF(_.focus(_.articleList).optic)

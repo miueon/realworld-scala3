@@ -24,9 +24,10 @@ package object codec:
       case ujson.Str(str) => Document.DString(str)
       case ujson.Obj(obj) => Document.DObject(obj.toMap.mapValues(jsonToDocument).toMap)
 
-  def documentCodec[A](implicit
-      docEncoder: smithy4s.Document.Encoder[A],
-      docDecoder: smithy4s.Document.Decoder[A]
+  def documentCodec[A](
+    implicit
+    docEncoder: smithy4s.Document.Encoder[A],
+    docDecoder: smithy4s.Document.Decoder[A]
   ): ReadWriter[A] =
     val encoder: Writer[A] = writer[ujson.Value].comap(a => documentToJson(docEncoder.encode(a)))
 

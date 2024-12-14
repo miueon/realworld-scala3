@@ -18,9 +18,10 @@ package object domain:
     inline def refined[C](using inline constraint: Constraint[A, C]): Meta[A :| C] =
       meta.imap[A :| C](_.refine[C])(_.asInstanceOf[A])
 
-  inline given [A, C](using
-      inline meta: Meta[A],
-      inline constraint: Constraint[A, C]
+  inline given [A, C](
+    using
+    inline meta: Meta[A],
+    inline constraint: Constraint[A, C]
   ): Meta[A :| C] =
     meta.refined
 

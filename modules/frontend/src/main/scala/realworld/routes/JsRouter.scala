@@ -8,21 +8,21 @@ import upickle.default.*
 
 import scala.util.{Failure, Success, Try}
 object JsRouter
-    extends waypoint.Router[Page](
-      routes = routes,
-      getPageTitle = { 
-        case Page.Home => "Conduit"
-        case Page.Login => "Conduit: Login"
-        case Page.Register => "Conduit: Register"
-        case Page.Setting => "Conduit: Settings"
-        case Page.NewArticle => "Conduit: New Article"
-        case Page.ArticleDetailPage(slug) => s"Conduit:"
-        case Page.ProfilePage(username) => s"Conduit: $username"
-        case Page.EditArticlePage(slug) => s"Conduit: Edit"
-      },
-      serializePage = pg => write(pg),
-      deserializePage = str => read[Page](str)
-    )(popStateEvents = windowEvents(_.onPopState), owner = unsafeWindowOwner):
+extends waypoint.Router[Page](
+  routes = routes,
+  getPageTitle = {
+    case Page.Home                    => "Conduit"
+    case Page.Login                   => "Conduit: Login"
+    case Page.Register                => "Conduit: Register"
+    case Page.Setting                 => "Conduit: Settings"
+    case Page.NewArticle              => "Conduit: New Article"
+    case Page.ArticleDetailPage(slug) => s"Conduit:"
+    case Page.ProfilePage(username)   => s"Conduit: $username"
+    case Page.EditArticlePage(slug)   => s"Conduit: Edit"
+  },
+  serializePage = pg => write(pg),
+  deserializePage = str => read[Page](str)
+)(popStateEvents = windowEvents(_.onPopState), owner = unsafeWindowOwner):
   export Page.*
 
   def navigateTo(page: Page): Binder[HtmlElement] = Binder { el =>

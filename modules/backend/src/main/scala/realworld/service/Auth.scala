@@ -5,28 +5,21 @@ import cats.data.EitherT
 import cats.effect.kernel.MonadCancelThrow
 import cats.syntax.all.*
 import dev.profunktor.redis4cats.RedisCommands
+import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 import io.circe.parser.decode
 import io.circe.syntax.*
-import io.circe.{Codec, Decoder, DecodingFailure, Encoder}
 import io.github.arainko.ducktape.*
 import org.typelevel.log4cats.Logger
 import realworld.auth.{Crypto, JWT}
 import realworld.codec.given
 import realworld.config.types.TokenExpiration
 import realworld.db.DoobieTx
-import realworld.domain.user.{DBUser, UserError, UserId}
 import realworld.domain.{ID, WithId}
+import realworld.domain.user.{DBUser, UserError, UserId}
 import realworld.effects.GenUUID
 import realworld.repo.UserRepo
 import realworld.spec.{
-  AuthHeader,
-  CredentialsError,
-  LoginUserInputData,
-  RegisterUserData,
-  Token,
-  UnauthorizedError,
-  UpdateUserData,
-  User
+  AuthHeader, CredentialsError, LoginUserInputData, RegisterUserData, Token, UnauthorizedError, UpdateUserData, User
 }
 import realworld.types.{Email, Username}
 
@@ -42,18 +35,18 @@ case class UserSession(id: UserId, user: User) derives Codec.AsObject
 
 object Auth:
   def make[F[_]: MonadCancelThrow: GenUUID: DoobieTx: Logger](
-      tokenExpiration: TokenExpiration,
-      jwt: JWT[F],
-      userRepo: UserRepo[F],
-      redis: RedisCommands[F, String, String],
-      crypto: Crypto
+    tokenExpiration: TokenExpiration,
+    jwt: JWT[F],
+    userRepo: UserRepo[F],
+    redis: RedisCommands[F, String, String],
+    crypto: Crypto
   ): Auth[F] =
     new:
       private val TokenExpiration = tokenExpiration.value
       def login(user: LoginUserInputData): F[User] =
         def withUserLoginCheck(
-            usr: LoginUserInputData,
-            next: ((UserId, DBUser) => F[User])
+          usr: LoginUserInputData,
+          next: ((UserId, DBUser) => F[User])
         ): F[User] =
           userRepo.findByEmail(usr.email).flatMap {
             case None => UserError.UserNotFound().raiseError[F, User]
@@ -93,29 +86,31 @@ object Auth:
           ).asJson.noSpaces
           _ <- redis.setEx(jwt.value, userSessionJson, TokenExpiration)
           _ <- redis.setEx(registerUserData.email, jwt.value, TokenExpiration)
-        yield User(
-          email = registerUserData.email,
-          username = registerUserData.username,
-          token = jwt.some
-        )
+        yield
+          User(
+            email = registerUserData.email,
+            username = registerUserData.username,
+            token = jwt.some
+          )
         end for
       end register
 
       def access(header: AuthHeader): F[UserSession] =
-        val result = for
-          token <- EitherT.fromOption(
-            extractTokenValue(header),
-            CredentialsError(s"Auth header incorrect=$header")
-          )
-          u <- EitherT.fromOptionF(
-            redis.get(token),
-            UnauthorizedError(s"Token expired or not found, toke=$token".some)
-          )
-          session <- EitherT.fromOption(
-            decode[UserSession](u).toOption,
-            UnauthorizedError("Token decode error".some)
-          )
-        yield session
+        val result =
+          for
+            token <- EitherT.fromOption(
+              extractTokenValue(header),
+              CredentialsError(s"Auth header incorrect=$header")
+            )
+            u <- EitherT.fromOptionF(
+              redis.get(token),
+              UnauthorizedError(s"Token expired or not found, toke=$token".some)
+            )
+            session <- EitherT.fromOption(
+              decode[UserSession](u).toOption,
+              UnauthorizedError("Token decode error".some)
+            )
+          yield session
         result.value.flatMap:
           case Right(s) => s.pure[F]
           case Left(e)  => e.raiseError[F, UserSession]
@@ -150,9 +145,9 @@ object Auth:
           .flatMap(notTakenByOthers(_, userId, UserError.EmailAlreadyExists()))
 
       def notTakenByOthers(
-          user: Option[WithId[UserId, DBUser]],
-          userId: UserId,
-          error: UserError
+        user: Option[WithId[UserId, DBUser]],
+        userId: UserId,
+        error: UserError
       ): F[Unit] =
         user match
           case Some(WithId(id, _)) if id =!= userId => error.raiseError[F, Unit]

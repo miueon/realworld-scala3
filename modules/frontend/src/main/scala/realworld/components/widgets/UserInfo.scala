@@ -1,6 +1,7 @@
 package realworld.components.widgets
 
 import com.raquo.laminar.api.L.*
+import concurrent.ExecutionContext.Implicits.global
 import io.github.iltotore.iron.*
 import monocle.syntax.all.*
 import org.scalajs.dom.MouseEvent
@@ -12,16 +13,17 @@ import realworld.spec.Profile
 import utils.Utils.writerF
 
 import scala.util.{Failure, Success}
-
-import concurrent.ExecutionContext.Implicits.global
 case class UserInfoState(
-    isSubmitting: Boolean = false,
-    isFollowing: Boolean = false,
-    username: String = ""
+  isSubmitting: Boolean = false,
+  isFollowing: Boolean = false,
+  username: String = ""
 )
-final case class UserInfo(profileSignal: Signal[Profile], profileObserver: Observer[Profile])(using
-    state: AppState,
-    api: Api
+final case class UserInfo(
+  profileSignal: Signal[Profile],
+  profileObserver: Observer[Profile]
+)(using
+  state: AppState,
+  api: Api
 ) extends Component:
   val userInfoStateVar = Var(UserInfoState())
   val userInfoProfileUpdater = userInfoStateVar.updater[Profile] { (state, cur) =>

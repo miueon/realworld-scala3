@@ -4,8 +4,8 @@ import cats.data.Kleisli
 import cats.effect.kernel.{Async, Resource}
 import cats.syntax.all.*
 import dev.profunktor.redis4cats.RedisCommands
-import org.http4s.dsl.Http4sDsl
 import org.http4s.{HttpApp, HttpRoutes, StaticFile}
+import org.http4s.dsl.Http4sDsl
 import org.typelevel.log4cats.Logger
 import realworld.auth.{Crypto, JWT, JwtExpire}
 import realworld.config.types.AppConfig
@@ -18,10 +18,10 @@ import smithy4s.http4s.SimpleRestJsonBuilder
 import java.nio.file.Paths
 
 def HttpApi[F[_]: Async: Logger](
-    config: AppConfig,
-    repos: Repos[F],
-    redis: RedisCommands[F, String, String],
-    services: Services[F]
+  config: AppConfig,
+  repos: Repos[F],
+  redis: RedisCommands[F, String, String],
+  services: Services[F]
 ): Resource[F, HttpApp[F]] =
   def makeAuth: F[Auth[F]] =
     for
@@ -74,7 +74,7 @@ final case class Static[F[_]: Async: Logger]() extends Http4sDsl[F]:
 
     HttpRoutes.of[F] {
       case req @ GET -> Root / "static" / "assets" / filename
-          if filename.endsWith(".js") || filename.endsWith(".js.map") =>
+        if filename.endsWith(".js") || filename.endsWith(".js.map") =>
         StaticFile
           .fromResource(
             Paths.get("static/assets", filename).toString,

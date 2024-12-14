@@ -4,10 +4,10 @@ package tests
 import cats.effect.IO
 import cats.effect.std.Random
 import cats.syntax.all.*
+import io.github.iltotore.iron.RefinedTypeOps
 import realworld.domain.types.IdNewtype
 import realworld.effects.GenUUID
 import realworld.types.Email
-import io.github.iltotore.iron.RefinedTypeOps
 
 case class Generator private (random: Random[IO], uuid: GenUUID[IO]):
   def id(nt: IdNewtype): IO[nt.Type] =
@@ -29,9 +29,9 @@ case class Generator private (random: Random[IO], uuid: GenUUID[IO]):
       chars  <- random.nextAlphaNumeric.replicateA(length).map(_.mkString)
     yield ops.applyUnsafe(chars.take(lengthRange.end))
 
-  def email: IO[Email] = 
+  def email: IO[Email] =
     for
-      chars <- random.nextAlphaNumeric.replicateA(5).map(_.mkString)
+      chars  <- random.nextAlphaNumeric.replicateA(5).map(_.mkString)
       domain <- random.nextAlphaNumeric.replicateA(5).map(_.mkString)
     yield Email.applyUnsafe(s"${chars}@${domain}.com")
 

@@ -5,23 +5,15 @@ import cats.effect.*
 import cats.syntax.all.*
 import io.github.arainko.ducktape.*
 import org.typelevel.log4cats.Logger
+import realworld.domain.{Favorite, ID, Tag, WithId, WithTotal}
 import realworld.domain.article.{ArticleError, ArticleId, ArticleView, ListArticleQuery}
 import realworld.domain.follower.Follower
 import realworld.domain.user.UserId
-import realworld.domain.{Favorite, ID, Tag, WithId, WithTotal}
 import realworld.effects.{GenUUID, Time}
 import realworld.http.Pagination
 import realworld.repo.{ArticleRepo, FavoriteRepo, FollowerRepo, TagRepo}
 import realworld.spec.{
-  Article,
-  ArticleList,
-  CreateArticleData,
-  CreatedAt,
-  FavoritesCount,
-  Profile,
-  Slug,
-  UpdateArticleData,
-  UpdatedAt
+  Article, ArticleList, CreateArticleData, CreatedAt, FavoritesCount, Profile, Slug, UpdateArticleData, UpdatedAt
 }
 import realworld.types.{TagName, Title}
 import smithy4s.Timestamp
@@ -32,9 +24,9 @@ import scala.util.chaining.*
 
 trait Articles[F[_]]:
   def list(
-      uid: Option[UserId],
-      query: ListArticleQuery,
-      pagination: Pagination
+    uid: Option[UserId],
+    query: ListArticleQuery,
+    pagination: Pagination
   ): F[WithTotal[ArticleList]]
   def listFeed(uid: UserId, pagination: Pagination): F[WithTotal[ArticleList]]
   def getBySlug(uidOpt: Option[UserId], slug: Slug): F[Article]
@@ -46,16 +38,16 @@ trait Articles[F[_]]:
 
 object Articles:
   def make[F[_]: MonadCancelThrow: GenUUID: Logger: Time](
-      articleRepo: ArticleRepo[F],
-      favRepo: FavoriteRepo[F],
-      tagRepo: TagRepo[F],
-      followerRepo: FollowerRepo[F]
+    articleRepo: ArticleRepo[F],
+    favRepo: FavoriteRepo[F],
+    tagRepo: TagRepo[F],
+    followerRepo: FollowerRepo[F]
   ): Articles[F] =
     new:
       def list(
-          uidOpt: Option[UserId],
-          query: ListArticleQuery,
-          pagination: Pagination
+        uidOpt: Option[UserId],
+        query: ListArticleQuery,
+        pagination: Pagination
       ): F[WithTotal[ArticleList]] =
         for
           articlesWithTotal <- articleRepo.list(query, pagination)
@@ -69,23 +61,25 @@ object Articles:
       end list
 
       def listFeed(uid: UserId, pagination: Pagination): F[WithTotal[ArticleList]] =
-        val result = for
-          articles <- articleRepo.listByFollowerId(uid, pagination)
-          authorIds  = articles.entity.map(_.authorId)
-          articleIds = articles.entity.map(_.id)
-          followers     <- authorIds.map(Follower(_, uid)).pure
-          articleExtras <- articlesExtras(Some(uid), articleIds)
-        yield articles.map(articleList(followers, articleExtras))
+        val result =
+          for
+            articles <- articleRepo.listByFollowerId(uid, pagination)
+            authorIds  = articles.entity.map(_.authorId)
+            articleIds = articles.entity.map(_.id)
+            followers     <- authorIds.map(Follower(_, uid)).pure
+            articleExtras <- articlesExtras(Some(uid), articleIds)
+          yield articles.map(articleList(followers, articleExtras))
         result
 
       def getBySlug(uidOpt: Option[UserId], slug: Slug): F[Article] =
-        val article = for
-          article <- OptionT(articleRepo.findBySlug(slug))
-          following <- OptionT.liftF(
-            uidOpt.flatTraverse(followerRepo.findFollower(article.authorId, _)).map(_.nonEmpty)
-          )
-          extras <- OptionT.liftF(articleExtra(uidOpt, article.id))
-        yield articleViewToArticle(following, extras)(article)
+        val article =
+          for
+            article <- OptionT(articleRepo.findBySlug(slug))
+            following <- OptionT.liftF(
+              uidOpt.flatTraverse(followerRepo.findFollower(article.authorId, _)).map(_.nonEmpty)
+            )
+            extras <- OptionT.liftF(articleExtra(uidOpt, article.id))
+          yield articleViewToArticle(following, extras)(article)
         article.value.flatMap {
           case None        => ArticleError.NotFound(slug).raiseError
           case Some(value) => value.pure
@@ -112,14 +106,15 @@ object Articles:
       end create
 
       def update(slug: Slug, uid: UserId, data: UpdateArticleData): F[Article] =
-        val result = for
-          timestamp <- OptionT.liftF(Time[F].timestamp)
-          newSlug = data.title.map(mkSlug(_, timestamp)).getOrElse(slug)
-          article <- OptionT(
-            articleRepo.update(data, newSlug, slug, UpdatedAt(timestamp), uid)
-          )
-          extra <- OptionT.liftF(articleExtra(uid.some, article.id))
-        yield articleViewToArticle(false, extra)(article)
+        val result =
+          for
+            timestamp <- OptionT.liftF(Time[F].timestamp)
+            newSlug = data.title.map(mkSlug(_, timestamp)).getOrElse(slug)
+            article <- OptionT(
+              articleRepo.update(data, newSlug, slug, UpdatedAt(timestamp), uid)
+            )
+            extra <- OptionT.liftF(articleExtra(uid.some, article.id))
+          yield articleViewToArticle(false, extra)(article)
 
         result.value.flatMap:
           case None        => ArticleError.NotFound(slug).raiseError
@@ -169,14 +164,14 @@ object Articles:
         Slug(s"${slugify(title)}-${nowTime.conciseDateTime}")
 
       private def articlesExtras(
-          uidOpt: Option[UserId],
-          articleIds: List[ArticleId]
+        uidOpt: Option[UserId],
+        articleIds: List[ArticleId]
       ): F[Map[ArticleId, (List[TagName], Boolean, FavoritesCount)]] =
         def withExtra(
-            id: ArticleId,
-            tagMap: Map[ArticleId, List[Tag]],
-            favoriteByMap: Map[ArticleId, List[Favorite]],
-            favoriteCountMap: Map[ArticleId, FavoritesCount]
+          id: ArticleId,
+          tagMap: Map[ArticleId, List[Tag]],
+          favoriteByMap: Map[ArticleId, List[Favorite]],
+          favoriteCountMap: Map[ArticleId, FavoritesCount]
         ): (ArticleId, (List[TagName], Boolean, FavoritesCount)) =
           val tags          = tagMap.getOrElse(id, List.empty).map(_.tag)
           val isFavorited   = favoriteByMap.get(id).nonEmpty
@@ -196,8 +191,8 @@ object Articles:
       end articlesExtras
 
       def articleExtra(
-          uidOpt: Option[UserId],
-          articleId: ArticleId
+        uidOpt: Option[UserId],
+        articleId: ArticleId
       ): F[(List[TagName], Boolean, FavoritesCount)] =
         for
           tags        <- tagRepo.listTagsById(articleId)
@@ -206,9 +201,11 @@ object Articles:
         yield (tags.map(_.tag), isFavorited, favCount)
 
       private def articleList(
-          followers: List[Follower],
-          articleExtras: Map[ArticleId, (List[TagName], Boolean, FavoritesCount)]
-      )(articles: List[ArticleView]): ArticleList =
+        followers: List[Follower],
+        articleExtras: Map[ArticleId, (List[TagName], Boolean, FavoritesCount)]
+      )(
+        articles: List[ArticleView]
+      ): ArticleList =
         articles
           .map { article =>
             val followingMap = followers.groupBy(_.userId)
@@ -220,9 +217,11 @@ object Articles:
           .pipe(ArticleList.apply)
 
       private def articleViewToArticle(
-          following: Boolean,
-          articleExtra: (List[TagName], Boolean, FavoritesCount)
-      )(article: ArticleView): Article =
+        following: Boolean,
+        articleExtra: (List[TagName], Boolean, FavoritesCount)
+      )(
+        article: ArticleView
+      ): Article =
         val (tags, isFavorited, favoritesCount) = articleExtra
         article
           .into[Article]

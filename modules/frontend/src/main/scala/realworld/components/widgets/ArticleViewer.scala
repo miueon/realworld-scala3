@@ -4,6 +4,7 @@ import _root_.utils.Utils.*
 import com.raquo.airstream.state.StrictSignal
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import concurrent.ExecutionContext.Implicits.global
 import org.scalajs.dom.HTMLElement
 import realworld.AppState
 import realworld.api.*
@@ -14,12 +15,10 @@ import realworld.types.TagName
 import utils.Utils
 
 import scala.util.{Failure, Success}
-
-import concurrent.ExecutionContext.Implicits.global
 case class ArticleViewrState(
-    articlePreviews: Option[List[Article]],
-    currentPage: Int,
-    articleCount: Int
+  articlePreviews: Option[List[Article]],
+  currentPage: Int,
+  articleCount: Int
 )
 sealed trait Tab
 case class Tag(tag: TagName) extends Tab:
@@ -33,20 +32,23 @@ case object Favorited extends Tab:
 case object MyArticle extends Tab:
   override def toString(): String = "My Articles"
 final case class ArticleViewer(
-    viewerStateSignal: Signal[ArticleViewrState],
-    tabObserver: Observer[Tab],
-    tabsSignal: Signal[Seq[Tab]],
-    toggleClassName: String,
-    selectedTab: StrictSignal[Tab],
-    curPageObserver: Observer[Int],
-    onFavArticleObserver: Observer[Article]
-)(using state: AppState, api: Api)
-    extends ComponentSeq:
+  viewerStateSignal: Signal[ArticleViewrState],
+  tabObserver: Observer[Tab],
+  tabsSignal: Signal[Seq[Tab]],
+  toggleClassName: String,
+  selectedTab: StrictSignal[Tab],
+  curPageObserver: Observer[Int],
+  onFavArticleObserver: Observer[Article]
+)(using
+  state: AppState,
+  api: Api
+)
+extends ComponentSeq:
   import typings.dateFns.formatMod
   def articlePreview(
-      s: Slug,
-      article: Article,
-      articleSignal: Signal[Article]
+    s: Slug,
+    article: Article,
+    articleSignal: Signal[Article]
   ) =
     val articleVar      = Var(article)
     val isSubmittingVar = Var(false)
@@ -135,10 +137,10 @@ final case class ArticleViewer(
 end ArticleViewer
 
 def ArticleTabSet(
-    tabsSignal: Signal[Seq[Tab]],
-    toggleClassName: String,
-    selectedTab: StrictSignal[Tab],
-    tabObserver: Observer[Tab]
+  tabsSignal: Signal[Seq[Tab]],
+  toggleClassName: String,
+  selectedTab: StrictSignal[Tab],
+  tabObserver: Observer[Tab]
 ) =
   div(
     cls := toggleClassName,

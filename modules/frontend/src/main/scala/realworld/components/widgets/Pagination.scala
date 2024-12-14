@@ -6,10 +6,10 @@ import com.raquo.laminar.nodes.ReactiveHtmlElement
 import scala.scalajs.js.Math
 
 def Pagination(
-    currentPage: Signal[Int],
-    count: Signal[Int],
-    itemsPerPage: Int,
-    onPageChange: Observer[Int]
+  currentPage: Signal[Int],
+  count: Signal[Int],
+  itemsPerPage: Int,
+  onPageChange: Observer[Int]
 ) =
   navTag(
     ul(

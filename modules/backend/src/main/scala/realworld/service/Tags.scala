@@ -10,7 +10,7 @@ trait Tags[F[_]]:
 
 object Tags:
   def make[F[_]: Functor](
-      tagRepo: TagRepo[F]
+    tagRepo: TagRepo[F]
   ): Tags[F] =
     new:
       def list(): F[TagList] =

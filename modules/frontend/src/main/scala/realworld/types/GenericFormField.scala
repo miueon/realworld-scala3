@@ -5,13 +5,7 @@ import com.raquo.laminar.api.L.*
 import io.github.iltotore.iron.*
 import io.github.iltotore.iron.constraint.string.Blank
 import realworld.spec.{
-  Bio,
-  CreateArticleData,
-  LoginUserInputData,
-  RegisterUserData,
-  UnprocessableEntity,
-  UpdateArticleData,
-  UpdateUserData
+  Bio, CreateArticleData, LoginUserInputData, RegisterUserData, UnprocessableEntity, UpdateArticleData, UpdateUserData
 }
 import realworld.validation.InvalidField.*
 import utils.Utils.*
@@ -30,13 +24,13 @@ enum FieldType:
   case Lst
 
 case class GenericFormField(
-    tpe: InputType = InputType.Text,
-    placeholder: String = "",
-    fieldType: FieldType = FieldType.Input,
-    isLarge: Boolean = true,
-    controlled: Mod[Input | TextArea],
-    rows: Option[Int] = None,
-    tagsSignal: Option[Signal[List[String]]] = None
+  tpe: InputType = InputType.Text,
+  placeholder: String = "",
+  fieldType: FieldType = FieldType.Input,
+  isLarge: Boolean = true,
+  controlled: Mod[Input | TextArea],
+  rows: Option[Int] = None,
+  tagsSignal: Option[Signal[List[String]]] = None
 )
 sealed trait FormRecord
 
@@ -54,7 +48,7 @@ object LoginCredential:
         ).parMapN(LoginUserInputData.apply).toUnprocessable
 
 case class RegisterCredential(username: String = "", email: String = "", password: String = "")
-    extends FormRecord
+extends FormRecord
 object RegisterCredential:
   given ValidatedToReqData[RegisterCredential, RegisterUserData] with
     extension (v: RegisterCredential)
@@ -66,10 +60,10 @@ object RegisterCredential:
         ).parMapN(RegisterUserData.apply).toUnprocessable
 
 case class ArticleForm(
-    title: Option[String] = None,
-    description: Option[String] = None,
-    body: Option[String] = None,
-    tagList: List[String] = List()
+  title: Option[String] = None,
+  description: Option[String] = None,
+  body: Option[String] = None,
+  tagList: List[String] = List()
 ) extends FormRecord
 object ArticleForm:
   given c: ValidatedToReqData[ArticleForm, CreateArticleData] with
@@ -94,11 +88,11 @@ object ArticleForm:
 
 end ArticleForm
 case class UserSettings(
-    email: Option[String] = None,
-    username: Option[String] = None,
-    password: Option[String] = None,
-    bio: Option[Bio] = None,
-    image: Option[String] = None
+  email: Option[String] = None,
+  username: Option[String] = None,
+  password: Option[String] = None,
+  bio: Option[Bio] = None,
+  image: Option[String] = None
 ) extends FormRecord
 object UserSettings:
   given ValidatedToReqData[UserSettings, UpdateUserData] with

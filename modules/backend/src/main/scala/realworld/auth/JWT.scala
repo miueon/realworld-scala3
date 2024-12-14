@@ -14,9 +14,9 @@ trait JWT[F[_]]:
 
 object JWT:
   def make[F[_]: GenUUID: Monad](
-      jwtExpire: JwtExpire[F],
-      config: JwtAccessTokenKeyConfig,
-      exp: TokenExpiration
+    jwtExpire: JwtExpire[F],
+    config: JwtAccessTokenKeyConfig,
+    exp: TokenExpiration
   ): JWT[F] =
     new:
       private val alg = JwtAlgorithm.HS256
@@ -24,9 +24,10 @@ object JWT:
         for
           uuid  <- GenUUID[F].make
           claim <- jwtExpire.expiresIn(JwtClaim(uuid.asJson.noSpaces), exp)
-        yield Token(
-          JwtCirce.encode(claim, config.value, alg)
-        )
+        yield
+          Token(
+            JwtCirce.encode(claim, config.value, alg)
+          )
 
       def validate(token: Token): F[Boolean] =
         JwtCirce

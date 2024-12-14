@@ -19,8 +19,8 @@ enum AuthEvent:
   case Reset
 
 class AppState private (
-    _authToken: Var[Option[AuthState]],
-    val events: EventBus[AuthEvent]
+  _authToken: Var[Option[AuthState]],
+  val events: EventBus[AuthEvent]
 ):
   val tokenSignal = _authToken.signal
   val loginSignal = tokenSignal.map {

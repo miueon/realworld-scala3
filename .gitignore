@@ -1,8 +1,8 @@
 **/target
 **/dist/
 **/frontend/public/assets/shoelace/assets/icons/
-project/target
-project/metals.sbt
+**/project/target
+**/metals.sbt
 
 .bloop
 .bsp
@@ -11,7 +11,7 @@ project/metals.sbt
 
 *.class
 
-project/project
+project/.bloop
 
 shared/.jvm/target
 shared/.js/target
@@ -25,3 +25,7 @@ node_modules
 *.lsp.log
 .smithy.lsp.log
 playwright-screenshots
+
+**/.scala-build
+
+.downloads

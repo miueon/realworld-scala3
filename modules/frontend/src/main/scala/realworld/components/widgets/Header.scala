@@ -1,10 +1,10 @@
 package realworld.components.widgets
 
 import com.raquo.laminar.api.L.*
-import realworld.routes.JsRouter.*
-import realworld.routes.{JsRouter, Page}
-import realworld.types.Username
 import realworld.{AppState, AuthState}
+import realworld.routes.{JsRouter, Page}
+import realworld.routes.JsRouter.*
+import realworld.types.Username
 
 def Header()(using state: AppState) =
   navTag(

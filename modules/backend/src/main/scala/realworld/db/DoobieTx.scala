@@ -1,10 +1,10 @@
 package realworld.db
 
-import cats.arrow.FunctionK
-import cats.effect.kernel.Resource.ExitCase.*
-import cats.effect.kernel.{Async, Resource}
-import cats.syntax.all.*
 import cats.~>
+import cats.arrow.FunctionK
+import cats.effect.kernel.{Async, Resource}
+import cats.effect.kernel.Resource.ExitCase.*
+import cats.syntax.all.*
 import doobie.*
 import doobie.free.connection.setAutoCommit
 import doobie.hi.connection.{commit, rollback}

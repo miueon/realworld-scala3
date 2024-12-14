@@ -1,8 +1,8 @@
 package realworld.domain
 
 import cats.Functor
-import doobie.TableDefinition.RowHelpers
 import doobie.{Composite, SQLDefinition, TableDefinition, WithSQLDefinition}
+import doobie.TableDefinition.RowHelpers
 import io.circe.{Decoder, Encoder}
 import realworld.spec.Total
 
@@ -11,22 +11,25 @@ import scala.annotation.targetName
 case class WithId[Id, T](id: Id, entity: T)
 
 object WithId:
-  given withIdread[Id, T](using
-      idRead: Decoder[Id],
-      tRead: Decoder[T]
+  given withIdread[Id, T](
+    using
+    idRead: Decoder[Id],
+    tRead: Decoder[T]
   ): Decoder[WithId[Id, T]] =
     Decoder[(Id, T)].map((WithId.apply[Id, T]).tupled)
 
-  given withIdWrite[Id, T](using
-      idWrite: Encoder[Id],
-      tWrite: Encoder[T]
+  given withIdWrite[Id, T](
+    using
+    idWrite: Encoder[Id],
+    tWrite: Encoder[T]
   ): Encoder[WithId[Id, T]] =
     Encoder[(Id, T)].contramap(w => (w.id, w.entity))
 
-  given sqlDef[Id, T](using
-      idSqldef: SQLDefinition[Id],
-      entitySqlDef: SQLDefinition[T],
-      tableDef: TableDefinition
+  given sqlDef[Id, T](
+    using
+    idSqldef: SQLDefinition[Id],
+    entitySqlDef: SQLDefinition[T],
+    tableDef: TableDefinition
   ): (WithSQLDefinition[WithId[Id, T]] & TableDefinition.RowHelpers[WithId[Id, T]]) =
     new WithSQLDefinition[WithId[Id, T]](
       Composite(

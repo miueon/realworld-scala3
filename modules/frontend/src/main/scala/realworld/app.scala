@@ -5,14 +5,7 @@ import com.raquo.waypoint.SplitRender
 import realworld.api.Api
 import realworld.components.Component
 import realworld.components.pages.{
-  ArticleDetailPage,
-  EditArticlePage,
-  Home,
-  Login,
-  NewArticle,
-  ProfilePage,
-  Register,
-  Settings
+  ArticleDetailPage, EditArticlePage, Home, Login, NewArticle, ProfilePage, Register, Settings
 }
 import realworld.components.widgets.{Footer, Header}
 import realworld.routes.{JsRouter, Page}

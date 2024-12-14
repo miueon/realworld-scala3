@@ -1,11 +1,11 @@
 package realworld.effects
 
+import cats.Functor
 import cats.effect.kernel.Sync
+import cats.syntax.functor.*
+import smithy4s.Timestamp
 
 import java.time.Instant
-import smithy4s.Timestamp
-import cats.Functor
-import cats.syntax.functor.*
 
 trait Time[F[_]: Functor]:
   def now: F[Instant]

@@ -4,9 +4,9 @@ import cats.effect.*
 import doobie.*
 import doobie.implicits.*
 import doobie.util.transactor.Transactor
+import realworld.domain.{Comment, CommentDBView}
 import realworld.domain.article.ArticleId
 import realworld.domain.user.UserId
-import realworld.domain.{Comment, CommentDBView}
 import realworld.spec.CommentId
 
 trait CommentRepo[F[_]]:
@@ -40,18 +40,18 @@ private object CommentSQL:
   private val c = Comments as "c"
   private val u = Users as "u"
   object CommentViews
-      extends WithSQLDefinition[CommentDBView](
-        Composite(
-          c.c(_.id).sqlDef,
-          c.c(_.createdAt).sqlDef,
-          c.c(_.updatedAt).sqlDef,
-          c.c(_.body).sqlDef,
-          c.c(_.authorId).sqlDef,
-          u.c(_.username).sqlDef,
-          u.c(_.bio).sqlDef,
-          u.c(_.image).sqlDef
-        )(CommentDBView.apply)(Tuple.fromProductTyped)
-      )
+  extends WithSQLDefinition[CommentDBView](
+    Composite(
+      c.c(_.id).sqlDef,
+      c.c(_.createdAt).sqlDef,
+      c.c(_.updatedAt).sqlDef,
+      c.c(_.body).sqlDef,
+      c.c(_.authorId).sqlDef,
+      u.c(_.username).sqlDef,
+      u.c(_.bio).sqlDef,
+      u.c(_.image).sqlDef
+    )(CommentDBView.apply)(Tuple.fromProductTyped)
+  )
 
   private val commentViewFr =
     fr"""

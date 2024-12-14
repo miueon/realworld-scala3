@@ -4,6 +4,7 @@ import com.raquo.airstream.core.Observer
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.modifiers.RenderableText
 import com.raquo.laminar.nodes.ReactiveHtmlElement
+import concurrent.ExecutionContext.Implicits.global
 import monocle.syntax.all.*
 import org.scalajs.dom.{HTMLButtonElement, HTMLElement, MouseEvent}
 import realworld.AppState
@@ -11,36 +12,28 @@ import realworld.api.*
 import realworld.components.Component
 import realworld.components.widgets.TagListWidget
 import realworld.routes.{JsRouter, Page}
-import realworld.spec.{
-  Article,
-  CommentBody,
-  CommentId,
-  CommentView,
-  CreateCommentData,
-  Profile,
-  Slug
-}
+import realworld.spec.{Article, CommentBody, CommentId, CommentView, CreateCommentData, Profile, Slug}
 import utils.Utils
 import utils.Utils.{classTupleToClassName, some, someWriterF, toList, toSignal, writerF}
 
 import scala.util.{Failure, Success, Try}
 
-import concurrent.ExecutionContext.Implicits.global
-
 case class CommentSectionState(
-    comments: Option[List[CommentView]] = None,
-    commentBody: String = "",
-    submittingComment: Boolean = false
+  comments: Option[List[CommentView]] = None,
+  commentBody: String = "",
+  submittingComment: Boolean = false
 )
 case class MetaSectionState(
-    submittingFavorite: Boolean = false,
-    submittingFollow: Boolean = false,
-    deletingArticle: Boolean = false
+  submittingFavorite: Boolean = false,
+  submittingFollow: Boolean = false,
+  deletingArticle: Boolean = false
 )
 
-final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(using
-    state: AppState,
-    api: Api
+final case class ArticleDetailPage(
+  pageSignal: Signal[Page.ArticleDetailPage]
+)(using
+  state: AppState,
+  api: Api
 ) extends Component:
   private val commentSectionVar = Var(CommentSectionState())
   private val commentBodyWriter = commentSectionVar.writerF(_.focus(_.commentBody).optic)
@@ -122,7 +115,7 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
       articleAuthorInfo(article),
       state.user match
         case Some(u) if u.username == article.author.username => ownerArticleMetaActions(article)
-        case _ => viewerArticleMetaActions(article, articleSignal)
+        case _                                                => viewerArticleMetaActions(article, articleSignal)
     )
 
   def ownerArticleMetaActions(article: Article): Seq[Modifier[ReactiveHtmlElement[HTMLElement]]] =
@@ -154,13 +147,13 @@ final case class ArticleDetailPage(pageSignal: Signal[Page.ArticleDetailPage])(u
     )
 
   def viewerArticleMetaActions(
-      article: Article,
-      articleSignal: Signal[Article]
+    article: Article,
+    articleSignal: Signal[Article]
   ): Seq[Modifier[ReactiveHtmlElement[HTMLElement]]] =
-    val followingVar = Var(article.author.following)
-    val favoritedVar = Var(article.favorited)
-    val followingSignal  = articleSignal.map(_.author.following)
-    val favoritedSignal  = articleSignal.map(_.favorited)
+    val followingVar    = Var(article.author.following)
+    val favoritedVar    = Var(article.favorited)
+    val followingSignal = articleSignal.map(_.author.following)
+    val favoritedSignal = articleSignal.map(_.favorited)
     val onFollowObserver = Observer[MouseEvent]: _ =>
       state.authHeader.fold(JsRouter.redirectTo(Page.Register)) { case header =>
         metaSectionVar.update(_.copy(submittingFollow = true))

@@ -7,13 +7,13 @@ import io.github.iltotore.iron.*
 import io.github.iltotore.iron.circe.given
 import io.github.iltotore.iron.constraint.all.*
 import io.github.iltotore.iron.doobie.given
+import javax.crypto.Cipher
 import realworld.codec.given
 import realworld.domain.*
 import realworld.domain.types.{IdNewtype, Newtype}
 import realworld.spec.{Bio, Profile}
 import realworld.types.{Email, EmailConstraint, ImageUrl, Username, UsernameConstraint}
 
-import javax.crypto.Cipher
 import scala.util.control.NoStackTrace
 
 type UserId = UserId.Type
@@ -31,11 +31,11 @@ given Meta[EncryptedPassword] = EncryptedPassword.derive
 given Meta[Bio]               = metaOf(Bio)
 
 case class DBUser(
-    email: Email,
-    username: Username,
-    password: EncryptedPassword,
-    bio: Option[Bio] = None,
-    image: Option[ImageUrl] = None
+  email: Email,
+  username: Username,
+  password: EncryptedPassword,
+  bio: Option[Bio] = None,
+  image: Option[ImageUrl] = None
 ) derives Codec.AsObject
 
 object Users extends TableDefinition("users"):
@@ -47,17 +47,17 @@ object Users extends TableDefinition("users"):
   val image: Column[Option[ImageUrl]]     = Column("image")
 
   object UserSqlDef
-      extends WithSQLDefinition[DBUser](
-        Composite(
-          (
-            email.sqlDef,
-            username.sqlDef,
-            password.sqlDef,
-            bio.sqlDef,
-            image.sqlDef
-          )
-        )(DBUser.apply)(Tuple.fromProductTyped)
+  extends WithSQLDefinition[DBUser](
+    Composite(
+      (
+        email.sqlDef,
+        username.sqlDef,
+        password.sqlDef,
+        bio.sqlDef,
+        image.sqlDef
       )
+    )(DBUser.apply)(Tuple.fromProductTyped)
+  )
   val columns = UserSqlDef
   val rowCol  = WithId.sqlDef(using id, columns, this)
 end Users
@@ -70,6 +70,6 @@ enum UserError extends NoStackTrace:
   case EmailAlreadyExists(msg: String = "Email already exists")       extends UserError
   case UsernameAlreadyExists(msg: String = "Username already exists") extends UserError
   case UserFollowingHimself(msg: String = "User should not follow himself", profile: Profile)
-      extends UserError
+  extends UserError
   case UserUnfollowingHimself(msg: String = "User is unfollowing himself", profile: Profile)
-      extends UserError
+  extends UserError

@@ -41,8 +41,8 @@ private object ProfileSQL:
   import realworld.domain.follower.Followers as f
 
   def selectFollowers(
-      followeeIds: NonEmptyList[UserId],
-      followerId: UserId
+    followeeIds: NonEmptyList[UserId],
+    followerId: UserId
   ): ConnectionIO[List[Follower]] =
     fr"""
       SELECT ${f.rowCol} FROM $f

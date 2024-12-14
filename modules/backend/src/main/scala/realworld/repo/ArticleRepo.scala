@@ -8,27 +8,27 @@ import doobie.Fragments.*
 import doobie.implicits.*
 import org.typelevel.log4cats.Logger
 import realworld.db.*
+import realworld.domain.{Tag, WithId, WithTotal}
 import realworld.domain.article.*
 import realworld.domain.user.UserId
-import realworld.domain.{Tag, WithId, WithTotal}
 import realworld.http.Pagination
 import realworld.spec.{Bio, CreatedAt, Slug, UpdateArticleData, UpdatedAt}
 import realworld.types.TagName
 
 trait ArticleRepo[F[_]]:
   def list(
-      query: ListArticleQuery,
-      pagination: Pagination
+    query: ListArticleQuery,
+    pagination: Pagination
   ): F[WithTotal[List[ArticleView]]]
   def listByFollowerId(followerId: UserId, pagination: Pagination): F[WithTotal[List[ArticleView]]]
   def findBySlug(slug: Slug): F[Option[ArticleView]]
   def create(article: WithId[ArticleId, Article], tags: List[TagName]): F[ArticleView]
   def update(
-      data: UpdateArticleData,
-      newSlug: Slug,
-      oldSlug: Slug,
-      updatedAt: UpdatedAt,
-      authorId: UserId
+    data: UpdateArticleData,
+    newSlug: Slug,
+    oldSlug: Slug,
+    updatedAt: UpdatedAt,
+    authorId: UserId
   ): F[Option[ArticleView]]
   def delete(slug: Slug, authorId: UserId): F[Option[Unit]]
 end ArticleRepo
@@ -38,48 +38,51 @@ object ArticleRepo:
   def make[F[_]: MonadCancelThrow: DoobieTx: Logger](xa: Transactor[F]): ArticleRepo[F] =
     new:
       def list(
-          query: ListArticleQuery,
-          pagination: Pagination
+        query: ListArticleQuery,
+        pagination: Pagination
       ): F[WithTotal[List[ArticleView]]] =
-        val result = for
-          articles <- A.list(query, pagination)
-          total    <- A.listTotal(query)
-        yield WithTotal(total, articles)
+        val result =
+          for
+            articles <- A.list(query, pagination)
+            total    <- A.listTotal(query)
+          yield WithTotal(total, articles)
         result.transact(xa)
 
       def listByFollowerId(
-          followerId: UserId,
-          pagination: Pagination
+        followerId: UserId,
+        pagination: Pagination
       ): F[WithTotal[List[ArticleView]]] =
-        val result = for
-          articles <- A.listByFollowerId(followerId, pagination)
-          total    <- A.listFeedTotal(followerId)
-        yield WithTotal(total, articles)
+        val result =
+          for
+            articles <- A.listByFollowerId(followerId, pagination)
+            total    <- A.listFeedTotal(followerId)
+          yield WithTotal(total, articles)
         result.transact(xa)
 
       def findBySlug(slug: Slug): F[Option[ArticleView]] = A.selectBySlug(slug).transact(xa)
 
       def create(article: WithId[ArticleId, Article], tags: List[TagName]): F[ArticleView] =
-        val trx = for
-          _       <- A.insertRow().run(article)
-          _       <- A.insertTag().updateMany(tags.map(tag => Tag(article.id, tag)))
-          article <- A.selectById(article.id)
-        yield article
+        val trx =
+          for
+            _       <- A.insertRow().run(article)
+            _       <- A.insertTag().updateMany(tags.map(tag => Tag(article.id, tag)))
+            article <- A.selectById(article.id)
+          yield article
         trx.transact(xa)
 
       def update(
-          data: UpdateArticleData,
-          newSlug: Slug,
-          oldSlug: Slug,
-          updatedAt: UpdatedAt,
-          authorId: UserId
+        data: UpdateArticleData,
+        newSlug: Slug,
+        oldSlug: Slug,
+        updatedAt: UpdatedAt,
+        authorId: UserId
       ): F[Option[ArticleView]] =
         xa.transaction.use { implicit f =>
           val r =
             for
               article <- OptionT[F, ArticleView](A.selectBySlug(oldSlug))
-              _ <- OptionT.liftF[F, Int](A.update(data, newSlug, article.id, updatedAt, authorId))
-              _ <- OptionT.liftF[F, Int](A.deleteTagByArticleId(article.id))
+              _       <- OptionT.liftF[F, Int](A.update(data, newSlug, article.id, updatedAt, authorId))
+              _       <- OptionT.liftF[F, Int](A.deleteTagByArticleId(article.id))
               _ <- OptionT.liftF[F, Int](
                 A.insertTag().updateMany(data.tagList.map(t => Tag(article.id, t)))
               )
@@ -94,12 +97,12 @@ object ArticleRepo:
 end ArticleRepo
 
 private object ArticleSQL:
-  import realworld.domain.article.Articles
-  import realworld.domain.Tags
-  import realworld.domain.user.Users
   import realworld.domain.Favorites
+  import realworld.domain.Tags
+  import realworld.domain.article.Articles
   import realworld.domain.follower.Followers as fo
   import realworld.domain.given
+  import realworld.domain.user.Users
 
   private val a  = Articles as "a"
   private val t  = Tags as "t"
@@ -108,23 +111,23 @@ private object ArticleSQL:
   private val f  = Favorites as "f"
 
   object ArticleViews
-      extends WithSQLDefinition[ArticleView](
-        Composite(
-          (
-            a.c(_.id).sqlDef,
-            a.c(_.slug).sqlDef,
-            a.c(_.title).sqlDef,
-            a.c(_.description).sqlDef,
-            a.c(_.body).sqlDef,
-            a.c(_.createdAt).sqlDef,
-            a.c(_.updatedAt).sqlDef,
-            a.c(_.authorId).sqlDef,
-            au.c(_.username).sqlDef,
-            au.c(_.bio).sqlDef,
-            au.c(_.image).sqlDef
-          )
-        )(ArticleView.apply)(Tuple.fromProductTyped)
+  extends WithSQLDefinition[ArticleView](
+    Composite(
+      (
+        a.c(_.id).sqlDef,
+        a.c(_.slug).sqlDef,
+        a.c(_.title).sqlDef,
+        a.c(_.description).sqlDef,
+        a.c(_.body).sqlDef,
+        a.c(_.createdAt).sqlDef,
+        a.c(_.updatedAt).sqlDef,
+        a.c(_.authorId).sqlDef,
+        au.c(_.username).sqlDef,
+        au.c(_.bio).sqlDef,
+        au.c(_.image).sqlDef
       )
+    )(ArticleView.apply)(Tuple.fromProductTyped)
+  )
   end ArticleViews
 
   private val articleViewFr =
@@ -133,8 +136,8 @@ private object ArticleSQL:
     """
 
   def list(
-      query: ListArticleQuery,
-      pagination: Pagination
+    query: ListArticleQuery,
+    pagination: Pagination
   ): ConnectionIO[List[ArticleView]] =
     val q =
       articleViewFr
@@ -144,8 +147,8 @@ private object ArticleSQL:
       .to[List]
 
   def listByFollowerId(
-      followerId: UserId,
-      pagination: Pagination
+    followerId: UserId,
+    pagination: Pagination
   ): ConnectionIO[List[ArticleView]] =
     val q =
       articleViewFr
@@ -173,8 +176,8 @@ private object ArticleSQL:
       fr"""
       SELECT COUNT(*) FROM $a INNER JOIN $au ON ${a.c(_.authorId)} = ${au.c(_.id)}
       """ ++ whereWithQuery(
-        query
-      )
+          query
+        )
     q.query[Int].unique
 
   def listFeedTotal(followerId: UserId): ConnectionIO[Int] =
@@ -182,8 +185,8 @@ private object ArticleSQL:
       fr"""
       SELECT COUNT(*) FROM $a INNER JOIN $au ON ${a.c(_.authorId)} = ${au.c(_.id)}
       """ ++ whereWithFollower(
-        followerId
-      )
+          followerId
+        )
     q.query[Int].unique
 
   def insertRow() =
@@ -199,11 +202,11 @@ private object ArticleSQL:
 
   import Articles as ar
   def update(
-      data: UpdateArticleData,
-      newSlug: Slug,
-      articleId: ArticleId,
-      updatedAt: UpdatedAt,
-      authorId: UserId
+    data: UpdateArticleData,
+    newSlug: Slug,
+    articleId: ArticleId,
+    updatedAt: UpdatedAt,
+    authorId: UserId
   ): ConnectionIO[Int] =
     val titleOpt       = data.title.map(t => ar.title --> t)
     val descriptionOpt = data.description.map(d => ar.description --> d)

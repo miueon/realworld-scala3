@@ -44,8 +44,10 @@ object Utils:
       ev.leftMap(es => UnprocessableEntity(es.map(e => e.field -> List(e.error)).toList.toMap.some))
 
   extension [A](v: A)
-    inline def refineEntity[C](mkInvalidField: String => InvalidField)(using
-        inline constraint: Constraint[A, C]
+    inline def refineEntity[C](
+      mkInvalidField: String => InvalidField
+    )(using
+      inline constraint: Constraint[A, C]
     ): EitherNec[InvalidField, A :| C] =
       v.refineEither[C].toEitherNec.leftMap(e => e.map(mkInvalidField(_)))
 

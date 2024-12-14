@@ -5,11 +5,11 @@ import realworld.types.InputType
 
 object FromGroup:
   def Input(
-      inputType: InputType,
-      _placeholder: String,
-      isDisabledSignal: Signal[Boolean],
-      isLarge: Boolean,
-      controlled: Mod[Input]
+    inputType: InputType,
+    _placeholder: String,
+    isDisabledSignal: Signal[Boolean],
+    isLarge: Boolean,
+    controlled: Mod[Input]
   ) =
     fieldSet(
       cls := "form-group",
@@ -24,12 +24,12 @@ object FromGroup:
   end Input
 
   def TextArea(
-      inputType: InputType,
-      _placeholder: String,
-      isDisabledSignal: Signal[Boolean],
-      isLarge: Boolean,
-      _rows: Int,
-      controlled: Mod[TextArea]
+    inputType: InputType,
+    _placeholder: String,
+    isDisabledSignal: Signal[Boolean],
+    isLarge: Boolean,
+    _rows: Int,
+    controlled: Mod[TextArea]
   ) =
     fieldSet(
       cls := "form-group",
@@ -44,14 +44,14 @@ object FromGroup:
     )
 
   def ListFormGroup(
-      inputType: InputType,
-      _placeholder: String,
-      isDisabledSignal: Signal[Boolean],
-      isLarge: Boolean,
-      controlled: Mod[Input],
-      tagsSignal: Signal[List[String]],
-      addTagWriter: Observer[Unit],
-      removedTagWriter: Observer[String]
+    inputType: InputType,
+    _placeholder: String,
+    isDisabledSignal: Signal[Boolean],
+    isLarge: Boolean,
+    controlled: Mod[Input],
+    tagsSignal: Signal[List[String]],
+    addTagWriter: Observer[Unit],
+    removedTagWriter: Observer[String]
   ) =
     fieldSet(
       input(

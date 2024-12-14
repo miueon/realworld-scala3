@@ -3,15 +3,15 @@ package realworld.components.widgets
 import com.raquo.laminar.api.L.*
 import monocle.syntax.all.*
 import realworld.components.Component
-import realworld.types.validation.GenericError
 import realworld.types.{ArticleForm, FieldType, GenericFormField, InputType}
+import realworld.types.validation.GenericError
 import utils.Utils.{some, writerF, writerOptF}
 
 final case class ArticleEditor(
-    article: ArticleForm,
-    articleSubmitObserver: Observer[ArticleForm],
-    errorsSignal: Signal[GenericError],
-    isSubmittingSignal: Signal[Boolean]
+  article: ArticleForm,
+  articleSubmitObserver: Observer[ArticleForm],
+  errorsSignal: Signal[GenericError],
+  isSubmittingSignal: Signal[Boolean]
 ) extends Component:
   val articleVar        = Var(article)
   val tagBarVar         = Var("")

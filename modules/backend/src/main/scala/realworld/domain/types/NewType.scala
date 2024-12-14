@@ -18,13 +18,14 @@ abstract class DeriveType[A]:
     def iso: Iso[A, Type] =
       Iso[A, Type](apply(_))(_.value)
 
-abstract class Newtype[A](using
-    ord: Order[A],
-    shw: Show[A],
-    wr: Write[A],
-    rd: Read[A],
-    enc: Encoder[A],
-    dec: Decoder[A]
+abstract class Newtype[A](
+  using
+  ord: Order[A],
+  shw: Show[A],
+  wr: Write[A],
+  rd: Read[A],
+  enc: Encoder[A],
+  dec: Decoder[A]
 ) extends DeriveType[A]:
 
   given Eq[Type]       = derive[Eq]

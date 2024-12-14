@@ -2,21 +2,21 @@ package realworld.modules
 
 import cats.MonadThrow
 import cats.syntax.all.*
-import org.http4s.headers.Authorization
 import org.http4s.{AuthScheme, Credentials, HttpApp, Response}
+import org.http4s.headers.Authorization
 import realworld.auth.JWT
 import realworld.spec.{Token, UnauthorizedError}
-import smithy4s.http4s.ServerEndpointMiddleware
 import smithy4s.{Endpoint, Hints}
+import smithy4s.http4s.ServerEndpointMiddleware
 
 object JwtAuthMiddleware:
   def apply[F[_]: MonadThrow](
-      jwt: JWT[F]
+    jwt: JWT[F]
   ): ServerEndpointMiddleware[F] =
     new ServerEndpointMiddleware.Simple[F]:
       def prepareWithHints(
-          serviceHints: Hints,
-          endpointHints: Hints
+        serviceHints: Hints,
+        endpointHints: Hints
       ): HttpApp[F] => HttpApp[F] =
         serviceHints.get[smithy.api.HttpBearerAuth] match
           case Some(_) =>
@@ -27,7 +27,7 @@ object JwtAuthMiddleware:
           case None => identity
 
   def middleware[F[_]: MonadThrow](
-      jwt: JWT[F]
+    jwt: JWT[F]
   ): HttpApp[F] => HttpApp[F] = inputApp =>
     HttpApp[F]: request =>
       val maybeKey = request.headers

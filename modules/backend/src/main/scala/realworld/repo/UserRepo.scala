@@ -17,14 +17,14 @@ trait UserRepo[F[_]]:
   def findByEmail(email: Email): F[Option[WithId[UserId, DBUser]]]
   def findByUsername(username: Username): F[Option[WithId[UserId, DBUser]]]
   def create(
-      uid: UserId,
-      user: RegisterUserData,
-      encryptedPassword: EncryptedPassword
+    uid: UserId,
+    user: RegisterUserData,
+    encryptedPassword: EncryptedPassword
   ): F[Int]
   def update(
-      uid: UserId,
-      updateData: UpdateUserData,
-      hashedPsw: Option[EncryptedPassword]
+    uid: UserId,
+    updateData: UpdateUserData,
+    hashedPsw: Option[EncryptedPassword]
   ): F[Option[WithId[UserId, DBUser]]]
 end UserRepo
 
@@ -39,21 +39,21 @@ object UserRepo:
         u.selectByEmail(email).transact(xa)
 
       def findByUsername(
-          username: Username
+        username: Username
       ): F[Option[WithId[UserId, DBUser]]] =
         u.selectByUsername(username).transact(xa)
 
       def create(
-          uid: UserId,
-          user: RegisterUserData,
-          encryptedPassword: EncryptedPassword
+        uid: UserId,
+        user: RegisterUserData,
+        encryptedPassword: EncryptedPassword
       ): F[Int] =
         u.insert(uid, user.username, user.email, encryptedPassword).transact(xa)
 
       def update(
-          uid: UserId,
-          updateData: UpdateUserData,
-          hashedPsw: Option[EncryptedPassword]
+        uid: UserId,
+        updateData: UpdateUserData,
+        hashedPsw: Option[EncryptedPassword]
       ): F[Option[WithId[UserId, DBUser]]] =
         u.update(uid, updateData, hashedPsw).transact(xa)
 end UserRepo
@@ -63,7 +63,7 @@ private object UserSQL:
   import realworld.domain.user.given
 
   private def queryUser(
-      conditionFragment: Fragment
+    conditionFragment: Fragment
   ) =
     (fr"SELECT ${u.rowCol} FROM $u " ++ conditionFragment)
       .queryOf(u.rowCol)
@@ -79,7 +79,7 @@ private object UserSQL:
       .option
 
   def selectByUsername(
-      username: Username
+    username: Username
   ): ConnectionIO[Option[WithId[UserId, DBUser]]] =
     sql"""
     SELECT ${u.rowCol} FROM $u WHERE ${u.username === username}
@@ -88,10 +88,10 @@ private object UserSQL:
       .option
 
   def insert(
-      id: UserId,
-      username: Username,
-      email: Email,
-      password: EncryptedPassword
+    id: UserId,
+    username: Username,
+    email: Email,
+    password: EncryptedPassword
   ): ConnectionIO[Int] =
     insertInto(
       u,
@@ -104,9 +104,9 @@ private object UserSQL:
     ).update.run
 
   def update(
-      uid: UserId,
-      updateData: UpdateUserData,
-      hashedPsw: Option[EncryptedPassword]
+    uid: UserId,
+    updateData: UpdateUserData,
+    hashedPsw: Option[EncryptedPassword]
   ): ConnectionIO[Option[WithId[UserId, DBUser]]] =
     val emailopt    = updateData.email.map(u.email --> _)
     val usernameopt = updateData.username.map(u.username --> _)

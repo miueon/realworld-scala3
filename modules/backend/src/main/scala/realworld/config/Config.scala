@@ -7,13 +7,7 @@ import io.github.iltotore.iron.autoRefine
 import io.github.iltotore.iron.cats.given
 import io.github.iltotore.iron.ciris.given
 import realworld.config.types.{
-  AppConfig,
-  HttpServerConfig,
-  JwtAccessTokenKeyConfig,
-  PasswordSalt,
-  PostgresSQLConfig,
-  RedisConfig,
-  RedisURI,
+  AppConfig, HttpServerConfig, JwtAccessTokenKeyConfig, PasswordSalt, PostgresSQLConfig, RedisConfig, RedisURI,
   TokenExpiration
 }
 
@@ -32,8 +26,8 @@ object Config:
       .load[F]
 
   private def default[F[_]](
-      postgressUri: NonEmptyStringR,
-      redisUri: RedisURI
+    postgressUri: NonEmptyStringR,
+    redisUri: RedisURI
   ): ConfigValue[F, AppConfig] =
     (
       env("SC_ACCESS_TOKEN_KEY").as[JwtAccessTokenKeyConfig].secret,

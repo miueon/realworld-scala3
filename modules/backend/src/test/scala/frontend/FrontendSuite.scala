@@ -14,8 +14,8 @@ import java.nio.file.Paths
 import scala.concurrent.duration.*
 
 case class Resources(
-    probe: Probe,
-    pw: PlaywrightRuntime
+  probe: Probe,
+  pw: PlaywrightRuntime
 )
 
 abstract class FrontendSuite(global: GlobalRead) extends weaver.IOSuite with PlaywrightIntegration:

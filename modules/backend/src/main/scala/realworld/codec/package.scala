@@ -1,8 +1,8 @@
 package realworld
 
 import cats.syntax.all.*
-import io.circe.syntax.*
 import io.circe.{Codec, Decoder, DecodingFailure, Encoder, Json}
+import io.circe.syntax.*
 import realworld.spec.{Bio, Email, ImageUrl, Slug, Token, User, Username}
 import smithy4s.Document
 
@@ -24,9 +24,9 @@ package object codec:
     obj => Document.DObject(obj.toMap.mapValues(jsonToDocument).toMap)
   )
 
-  def documentCodec[A](implicit
-      docEncoder: smithy4s.Document.Encoder[A],
-      docDecoder: smithy4s.Document.Decoder[A]
+  def documentCodec[A](
+    implicit docEncoder: smithy4s.Document.Encoder[A],
+    docDecoder: smithy4s.Document.Decoder[A]
   ): Codec[A] =
     val encoder: Encoder[A] = Encoder.instance { a =>
       documentToJson(docEncoder.encode(a))

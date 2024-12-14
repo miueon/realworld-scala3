@@ -1,7 +1,7 @@
 package realworld
 
-import cats.syntax.all.*
 import cats.{MonadError, MonadThrow}
+import cats.syntax.all.*
 import realworld.spec.{Limit, Skip}
 import smithy4s.Smithy4sThrowable
 

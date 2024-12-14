@@ -2,15 +2,15 @@ package realworld.components.pages
 
 import com.raquo.laminar.api.L.*
 import monocle.syntax.all.*
+import realworld.{guestOnly, AppState, AuthEvent, AuthState}
 import realworld.api.Api
 import realworld.components.Component
 import realworld.components.widgets.{ContainerPage, GenericForm}
 import realworld.routes.JsRouter.*
 import realworld.routes.Page
 import realworld.spec.{LoginUserOutput, UnprocessableEntity}
-import realworld.types.validation.GenericError
 import realworld.types.{FieldType, GenericFormField, InputType, LoginCredential}
-import realworld.{AppState, AuthEvent, AuthState, guestOnly}
+import realworld.types.validation.GenericError
 import utils.Utils.{attempt, foldError, toAuthHeader, writerF}
 
 import scala.concurrent.ExecutionContext.Implicits.global

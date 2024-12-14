@@ -1,7 +1,7 @@
 package realworld.domain.article
 
-import doobie.util.meta.Meta
 import doobie.{Column, Composite, TableDefinition, WithSQLDefinition}
+import doobie.util.meta.Meta
 import io.github.iltotore.iron.constraint.all.*
 import io.github.iltotore.iron.doobie.given
 import realworld.domain.*
@@ -21,13 +21,13 @@ given Meta[Slug] = metaOf(Slug)
 // given Meta[Body]        = Meta[String].refined[Not[Blank]]
 
 case class Article(
-    slug: Slug,
-    title: Title,
-    description: Description,
-    body: Body,
-    createdAt: CreatedAt,
-    updatedAt: UpdatedAt,
-    authorId: UserId
+  slug: Slug,
+  title: Title,
+  description: Description,
+  body: Body,
+  createdAt: CreatedAt,
+  updatedAt: UpdatedAt,
+  authorId: UserId
 )
 
 object Articles extends TableDefinition("articles"):
@@ -41,19 +41,19 @@ object Articles extends TableDefinition("articles"):
   val authorId: Column[UserId]         = Column("author_id")
 
   object ArticleSqlDef
-      extends WithSQLDefinition[Article](
-        Composite(
-          (
-            slug.sqlDef,
-            title.sqlDef,
-            description.sqlDef,
-            body.sqlDef,
-            createdAt.sqlDef,
-            updatedAt.sqlDef,
-            authorId.sqlDef
-          )
-        )(Article.apply)(Tuple.fromProductTyped)
+  extends WithSQLDefinition[Article](
+    Composite(
+      (
+        slug.sqlDef,
+        title.sqlDef,
+        description.sqlDef,
+        body.sqlDef,
+        createdAt.sqlDef,
+        updatedAt.sqlDef,
+        authorId.sqlDef
       )
+    )(Article.apply)(Tuple.fromProductTyped)
+  )
   val columns = ArticleSqlDef
   val rowCol  = WithId.sqlDef(using id, columns, this)
 end Articles
@@ -65,21 +65,21 @@ enum ArticleError extends NoStackTrace:
 
 // API
 case class ListArticleQuery(
-    tag: Option[TagName],
-    author: Option[Username],
-    favorited: Option[Username]
+  tag: Option[TagName],
+  author: Option[Username],
+  favorited: Option[Username]
 )
 
 case class ArticleView(
-    id: ArticleId,
-    slug: Slug,
-    title: Title,
-    description: Description,
-    body: Body,
-    createdAt: CreatedAt,
-    updatedAt: UpdatedAt,
-    authorId: UserId,
-    authorName: Username,
-    authorBio: Option[Bio],
-    authorImage: Option[ImageUrl]
+  id: ArticleId,
+  slug: Slug,
+  title: Title,
+  description: Description,
+  body: Body,
+  createdAt: CreatedAt,
+  updatedAt: UpdatedAt,
+  authorId: UserId,
+  authorName: Username,
+  authorBio: Option[Bio],
+  authorImage: Option[ImageUrl]
 )

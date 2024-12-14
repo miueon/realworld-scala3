@@ -1,7 +1,7 @@
 package realworld.db
 
-import cats.effect.kernel.{MonadCancelThrow, Resource}
 import cats.~>
+import cats.effect.kernel.{MonadCancelThrow, Resource}
 import doobie.{ConnectionIO, Transactor}
 
 extension [F[_]: DoobieTx](xa: Transactor[F])

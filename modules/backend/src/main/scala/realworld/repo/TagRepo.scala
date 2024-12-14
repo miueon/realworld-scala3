@@ -18,7 +18,7 @@ trait TagRepo[F[_]]:
 
 object TagRepo:
   def make[F[_]: MonadCancelThrow](
-      xa: Transactor[F]
+    xa: Transactor[F]
   ): TagRepo[F] =
     new:
       def listTag(articleIds: List[ArticleId]): F[List[Tag]] =

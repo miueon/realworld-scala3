@@ -23,9 +23,10 @@ class UsersSuite(globalRead: GlobalRead) extends IntegrationSuite(globalRead):
       getUsrRsp <- api.users
         .loginUser(LoginUserInputData(registerUserData.email, registerUserData.password))
         .map(_.user)
-    yield expect.all(
-      usrRsp.username == getUsrRsp.username
-    )
+    yield
+      expect.all(
+        usrRsp.username == getUsrRsp.username
+      )
     end for
   }
 
@@ -36,13 +37,14 @@ class UsersSuite(globalRead: GlobalRead) extends IntegrationSuite(globalRead):
       authHeader     <- userDataSupport.authenticateUser
       user           <- api.users.getUser(authHeader).map(_.user)
       updateUserData <- userDataSupport.updateUserData()
-      user <- api.users.updateUser(authHeader, updateUserData).map(_.user)
-    yield expect.all(
-      updateUserData.username.isDefined,
-      user.username == updateUserData.username.get,
-      user.bio == updateUserData.bio,
-      user.image == updateUserData.image
-    )
+      user           <- api.users.updateUser(authHeader, updateUserData).map(_.user)
+    yield
+      expect.all(
+        updateUserData.username.isDefined,
+        user.username == updateUserData.username.get,
+        user.bio == updateUserData.bio,
+        user.image == updateUserData.image
+      )
     end for
   }
 end UsersSuite

@@ -5,16 +5,8 @@ import io.github.iltotore.iron.constraint.all.*
 import io.github.iltotore.iron.constraint.any.{DescribedAs, Not}
 import io.github.iltotore.iron.constraint.string.Blank
 import realworld.spec.{
-  BodyFormat,
-  CommentBodyFormat,
-  DescriptionFormat,
-  EmailFormat,
-  ImageUrlFormat,
-  NonEmptyListFormat,
-  PasswordFormat,
-  TagNameFormat,
-  TitleFormat,
-  UsernameFormat
+  BodyFormat, CommentBodyFormat, DescriptionFormat, EmailFormat, ImageUrlFormat, NonEmptyListFormat, PasswordFormat,
+  TagNameFormat, TitleFormat, UsernameFormat
 }
 import smithy4s.{Refinement, RefinementProvider}
 

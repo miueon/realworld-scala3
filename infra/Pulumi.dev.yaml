@@ -1,0 +1,4 @@
+config:
+  gcp:project: run-dev-436304
+  DEBUG: "false"
+  SC_AP_ENV: "Prod"

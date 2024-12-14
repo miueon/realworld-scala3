@@ -1,8 +1,8 @@
 package realworld.domain
 
+import doobie.{Column, Composite, TableDefinition, WithSQLDefinition}
 import doobie.TableDefinition.RowHelpers
 import doobie.util.meta.Meta
-import doobie.{Column, Composite, TableDefinition, WithSQLDefinition}
 import io.github.iltotore.iron.constraint.all.*
 import realworld.domain.article.ArticleId
 import realworld.types.TagName
@@ -15,13 +15,13 @@ object Tags extends TableDefinition("tags_articles"):
   val tag: Column[TagName]         = Column("tag")
 
   object TagSqlDef
-      extends WithSQLDefinition[Tag](
-        Composite(
-          articleId.sqlDef,
-          tag.sqlDef
-        )(Tag.apply)(Tuple.fromProductTyped)
-      )
-      with RowHelpers[Tag](this)
+  extends WithSQLDefinition[Tag](
+    Composite(
+      articleId.sqlDef,
+      tag.sqlDef
+    )(Tag.apply)(Tuple.fromProductTyped)
+  )
+  with RowHelpers[Tag](this)
 
   val rowCol = TagSqlDef
 end Tags

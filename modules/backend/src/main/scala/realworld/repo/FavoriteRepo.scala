@@ -26,7 +26,7 @@ object FavoriteRepo:
   def make[F[_]: MonadCancelThrow](xa: Transactor[F]): FavoriteRepo[F] =
     new:
       def favoriteCountIdMap(
-          articleIds: List[ArticleId]
+        articleIds: List[ArticleId]
       ): F[Map[ArticleId, FavoritesCount]] =
         NonEmptyList.fromList(articleIds.distinct) match
           case Some(ids) =>
@@ -53,7 +53,7 @@ private object FavoriteSQL:
   import realworld.domain.Favorites as f
 
   def selectFavArticleIdCount(
-      articleIds: NonEmptyList[ArticleId]
+    articleIds: NonEmptyList[ArticleId]
   ): ConnectionIO[List[(ArticleId, Int)]] =
     sql"""
     SELECT ${f.articleId}, COUNT(1) FROM $f
@@ -64,8 +64,8 @@ private object FavoriteSQL:
       .to[List]
 
   def selectFavorites(
-      articleIds: NonEmptyList[ArticleId],
-      userId: UserId
+    articleIds: NonEmptyList[ArticleId],
+    userId: UserId
   ): ConnectionIO[List[Favorite]] =
     sql"""
     SELECT ${f.rowCol} FROM $f

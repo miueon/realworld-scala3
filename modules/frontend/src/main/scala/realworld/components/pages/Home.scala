@@ -5,15 +5,7 @@ import monocle.syntax.all.*
 import realworld.AppState
 import realworld.api.*
 import realworld.components.Component
-import realworld.components.widgets.{
-  ArticleViewer,
-  ArticleViewrState,
-  ContainerPage,
-  Feed,
-  GlobalFeed,
-  Tab,
-  Tag
-}
+import realworld.components.widgets.{ArticleViewer, ArticleViewrState, ContainerPage, Feed, GlobalFeed, Tab, Tag}
 import realworld.spec.{Article, Skip, Total}
 import realworld.types.ArticlePage
 import realworld.types.ArticlePage.toPage
@@ -21,8 +13,8 @@ import utils.Utils.{some, toArticleViewerSkip, writerF}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 case class HomeState(
-    articleList: ArticlePage = ArticlePage(),
-    currentPage: Int = 1
+  articleList: ArticlePage = ArticlePage(),
+  currentPage: Int = 1
 )
 
 final case class Home()(using api: Api, state: AppState) extends Component:

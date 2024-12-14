@@ -11,11 +11,10 @@ class UserDataSupport(probe: Probe):
   def registerUserData() =
     (gen.strI(Username), gen.email, gen.strI(Password)).mapN(RegisterUserData.apply)
 
-  def updateUserData() = 
-    (gen.strI(Username), gen.str(Bio), gen.strI(ImageUrl)).mapN(
-            (username, bio, imageUrl) =>
-              UpdateUserData(username = Some(username), bio = Some(bio), image = Some(imageUrl))
-          )
+  def updateUserData() =
+    (gen.strI(Username), gen.str(Bio), gen.strI(ImageUrl)).mapN((username, bio, imageUrl) =>
+      UpdateUserData(username = Some(username), bio = Some(bio), image = Some(imageUrl))
+    )
 
   def login(email: Email, password: Password) =
     api.users.loginUser(LoginUserInputData(email, password)).map(resp => AuthHeader(s"Token ${resp.user.token.get}"))
@@ -36,9 +35,9 @@ class UserDataSupport(probe: Probe):
     yield (user1, user2)
 
   def prepareTwoUsersWithFollowing =
-    for 
+    for
       (user1, user2) <- prepareTwoUsers
-      authHeader2     <- login(user2.email, user2.password)
-      _               <- api.users.followUser(user1.username, authHeader2)
+      authHeader2    <- login(user2.email, user2.password)
+      _              <- api.users.followUser(user1.username, authHeader2)
     yield (user1, user2)
 end UserDataSupport

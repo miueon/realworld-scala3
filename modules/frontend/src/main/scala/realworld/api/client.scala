@@ -8,14 +8,13 @@ import smithy4s_fetch.*
 
 import scala.concurrent.Future
 import scala.scalajs.js.Promise
-
 export scala.scalajs.js.Thenable.Implicits.thenable2future
 
 class Api private (
-    val articlePromise: ArticleService[Promise],
-    val tagPromise: TagService[Promise],
-    val userPromise: UserService[Promise],
-    val commentPromise: CommentService[Promise]
+  val articlePromise: ArticleService[Promise],
+  val tagPromise: TagService[Promise],
+  val userPromise: UserService[Promise],
+  val commentPromise: CommentService[Promise]
 ):
   import org.scalajs.macrotaskexecutor.MacrotaskExecutor.Implicits.*
   def promise[A](a: Api => Future[A]): Future[A] =

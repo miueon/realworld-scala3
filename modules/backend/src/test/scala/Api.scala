@@ -2,21 +2,18 @@ package realworld
 
 package tests
 
-import realworld.spec.ArticleService
 import cats.effect.*
-import realworld.spec.CommentService
-import realworld.spec.TagService
-import realworld.spec.UserService
-import org.http4s.client.Client
-import org.http4s.Uri
-import smithy4s.http4s.SimpleRestJsonBuilder
 import cats.syntax.all.*
+import org.http4s.Uri
+import org.http4s.client.Client
+import realworld.spec.{ArticleService, CommentService, TagService, UserService}
+import smithy4s.http4s.SimpleRestJsonBuilder
 
 case class Api(
-    articles: ArticleService[IO],
-    comments: CommentService[IO],
-    tags: TagService[IO],
-    users: UserService[IO]
+  articles: ArticleService[IO],
+  comments: CommentService[IO],
+  tags: TagService[IO],
+  users: UserService[IO]
 )
 
 object Api:

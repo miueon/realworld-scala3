@@ -4,6 +4,7 @@ import smithy4s.codegen.Smithy4sCodegenPlugin
 import scala.sys.process.Process
 import java.nio.file.*
 import java.nio.charset.StandardCharsets
+import com.raquo.buildkit.SourceDownloader
 
 Compile / run / fork          := true
 Global / onChangedBuildSource := ReloadOnSourceChanges
@@ -56,6 +57,26 @@ val Config = new {
   val DockerImageName = "miueon/realworld-smithy4s"
   val DockerBaseImage = "wonder/jdk:17.0.10_7-ubuntu"
   val BasePackage     = "realworld"
+}
+
+lazy val preload = taskKey[Unit]("runs Laminar-specific pre-load tasks")
+
+preload := {
+  val projectDir = (ThisBuild / baseDirectory).value
+
+  SourceDownloader.downloadVersionedFile(
+    name = "scalafmt-shared-conf",
+    version = "v0.1.0",
+    urlPattern =
+      version => s"https://raw.githubusercontent.com/raquo/scalafmt-config/refs/tags/$version/.scalafmt.shared.conf",
+    versionFile = projectDir / ".downloads" / ".scalafmt.shared.conf.version",
+    outputFile = projectDir / ".downloads" / ".scalafmt.shared.conf",
+    processOutput = "#\n# DO NOT EDIT. See SourceDownloader in build.sbt\n" + _
+  )
+}
+
+Global / onLoad := {
+  (Global / onLoad).value andThen { state => preload.key.label :: state }
 }
 
 lazy val root = project
@@ -127,18 +148,18 @@ lazy val backend = projectMatrix
     libraryDependencies ++= iron,
     libraryDependencies ++=
       Seq(
-        "org.typelevel" %% "cats-core"                       % Versions.cats,
-        "com.dimafeng"  %% "testcontainers-scala-postgresql" % Versions.testContainers,
-        "com.dimafeng"  %% "testcontainers-scala-redis"      % Versions.testContainers,
-        "com.indoorvivants.playwright" %% "weaver"              % Versions.weaverPlaywright,
-        "com.disneystreaming"          %% "weaver-cats"         % Versions.weaver,
-        "com.disneystreaming"          %% "weaver-scalacheck"   % Versions.weaver,
-        "org.http4s"                   %% "http4s-blaze-server" % Versions.http4sBlaze,
-        "org.http4s"                   %% "http4s-blaze-client" % Versions.http4sBlaze,
-        "org.http4s"                   %% "http4s-ember-server" % Versions.http4s,
-        "org.http4s"                   %% "http4s-ember-client" % Versions.http4s,
-        "org.typelevel"                %% "log4cats-noop"       % Versions.log4cats,
-        "com.microsoft.playwright"      % "playwright"          % "1.49.0"
+        "org.typelevel"                %% "cats-core"                       % Versions.cats,
+        "com.dimafeng"                 %% "testcontainers-scala-postgresql" % Versions.testContainers,
+        "com.dimafeng"                 %% "testcontainers-scala-redis"      % Versions.testContainers,
+        "com.indoorvivants.playwright" %% "weaver"                          % Versions.weaverPlaywright,
+        "com.disneystreaming"          %% "weaver-cats"                     % Versions.weaver,
+        "com.disneystreaming"          %% "weaver-scalacheck"               % Versions.weaver,
+        "org.http4s"                   %% "http4s-blaze-server"             % Versions.http4sBlaze,
+        "org.http4s"                   %% "http4s-blaze-client"             % Versions.http4sBlaze,
+        "org.http4s"                   %% "http4s-ember-server"             % Versions.http4s,
+        "org.http4s"                   %% "http4s-ember-client"             % Versions.http4s,
+        "org.typelevel"                %% "log4cats-noop"                   % Versions.log4cats,
+        "com.microsoft.playwright"      % "playwright"                      % "1.49.0"
       ).map(_ % Test),
     testFrameworks += new TestFramework("weaver.framework.CatsEffect"),
     Test / fork          := true,

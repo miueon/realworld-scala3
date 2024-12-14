@@ -9,8 +9,8 @@ import realworld.repo.{ArticleRepo, CommentRepo, FavoriteRepo, FollowerRepo, Tag
 
 object Repos:
   def make[F[_]: MonadCancelThrow: DoobieTx: Logger](
-      redis: RedisCommands[F, String, String],
-      xa: Transactor[F]
+    redis: RedisCommands[F, String, String],
+    xa: Transactor[F]
   ): Repos[F] =
     new Repos[F](
       ArticleRepo.make(xa),
@@ -22,10 +22,10 @@ object Repos:
     ) {}
 
 sealed abstract class Repos[F[_]] private (
-    val articleRepo: ArticleRepo[F],
-    val commentRepo: CommentRepo[F],
-    val favRepo: FavoriteRepo[F],
-    val followerRepo: FollowerRepo[F],
-    val tagRepo: TagRepo[F],
-    val userRepo: UserRepo[F]
+  val articleRepo: ArticleRepo[F],
+  val commentRepo: CommentRepo[F],
+  val favRepo: FavoriteRepo[F],
+  val followerRepo: FollowerRepo[F],
+  val tagRepo: TagRepo[F],
+  val userRepo: UserRepo[F]
 )

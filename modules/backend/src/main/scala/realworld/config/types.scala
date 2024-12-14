@@ -38,23 +38,23 @@ object types:
   case class RedisConfig(uri: RedisURI)
 
   case class AppConfig(
-      tokenConfig: Secret[JwtAccessTokenKeyConfig],
-      passwordSalt: Secret[PasswordSalt],
-      tokenExpiration: TokenExpiration,
-      postgresSQL: PostgresSQLConfig,
-      redis: RedisConfig,
-      httpServerConfig: HttpServerConfig
+    tokenConfig: Secret[JwtAccessTokenKeyConfig],
+    passwordSalt: Secret[PasswordSalt],
+    tokenExpiration: TokenExpiration,
+    postgresSQL: PostgresSQLConfig,
+    redis: RedisConfig,
+    httpServerConfig: HttpServerConfig
   )
 
   case class PostgresSQLConfig(
-      jdbcUrl: NonEmptyStringR,
-      user: NonEmptyStringR,
-      password: Secret[NonEmptyStringR]
+    jdbcUrl: NonEmptyStringR,
+    user: NonEmptyStringR,
+    password: Secret[NonEmptyStringR]
   )
 
   case class HttpServerConfig(
-      host: Host,
-      port: Port
+    host: Host,
+    port: Port
   )
 
 end types

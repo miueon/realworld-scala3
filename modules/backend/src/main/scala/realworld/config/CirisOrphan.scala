@@ -1,5 +1,6 @@
 package realworld.config
 
+export CirisOrphan.given
 import cats.syntax.all.*
 import ciris.ConfigDecoder
 import com.comcast.ip4s.{Host, Port}
@@ -7,8 +8,6 @@ import realworld.domain.types.Wrapper
 
 import java.time.Instant
 import java.util.UUID
-
-export CirisOrphan.given
 
 object CirisOrphan:
   given ConfigDecoder[String, Instant] =
@@ -27,9 +26,9 @@ object CirisOrphan:
   given ConfigDecoder[String, Port] =
     ConfigDecoder[String].mapOption("com.comcast.ip4s.Port")(Port.fromString)
 
-  given [A, B](using
-      wp: Wrapper[A, B],
-      cd: ConfigDecoder[String, A]
+  given [A, B](
+    using wp: Wrapper[A, B],
+    cd: ConfigDecoder[String, A]
   ): ConfigDecoder[String, B] =
     cd.map(a => wp.iso.get(a))
 end CirisOrphan

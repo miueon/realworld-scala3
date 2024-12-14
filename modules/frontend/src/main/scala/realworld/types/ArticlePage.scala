@@ -4,8 +4,8 @@ import realworld.spec.{Article, ListArticleOutput, ListFeedArticleOutput, Total}
 import utils.Utils.some
 
 case class ArticlePage(
-    articleCount: Total = Total(0),
-    articles: Option[List[Article]] = None
+  articleCount: Total = Total(0),
+  articles: Option[List[Article]] = None
 )
 object ArticlePage:
   extension (a: ListFeedArticleOutput | ListArticleOutput)

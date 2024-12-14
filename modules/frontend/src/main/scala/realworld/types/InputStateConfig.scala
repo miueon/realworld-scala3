@@ -4,20 +4,20 @@ import com.raquo.airstream.core.Observer
 import com.raquo.laminar.api.L.*
 
 case class InputStateConfig(
-    touched: Observer[Boolean] = Observer.empty,
-    untouched: Observer[Boolean] = Observer.empty,
-    dirty: Observer[Boolean] = Observer.empty,
-    pristine: Observer[Boolean] = Observer.empty,
-    valid: Observer[Boolean] = Observer.empty,
-    invalid: Observer[Boolean] = Observer.empty
+  touched: Observer[Boolean] = Observer.empty,
+  untouched: Observer[Boolean] = Observer.empty,
+  dirty: Observer[Boolean] = Observer.empty,
+  pristine: Observer[Boolean] = Observer.empty,
+  valid: Observer[Boolean] = Observer.empty,
+  invalid: Observer[Boolean] = Observer.empty
 )
 
 object InputStateConfig:
   def empty() = InputStateConfig()
 
   def inputStateMod(
-      inputStateConfig: InputStateConfig,
-      $invalid: Signal[Boolean]
+    inputStateConfig: InputStateConfig,
+    $invalid: Signal[Boolean]
   ): Mod[Input] =
     val $dirty                      = Var(false)
     val $touched                    = Var(false)

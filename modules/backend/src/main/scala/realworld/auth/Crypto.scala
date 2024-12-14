@@ -10,18 +10,18 @@ import realworld.types.Password
 trait Crypto:
   def encrypt(value: Password): EncryptedPassword
   def verifyPassword(
-      password: Password,
-      encryptedPassword: EncryptedPassword
+    password: Password,
+    encryptedPassword: EncryptedPassword
   ): Boolean
 
 object Crypto:
-  private final val MemoryInKib          = 12
-  private final val NumberOfIterations   = 20
-  private final val LevelOfParallelism   = 2
-  private final val LengthOfTheFinalHash = 32
-  private final val Type                 = com.password4j.types.Argon2.ID
-  private final val Version              = 19
-  private final val Argon2: Argon2Function =
+  final private val MemoryInKib          = 12
+  final private val NumberOfIterations   = 20
+  final private val LevelOfParallelism   = 2
+  final private val LengthOfTheFinalHash = 32
+  final private val Type                 = com.password4j.types.Argon2.ID
+  final private val Version              = 19
+  final private val Argon2: Argon2Function =
     Argon2Function.getInstance(
       MemoryInKib,
       NumberOfIterations,
@@ -37,8 +37,8 @@ object Crypto:
           EncryptedPassword(pswd.hash(value).`with`(Argon2).getResult())
 
         def verifyPassword(
-            password: Password,
-            encryptedPassword: EncryptedPassword
+          password: Password,
+          encryptedPassword: EncryptedPassword
         ): Boolean =
           pswd.check(password, encryptedPassword.value) `with` Argon2
     }

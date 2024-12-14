@@ -1,31 +1,30 @@
 package realworld
 package tests
 
-import org.http4s.Uri
-import realworld.config.types.AppConfig
-import cats.effect.IO
-import org.http4s.client.Client
-import cats.effect.kernel.Resource
-import cats.effect.kernel.Ref
-import weaver.Log.Entry
 import cats.data.Chain
+import cats.effect.IO
+import cats.effect.kernel.{Ref, Resource}
+import org.http4s.Uri
+import org.http4s.client.Client
+import realworld.config.types.AppConfig
+import weaver.Log.Entry
 
 case class Probe(
-    api: Api,
-    serverUri: Uri,
-    gen: Generator,
-    config: AppConfig,
-    logs: Ref[IO, Chain[Entry]]
+  api: Api,
+  serverUri: Uri,
+  gen: Generator,
+  config: AppConfig,
+  logs: Ref[IO, Chain[Entry]]
 ):
   def userDataSupport    = UserDataSupport(this)
   def articleDataSupport = ArticleDataSupport(this)
 
 object Probe:
   def make(
-      client: Client[IO],
-      uri: Uri,
-      config: AppConfig,
-      logs: Ref[IO, Chain[Entry]]
+    client: Client[IO],
+    uri: Uri,
+    config: AppConfig,
+    logs: Ref[IO, Chain[Entry]]
   ) =
     Resource.eval(
       for
