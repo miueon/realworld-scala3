@@ -1,12 +1,10 @@
 package realworld.resources
 
-import cats.effect.Concurrent
 import cats.effect.kernel.{Async, Resource}
-import cats.effect.std.Console
 import cats.syntax.all.*
 import com.zaxxer.hikari.{HikariConfig, HikariDataSource}
-import dev.profunktor.redis4cats.{Redis, RedisCommands}
 import dev.profunktor.redis4cats.effect.MkRedis
+import dev.profunktor.redis4cats.{Redis, RedisCommands}
 import doobie.*
 import doobie.hikari.HikariTransactor
 import doobie.implicits.*
@@ -21,7 +19,7 @@ sealed abstract class AppResources[F[_]](
 )
 
 object AppResources:
-  def make[F[_]: Concurrent: Console: Logger: MkRedis: Async](
+  def make[F[_]: Logger: MkRedis: Async](
     cfg: AppConfig
   ): Resource[F, AppResources[F]] =
     def checkRedisConnection(

@@ -1,7 +1,6 @@
 package realworld.components.widgets
 
 import com.raquo.laminar.api.L.*
-import com.raquo.laminar.nodes.ReactiveHtmlElement
 
 import scala.scalajs.js.Math
 

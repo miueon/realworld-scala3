@@ -2,8 +2,6 @@ package realworld.components.pages
 
 import com.raquo.airstream.core.Signal
 import com.raquo.laminar.api.L.*
-import com.raquo.laminar.nodes.ReactiveHtmlElement
-import concurrent.ExecutionContext.Implicits.global
 import monocle.syntax.all.*
 import org.scalajs.dom
 import realworld.AppState
@@ -17,6 +15,8 @@ import realworld.types.ArticlePage.toPage
 import utils.Utils.{some, writerF}
 
 import scala.util.{Failure, Success, Try}
+
+import concurrent.ExecutionContext.Implicits.global
 case class ProfileArticlePage(
   articleList: ArticlePage = ArticlePage(),
   currentPage: Int = 1

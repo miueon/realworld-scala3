@@ -1,4 +1,12 @@
+secretsprovider: gcpkms://projects/run-dev-436304/locations/us-central1/keyRings/top-secret/cryptoKeys/enigma
+encryptedkey: CiQAoq2zDmn10yajfnhcD6K4cXNSbZuzJc9gPj7b3X1/W2nn154SSQAd0drEwcRF6aUx7PY+HjU8Q+Jb9A2nQ7URlrrN3dWjC3bLPPIFov+GzyWMhJZPGhkbk4DIcdfp+JSBEORZ70eTIPqD78LTjFg=
 config:
   gcp:project: run-dev-436304
-  DEBUG: "false"
-  SC_AP_ENV: "Prod"
+  realworld-scala3:DEBUG: "false"
+  realworld-scala3:SC_AP_ENV: Prod
+  realworld-scala3:SC_POSTGRES_PASSWORD:
+    secure: v1:FX87ULfsMdA0NrOn:TVVEaNhEfImSpSJTsBN3yiJlDoV8AQ==
+  realworld-scala3:SC_ACCESS_TOKEN_KEY:
+    secure: v1:6QI1NwUGse4X5C7H:YiH8D3VSlvbFprdT9FCqwi+QLPjBNZ1yVAKXa4qt
+  realworld-scala3:SC_PASSWORD_SALT:
+    secure: v1:srCok0lgrkvUF//u:0h1y1BqVJflhFH2YBkqYYTPXnGU=

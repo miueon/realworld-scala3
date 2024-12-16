@@ -52,7 +52,6 @@ object Redis:
     using Context
   )(
     name: NonEmptyString,
-    replicas: Input[Int] = 1,
     options: ComponentResourceOptions = ComponentResourceOptions()
   ): Output[Redis] =
     component(name, "besom:example:Redis", options) {

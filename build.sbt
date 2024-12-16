@@ -9,7 +9,9 @@ import com.raquo.buildkit.SourceDownloader
 Compile / run / fork          := true
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / scalacOptions := Seq(
-  "-Wunused:all"
+  "-Wunused:all",
+  "-experimental",
+  "-language:experimental.betterFors"
 )
 inThisBuild(
   Seq(
@@ -33,7 +35,7 @@ val Versions = new {
   val log4cats          = "2.6.0"
   val http4sBlaze       = "0.23.14"
   val http4s            = "0.23.18"
-  val scala             = "3.5.0"
+  val scala             = "3.6.2"
   val jwt               = "9.1.2"
   val flyway            = "10.7.2"
   val postgres          = "42.6.0"

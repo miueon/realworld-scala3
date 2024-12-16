@@ -55,7 +55,7 @@ object Fixture:
         PostgresSQLConfig(
           jdbcUrl = cont.jdbcUrl.refine,
           user = cont.username.refine,
-          password = Secret(cont.password.refine)
+          password = Secret(cont.password.refine[NonEmptyOrBlank].asInstanceOf[NonEmptyStringR])
         )
       }
 

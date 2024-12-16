@@ -4,9 +4,8 @@ import com.raquo.airstream.core.Observer
 import com.raquo.laminar.api.L.*
 import com.raquo.laminar.modifiers.RenderableText
 import com.raquo.laminar.nodes.ReactiveHtmlElement
-import concurrent.ExecutionContext.Implicits.global
 import monocle.syntax.all.*
-import org.scalajs.dom.{HTMLButtonElement, HTMLElement, MouseEvent}
+import org.scalajs.dom.{HTMLElement, MouseEvent}
 import realworld.AppState
 import realworld.api.*
 import realworld.components.Component
@@ -17,6 +16,8 @@ import utils.Utils
 import utils.Utils.{classTupleToClassName, some, someWriterF, toList, toSignal, writerF}
 
 import scala.util.{Failure, Success, Try}
+
+import concurrent.ExecutionContext.Implicits.global
 
 case class CommentSectionState(
   comments: Option[List[CommentView]] = None,
