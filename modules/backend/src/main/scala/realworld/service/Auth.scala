@@ -117,9 +117,9 @@ object Auth:
       end access
 
       def update(userSession: UserSession, updateData: UpdateUserData): F[UserSession] =
-        val hasedPassword = updateData.password.map(crypto.encrypt(_))
-        val uid           = userSession.id
         for
+          hasedPassword = updateData.password.map(crypto.encrypt(_))
+          uid           = userSession.id
           token <- userSession.user.token.get.value.pure[F]
           _     <- updateData.email.traverse(emailNotUsed(_, uid))
           _     <- updateData.username.traverse(usernameNotUsed(_, uid))

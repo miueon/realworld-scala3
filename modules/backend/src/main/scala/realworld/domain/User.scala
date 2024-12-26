@@ -11,6 +11,7 @@ import javax.crypto.Cipher
 import realworld.codec.given
 import realworld.domain.*
 import realworld.domain.types.{IdNewtype, Newtype}
+import realworld.macroutil.*
 import realworld.spec.{Bio, Profile}
 import realworld.types.{Email, EmailConstraint, ImageUrl, Username, UsernameConstraint}
 
@@ -28,7 +29,8 @@ case class DecryptCipher(value: Cipher)
 // given Meta[Email]             = Meta[String].refined[EmailConstraint]
 // given Meta[Username]          = Meta[String].refined[UsernameConstraint]
 given Meta[EncryptedPassword] = EncryptedPassword.derive
-given Meta[Bio]               = metaOf(Bio)
+given Meta[Bio]               = deriveInstance
+// given Meta[Bio]               = metaOf(Bio)
 
 case class DBUser(
   email: Email,

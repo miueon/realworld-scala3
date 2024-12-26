@@ -10,12 +10,13 @@ import realworld.domain.types.IdNewtype
 import realworld.domain.user.UserId
 import realworld.spec.{Bio, CreatedAt, Slug, UpdatedAt}
 import realworld.types.{Body, Description, ImageUrl, TagName, Title, Username}
+import realworld.macroutil.*
 
 import scala.util.control.NoStackTrace
 type ArticleId = ArticleId.Type
 object ArticleId extends IdNewtype
 
-given Meta[Slug] = metaOf(Slug)
+given Meta[Slug] = deriveInstance
 // given Meta[Title]       = Meta[String].refined[Not[Blank]]
 // given Meta[Description] = Meta[String].refined[Not[Blank]]
 // given Meta[Body]        = Meta[String].refined[Not[Blank]]

@@ -1,17 +1,40 @@
 import besom.*
+import besom.aliases.NonEmptyString
 import besom.api.gcp
 import besom.api.gcp.sql.DatabaseInstanceArgs
+import besom.api.gcp.sql.UserArgs
 import besom.api.gcp.sql.inputs.DatabaseInstanceSettingsArgs
 import besom.api.gcp.sql.inputs.DatabaseInstanceSettingsLocationPreferenceArgs
-import besom.api.gcp.storage.BucketArgs
-import realworld.infra.Redis
-import besom.api.gcp.sql.UserArgs
 import besom.api.kubernetes
-import besom.api.kubernetes.{ProviderArgs => kProviderArgs}
+import besom.api.kubernetes.ProviderArgs as kProviderArgs
+import besom.api.kubernetes.apps.v1.*
+import besom.api.kubernetes.apps.v1.inputs.DeploymentSpecArgs
+import besom.api.kubernetes.core
+import besom.api.kubernetes.core.v1.*
+import besom.api.kubernetes.core.v1.enums.*
+import besom.api.kubernetes.core.v1.inputs.ConfigMapEnvSourceArgs
+import besom.api.kubernetes.core.v1.inputs.ContainerArgs
+import besom.api.kubernetes.core.v1.inputs.ContainerPortArgs
+import besom.api.kubernetes.core.v1.inputs.EnvFromSourceArgs
+import besom.api.kubernetes.core.v1.inputs.EnvVarArgs
+import besom.api.kubernetes.core.v1.inputs.ExecActionArgs
+import besom.api.kubernetes.core.v1.inputs.PodSpecArgs
+import besom.api.kubernetes.core.v1.inputs.PodTemplateSpecArgs
+import besom.api.kubernetes.core.v1.inputs.ProbeArgs
+import besom.api.kubernetes.core.v1.inputs.ResourceRequirementsArgs
+import besom.api.kubernetes.core.v1.inputs.SecretEnvSourceArgs
+import besom.api.kubernetes.core.v1.inputs.SecurityContextArgs
+import besom.api.kubernetes.core.v1.inputs.ServicePortArgs
+import besom.api.kubernetes.core.v1.inputs.ServiceSpecArgs
+import besom.api.kubernetes.core.v1.inputs.VolumeArgs
+import besom.api.kubernetes.core.v1.inputs.VolumeMountArgs
+import besom.api.kubernetes.meta.v1.*
+import besom.api.kubernetes.meta.v1.inputs.*
+import besom.internal.Context
+import besom.internal.Input
+import besom.internal.Output
 
 @main def main = Pulumi.run {
-  val bucket = gcp.storage.Bucket("my-bucket", BucketArgs(location = "US"))
-
   val kubernetesEngine = gcp.projects.Service(
     name = "enable-kubernetes-engine",
     gcp.projects.ServiceArgs(
@@ -118,9 +141,187 @@ import besom.api.kubernetes.{ProviderArgs => kProviderArgs}
     opts = opts(dependsOn = sqlInstance)
   )
 
-  val redis = Redis("redis", options = ComponentResourceOptions(providers = gkeProvider))
+  val redis = Redis("redis", options = CustomResourceOptions(provider = gkeProvider))
 
   Stack(k8sCluster, redis, databaseInstance, dbUser).exports(
-    bucketName = bucket.url // Export the DNS name of the bucket
   )
 }
+
+def realworldService(
+  using Context
+)(
+  instanceName: NonEmptyString,
+  cloudSqlInstance: NonEmptyString,
+  appImageTag: NonEmptyString,
+  options: CustomResourceOptions = CustomResourceOptions()
+): Output[Service] =
+  val labels = Map("app" -> instanceName)
+  val deployment = Deployment(
+    instanceName,
+    DeploymentArgs(
+      metadata = ObjectMetaArgs(
+        name = instanceName
+      ),
+      spec = DeploymentSpecArgs(
+        replicas = 1,
+        selector = LabelSelectorArgs(
+          matchLabels = labels
+        ),
+        template = PodTemplateSpecArgs(
+          metadata = ObjectMetaArgs(
+            name = instanceName,
+            labels = labels,
+          ),
+          spec = PodSpecArgs(
+            containers = List(
+              ContainerArgs(
+                name = instanceName,
+                image = s"ghcr.io/miueon/realworld-smithy4s:$appImageTag",
+                ports = List(
+                  ContainerPortArgs(
+                    containerPort = 8088
+                  )
+                ),
+                envFrom = List(
+                  EnvFromSourceArgs(
+                    configMapRef = ConfigMapEnvSourceArgs(
+                      name = "app-config"
+                    ),
+                    secretRef = SecretEnvSourceArgs(
+                      name = "app-secrets"
+                    )
+                  )
+                ),
+                resources = ResourceRequirementsArgs(
+                  requests = Map(
+                    "cpu"    -> "200m",
+                    "memory" -> "256Mi"
+                  )
+                )
+              ),
+              ContainerArgs(
+                args = List(s"--instances=$cloudSqlInstance=tcp:5432"),
+                name = "cloud-sql-proxy",
+                image = "gcr.io/cloudsql-docker/gce-proxy:1.33.0",
+                securityContext = SecurityContextArgs(
+                  runAsNonRoot = true
+                ),
+                resources = ResourceRequirementsArgs(
+                  requests = Map(
+                    "cpu"    -> "100m",
+                    "memory" -> "128"
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+
+  Service(
+    instanceName,
+    ServiceArgs(
+      metadata = ObjectMetaArgs(
+        name = instanceName,
+        labels = labels
+      ),
+      spec = ServiceSpecArgs(
+        ports = List(
+          ServicePortArgs(
+            name = "http",
+            port = 80,
+            targetPort = 8088
+          )
+        ),
+        selector = deployment.spec.template.metadata.labels
+      )
+    ),
+    opts = options
+  )
+end realworldService
+
+def Redis(
+  using Context
+)(
+  instanceName: NonEmptyString,
+  options: CustomResourceOptions = CustomResourceOptions()
+): Output[Service] =
+  val labels = Map("app" -> instanceName)
+
+  val redisPortName   = "containerPort"
+  val redisPortNumber = 6379
+
+  val deployment = Deployment(
+    instanceName,
+    DeploymentArgs(
+      metadata = ObjectMetaArgs(
+        name = instanceName,
+        labels = labels
+      ),
+      spec = DeploymentSpecArgs(
+        selector = LabelSelectorArgs(
+          matchLabels = labels
+        ),
+        template = PodTemplateSpecArgs(
+          metadata = ObjectMetaArgs(
+            name = instanceName,
+            labels = labels
+          ),
+          spec = PodSpecArgs(
+            containers = List(
+              ContainerArgs(
+                name = "redis",
+                image = "redis:latest",
+                ports = List(
+                  ContainerPortArgs(
+                    name = redisPortName,
+                    containerPort = redisPortNumber
+                  )
+                ),
+                readinessProbe = ProbeArgs(
+                  exec = ExecActionArgs(
+                    List("redis-cli", "ping")
+                  ),
+                  initialDelaySeconds = 1,
+                  periodSeconds = 1,
+                  timeoutSeconds = 3,
+                  failureThreshold = 30
+                ),
+                resources = ResourceRequirementsArgs(
+                  requests = Map(
+                    "cpu"    -> "100m",
+                    "memory" -> "100Mi"
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  )
+
+  Service(
+    instanceName,
+    ServiceArgs(
+      metadata = ObjectMetaArgs(
+        name = instanceName,
+        labels = labels
+      ),
+      spec = ServiceSpecArgs(
+        ports = List(
+          ServicePortArgs(
+            appProtocol = "TCP",
+            name = redisPortName,
+            port = redisPortNumber,
+            targetPort = redisPortNumber
+          )
+        ),
+        selector = deployment.spec.template.metadata.labels
+      )
+    ),
+    opts = options
+  )
+end Redis

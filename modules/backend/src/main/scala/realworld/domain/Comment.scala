@@ -7,10 +7,11 @@ import realworld.domain.article.ArticleId
 import realworld.domain.user.UserId
 import realworld.spec.{Bio, CommentBody, CommentId, CreatedAt, UpdatedAt}
 import realworld.types.{ImageUrl, Username}
+import realworld.macroutil.*
 
 import scala.util.control.NoStackTrace
 
-given Meta[CommentBody] = metaOf(CommentBody)
+given Meta[CommentBody] = deriveInstance  
 
 case class Comment(
   articleId: ArticleId,
