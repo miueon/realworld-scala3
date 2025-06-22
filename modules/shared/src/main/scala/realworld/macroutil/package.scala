@@ -36,5 +36,4 @@ package object macroutil {
           )
     else report.errorAndAbort(s"${tpe.show} is not an opaque type")
   end deriveInstanceImpl
-
 }

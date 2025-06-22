@@ -7,13 +7,14 @@ import doobie.*
 import doobie.Fragments.*
 import doobie.implicits.*
 import org.typelevel.log4cats.Logger
-import realworld.db.*
+import realworld.db.{*, given}
 import realworld.domain.{Tag, WithId, WithTotal}
 import realworld.domain.article.*
 import realworld.domain.user.UserId
 import realworld.http.Pagination
 import realworld.spec.{Bio, CreatedAt, Slug, UpdateArticleData, UpdatedAt}
 import realworld.types.TagName
+import cats.~>
 
 trait ArticleRepo[F[_]]:
   def list(
@@ -77,7 +78,8 @@ object ArticleRepo:
         updatedAt: UpdatedAt,
         authorId: UserId
       ): F[Option[ArticleView]] =
-        xa.transaction.use { implicit f =>
+        xa.transaction.use { f =>
+          given ConnectionIO ~> F = f
           val r =
             for
               article <- OptionT[F, ArticleView](A.selectBySlug(oldSlug))
@@ -223,7 +225,8 @@ private object ArticleSQL:
   end update
 
   def deleteBySlug(slug: Slug, authorId: UserId): ConnectionIO[Option[Unit]] =
-    val q = sql"""
+    val q =
+      sql"""
     DELETE FROM $ar WHERE ${ar.slug === slug} AND ${ar.authorId === authorId}
     """
     q.update.run.map(affectedToOption)
