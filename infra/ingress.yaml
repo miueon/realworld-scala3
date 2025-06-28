@@ -1,0 +1,52 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: realworld-ingress
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.global-static-ip-name: "realworld-lb-ip"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    kubernetes.io/ingress.allow-http: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  tls:
+    - hosts:
+        - "www.miueon-v.top" # Your domain - will be dynamically replaced by deploy script
+      secretName: realworld-tls
+  rules:
+    - host: "www.miueon-v.top" # Your domain - will be dynamically replaced by deploy script
+      http:
+        paths:
+          - path: "/*"
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: realworld-app
+                port:
+                  number: 80
+---
+# Legacy Google-managed certificate (kept for reference, but cert-manager is preferred)
+# apiVersion: networking.gke.io/v1
+# kind: ManagedCertificate
+# metadata:
+#   name: realworld-ssl-cert
+# spec:
+#   domains:
+#     - "www.miueon-v.top"  # Your domain
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: realworld-app-nodeport
+  labels:
+    app: realworld-app
+spec:
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+      name: http
+  selector:
+    app: realworld

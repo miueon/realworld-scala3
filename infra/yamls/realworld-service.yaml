@@ -1,12 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: realworld
+  name: realworld-app # Updated to match ingress backend
+  labels:
+    app: realworld
 spec:
   selector:
     app: realworld
   ports:
     - protocol: TCP
-      port: 8080
-      targetPort: 8080
-  type: LoadBalancer
+      port: 80 # Ingress expects port 80
+      targetPort: 8080 # Container port
+  type: ClusterIP # Changed to ClusterIP since we're using ingress

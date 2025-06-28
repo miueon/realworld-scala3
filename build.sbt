@@ -11,7 +11,8 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / scalacOptions := Seq(
   "-Wunused:all",
   "-experimental",
-  "-language:experimental.betterFors"
+  "-language:experimental.betterFors",
+  "-Ycheck-all-patmat",
 )
 inThisBuild(
   Seq(
